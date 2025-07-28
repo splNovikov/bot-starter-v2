@@ -1,48 +1,49 @@
 """
-User message handlers for the Telegram bot.
+User interaction handlers for the Telegram bot.
 
-See business/docs/handlers.md for comprehensive documentation on adding new handlers.
+Contains handlers for basic user commands like start, help, greet, 
+and general message processing.
 """
 
-from aiogram import Router, F
-from aiogram.types import Message
-from aiogram.filters import Command
+from aiogram import Router
+from aiogram.types import Message, CallbackQuery
 
 from core.handlers.decorators import command, text_handler, message_handler
 from core.handlers.types import HandlerCategory
-from core.handlers.registry import get_registry
 from core.utils.logger import get_logger
+from business.services.greeting import send_greeting, get_username
+from business.services.help_service import generate_localized_help
+from business.services.localization import t
+from business.handlers.language_handlers import cmd_language, cmd_languages, handle_language_selection
 
-from business.services.greeting import send_greeting, get_username, create_greeting_message
-
+# Create router for user handlers
 user_router = Router(name="user_handlers")
+
 logger = get_logger()
 
 
 @command(
-    "start", 
+    "start",
     description="Get a welcome greeting message",
     category=HandlerCategory.CORE,
     usage="/start",
-    examples=["/start"],
-    tags=["welcome", "introduction"]
+    examples=["/start"]
 )
 async def cmd_start(message: Message) -> None:
-    """Handle /start command - entry point for new users."""
+    """Handle /start command."""
     await send_greeting(message)
 
 
 @command(
     "greet",
-    description="Send a friendly greeting message", 
-    category=HandlerCategory.USER,
+    description="Send a friendly greeting message",
+    category=HandlerCategory.USER, 
     usage="/greet",
-    examples=["/greet", "/hi", "/hello"],
-    aliases=["hi", "hello"],
-    tags=["greeting", "social"]
+    examples=["/greet"],
+    aliases=["hi", "hello"]
 )
 async def cmd_greet(message: Message) -> None:
-    """Handle /greet command and its aliases."""
+    """Handle /greet command and aliases."""
     await send_greeting(message)
 
 
@@ -54,65 +55,69 @@ async def cmd_greet(message: Message) -> None:
     examples=["/help"]
 )
 async def cmd_help(message: Message) -> None:
-    """Handle /help command with auto-generated help from registry."""
+    """Handle /help command with localized output."""
     try:
-        registry = get_registry()
-        help_text = registry.generate_help_text()
-        
-        logger.info(f"Help command requested by user {message.from_user.id}")
-        
+        help_text = generate_localized_help(message.from_user)
         await message.answer(help_text, parse_mode="HTML")
         
+        # System log in English only
+        logger.info(f"Help command requested by user {message.from_user.id}")
+        
     except Exception as e:
-        logger.error(f"Error in help command handler: {e}")
-        await message.answer("Sorry, something went wrong. Please try again.")
+        logger.error(f"Error generating help text: {e}")
+        error_msg = t("errors.help_generation_failed", user=message.from_user)
+        await message.answer(error_msg)
 
 
 @text_handler(
     "greeting_responder",
-    description="Respond to any text message with a greeting",
+    description="Responds to text messages with greeting",
     category=HandlerCategory.USER,
     hidden=True
 )
-async def handle_text_message(message: Message) -> None:
-    """Handle any text message that isn't caught by command handlers."""
+async def handle_other_messages(message: Message) -> None:
+    """Handle all other text messages with a greeting."""
     await send_greeting(message)
 
 
 @message_handler(
     "media_responder", 
-    description="Handle non-text messages (photos, documents, etc.)",
+    description="Handle non-text messages",
     category=HandlerCategory.USER,
     hidden=True
 )
-async def handle_other_messages(message: Message) -> None:
-    """Handle non-text messages like photos, documents, voice messages, etc."""
+async def handle_media_messages(message: Message) -> None:
+    """Handle media and other non-text messages."""
     try:
+        # System log in English only
         username = get_username(message.from_user)
+        logger.info(f"Non-text message received from {username} (ID: {message.from_user.id}): {message.content_type}")
         
-        logger.info(
-            f"Non-text message received from {username} "
-            f"(ID: {message.from_user.id}): {message.content_type}"
-        )
-        
-        greeting_message = create_greeting_message(username)
-        response = f"{greeting_message} I can only respond to text messages right now."
-        
+        # User response in their language
+        greeting = t("greetings.hello", user=message.from_user, username=get_username(message.from_user))
+        response = t("greetings.media_response", user=message.from_user, greeting=greeting)
         await message.answer(response)
         
     except Exception as e:
-        logger.error(f"Error in media message handler: {e}")
-        await message.answer("Sorry, something went wrong. Please try again.")
+        logger.error(f"Error handling media message: {e}")
+        error_msg = t("errors.generic", user=message.from_user)
+        await message.answer(error_msg)
 
 
 def initialize_registry():
-    """Initialize the global registry with the router."""
+    """Initialize the handlers registry with all user handlers."""
+    from core.handlers.registry import get_registry
+    
+    # Get registry instance
     registry = get_registry()
     registry._router = user_router
     
-    # Re-register all handlers with the router
+    # Re-register all handlers with the router (this handles automatic registration)
     for handler in registry.get_all_handlers():
         if handler.metadata.enabled:
             registry._register_with_router(handler)
+    
+    # Register callback query handler for language selection
+    user_router.callback_query.register(handle_language_selection)
     
     logger.info(f"Registry initialized with {len(registry.get_all_handlers())} handlers and router integration") 

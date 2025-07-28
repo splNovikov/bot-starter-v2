@@ -18,6 +18,11 @@ class BotConfig:
     token: str
     log_level: str = "INFO"
     
+    # Localization settings
+    default_language: str = "en"
+    locales_dir: str = "locales"
+    supported_languages: list[str] = None
+    
     @classmethod
     def from_env(cls) -> "BotConfig":
         """Create BotConfig instance from environment variables."""
@@ -25,9 +30,16 @@ class BotConfig:
         if not token:
             raise ValueError("BOT_TOKEN environment variable is required")
         
+        # Parse supported languages from environment variable
+        supported_languages_str = os.getenv("SUPPORTED_LANGUAGES", "en,es,ru")
+        supported_languages = [lang.strip() for lang in supported_languages_str.split(",")]
+        
         return cls(
             token=token,
-            log_level=os.getenv("LOG_LEVEL", "INFO")
+            log_level=os.getenv("LOG_LEVEL", "INFO"),
+            default_language=os.getenv("DEFAULT_LANGUAGE", "en"),
+            locales_dir=os.getenv("LOCALES_DIR", "locales"),
+            supported_languages=supported_languages
         )
 
 

@@ -111,7 +111,13 @@ class HandlersRegistry:
         
         if metadata.handler_type == HandlerType.COMMAND:
             from aiogram.filters import Command
+            
+            # Register main command
             self._router.message.register(wrapped_func, Command(metadata.command))
+            
+            # Register all aliases as separate command handlers
+            for alias in metadata.aliases:
+                self._router.message.register(wrapped_func, Command(alias))
             
         elif metadata.handler_type == HandlerType.TEXT:
             from aiogram import F

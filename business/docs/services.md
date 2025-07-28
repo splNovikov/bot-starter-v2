@@ -7,6 +7,8 @@ This guide explains how to create reusable business logic services that handlers
 ### 1. Single Responsibility
 Each service should focus on one business domain or external integration:
 - **Greeting service**: User greeting and personalization
+- **Localization service**: Multi-language support and text localization
+- **Help service**: Localized help text generation
 - **Weather service**: Weather data and formatting  
 - **Database service**: Data persistence operations
 - **Auth service**: User authentication and authorization
@@ -55,7 +57,26 @@ def validate_command_args(args: list, min_args: int) -> bool:
     return len(args) >= min_args
 ```
 
-### 2. Async Services
+### 2. Singleton Services
+
+Services that maintain state and provide global access:
+
+```python
+from typing import Optional
+from business.services.localization import LocalizationService
+
+# Global instance pattern (Singleton)
+_localization_service: Optional[LocalizationService] = None
+
+def get_localization_service() -> LocalizationService:
+    """Get the global localization service instance."""
+    global _localization_service
+    if _localization_service is None:
+        _localization_service = LocalizationService()
+    return _localization_service
+```
+
+### 3. Async Services
 
 Functions that perform I/O operations:
 
@@ -69,230 +90,162 @@ async def get_weather(city: str) -> str:
     """Get weather information for a city."""
     try:
         async with aiohttp.ClientSession() as session:
-            url = f"https://api.weather.com/v1/current?city={city}"
-            headers = {"API-Key": "your-api-key"}
-            
-            async with session.get(url, headers=headers, timeout=10) as response:
+            async with session.get(f"http://api.weather.com/{city}") as response:
                 if response.status == 200:
                     data = await response.json()
-                    return format_weather_response(data)
-                elif response.status == 404:
-                    return f"Weather data not available for {city}"
+                    return format_weather_data(data)
                 else:
-                    return "Weather service temporarily unavailable"
+                    logger.error(f"Weather API error: {response.status}")
+                    return "Weather information unavailable"
                     
-    except asyncio.TimeoutError:
+    except aiohttp.ClientTimeout:
         logger.error(f"Weather API timeout for city: {city}")
-        return "Weather service is taking too long to respond"
+        return "Weather service is currently unavailable"
     except Exception as e:
         logger.error(f"Weather API error for {city}: {e}")
-        return "Sorry, couldn't get weather information"
+        return "Unable to get weather information"
 
-def format_weather_response(data: dict) -> str:
-    """Format weather API response for user display."""
-    city = data.get('name', 'Unknown')
-    temp = data.get('main', {}).get('temp', 'N/A')
-    description = data.get('weather', [{}])[0].get('description', 'N/A')
-    
-    return f"🌤️ Weather in {city}:\n{temp}°C, {description.title()}"
+def format_weather_data(data: dict) -> str:
+    """Format weather data for user display."""
+    return f"🌤️ {data['city']}: {data['temp']}°C, {data['description']}"
 ```
 
-### 3. Service Classes
+## 🚀 Core Services Documentation
 
-For stateful services with multiple methods:
+### 🌍 LocalizationService
 
+**Purpose**: Provides multi-language support with automatic language detection and user preferences.
+
+**Features**:
+- JSON-based translations with lazy loading
+- Parameter substitution in messages  
+- User language preference storage
+- Automatic fallback chain
+- Caching for performance
+
+**Usage**:
 ```python
-from typing import Dict, Optional
-import asyncio
+from business.services.localization import t, get_localization_service
 
-class DatabaseService:
-    """Handle database operations for user data."""
-    
-    def __init__(self, connection_string: str):
-        self.connection_string = connection_string
-        self._connection = None
-        self.logger = get_logger()
-    
-    async def connect(self) -> None:
-        """Establish database connection."""
-        try:
-            # Database connection logic
-            self._connection = await create_connection(self.connection_string)
-            self.logger.info("Database connection established")
-        except Exception as e:
-            self.logger.error(f"Database connection failed: {e}")
-            raise
-    
-    async def save_user_preference(self, user_id: int, key: str, value: str) -> bool:
-        """Save user preference to database."""
-        try:
-            if not self._connection:
-                await self.connect()
-            
-            query = "INSERT OR REPLACE INTO user_preferences (user_id, key, value) VALUES (?, ?, ?)"
-            await self._connection.execute(query, (user_id, key, value))
-            await self._connection.commit()
-            
-            self.logger.info(f"Saved preference for user {user_id}: {key}")
-            return True
-            
-        except Exception as e:
-            self.logger.error(f"Error saving preference: {e}")
-            return False
-    
-    async def get_user_preferences(self, user_id: int) -> Dict[str, str]:
-        """Get all preferences for a user."""
-        try:
-            if not self._connection:
-                await self.connect()
-            
-            query = "SELECT key, value FROM user_preferences WHERE user_id = ?"
-            cursor = await self._connection.execute(query, (user_id,))
-            rows = await cursor.fetchall()
-            
-            return {row[0]: row[1] for row in rows}
-            
-        except Exception as e:
-            self.logger.error(f"Error getting preferences: {e}")
-            return {}
-    
-    async def close(self) -> None:
-        """Close database connection."""
-        if self._connection:
-            await self._connection.close()
-            self.logger.info("Database connection closed")
+# Simple translation (for user-facing messages only)
+greeting = t("greetings.hello", user=message.from_user, username="John")
 
-# Usage
-db_service = DatabaseService("sqlite:///bot.db")
+# System logs should use regular logger in English
+logger.info(f"User {user.id} requested weather for {city}")
+
+# Direct service access
+service = get_localization_service()
+supported_langs = service.get_supported_languages()
 ```
 
-## 🚀 Step-by-Step: Creating a New Service
+**Important**: System logs, error messages for developers, and internal communications should always use regular Python logger in English. Only user-facing messages should use the localization system.
 
-### Example: Creating a Translation Service
+**Architecture**:
+```
+LocalizationService
+├── _load_language()        # Cached language file loading
+├── get_user_language()     # Language detection with fallback
+├── set_user_language()     # User preference management
+├── get_supported_languages() # Available language enumeration
+└── t()                     # Main translation method
+```
 
+### 📖 LocalizedHelpService  
+
+**Purpose**: Generates localized help text that respects user language preferences.
+
+**Features**:
+- Uses localization keys instead of hardcoded metadata
+- Supports category filtering
+- Maintains consistent formatting across languages
+- Fallback error handling
+
+**Usage**:
 ```python
-# 1. Create business/services/translation.py
+from business.services.help_service import generate_localized_help
 
-import aiohttp
-from typing import Optional
-from core.utils.logger import get_logger
+# Generate full help for user
+help_text = generate_localized_help(message.from_user)
 
-logger = get_logger()
-
-# Supported languages
-SUPPORTED_LANGUAGES = {
-    'en': 'English',
-    'es': 'Spanish', 
-    'fr': 'French',
-    'de': 'German',
-    'it': 'Italian',
-    'pt': 'Portuguese',
-    'ru': 'Russian',
-    'ja': 'Japanese',
-    'ko': 'Korean',
-    'zh': 'Chinese'
-}
-
-async def translate_text(text: str, target_lang: str, source_lang: str = 'auto') -> str:
-    """
-    Translate text to target language.
-    
-    Args:
-        text: Text to translate
-        target_lang: Target language code (e.g., 'en', 'es')
-        source_lang: Source language code (default: 'auto')
-    
-    Returns:
-        Translated text or error message
-    """
-    try:
-        # Validate target language
-        if target_lang not in SUPPORTED_LANGUAGES:
-            return f"Unsupported language: {target_lang}\nSupported: {', '.join(SUPPORTED_LANGUAGES.keys())}"
-        
-        # Validate text length
-        if len(text) > 5000:
-            return "Text too long (max 5000 characters)"
-        
-        # Call translation API
-        translated = await _call_translation_api(text, source_lang, target_lang)
-        
-        if translated:
-            return f"🌐 Translation ({SUPPORTED_LANGUAGES[target_lang]}):\n{translated}"
-        else:
-            return "Translation failed. Please try again."
-            
-    except Exception as e:
-        logger.error(f"Translation error: {e}")
-        return "Translation service temporarily unavailable"
-
-async def _call_translation_api(text: str, source: str, target: str) -> Optional[str]:
-    """Call external translation API."""
-    try:
-        async with aiohttp.ClientSession() as session:
-            url = "https://api.translate.service.com/v1/translate"
-            data = {
-                'text': text,
-                'source': source,
-                'target': target
-            }
-            headers = {'Authorization': 'Bearer YOUR_API_KEY'}
-            
-            async with session.post(url, json=data, headers=headers, timeout=15) as response:
-                if response.status == 200:
-                    result = await response.json()
-                    return result.get('translated_text')
-                return None
-                
-    except Exception as e:
-        logger.error(f"Translation API error: {e}")
-        return None
-
-def get_supported_languages() -> str:
-    """Get formatted list of supported languages."""
-    lang_list = [f"{code} - {name}" for code, name in SUPPORTED_LANGUAGES.items()]
-    return "🌐 Supported languages:\n" + "\n".join(lang_list)
-
-# 2. Export in business/services/__init__.py
-from .translation import translate_text, get_supported_languages
-
-__all__.extend([
-    'translate_text',
-    'get_supported_languages'
-])
-
-# 3. Create handler in business/handlers/user_handlers.py
-@command(
-    "translate",
-    description="Translate text to another language",
-    category=HandlerCategory.UTILITY,
-    usage="/translate <language> <text>",
-    examples=[
-        "/translate es Hello world",
-        "/translate fr Good morning"
-    ]
+# Generate category-specific help
+admin_help = generate_localized_help(
+    message.from_user, 
+    category=HandlerCategory.ADMIN
 )
-async def cmd_translate(message: Message) -> None:
-    """Handle /translate command."""
-    args = message.text.split(maxsplit=2)[1:] if message.text else []
+```
+
+**Architecture**:
+```
+LocalizedHelpService
+├── generate_help_text()    # Main help generation
+├── get_command_help()      # Individual command help
+├── _group_by_category()    # Handler organization
+├── _get_category_name()    # Localized category names
+└── _format_command_help()  # Command formatting
+```
+
+### 👋 GreetingService
+
+**Purpose**: Handles user greeting and personalization logic.
+
+**Usage**:
+```python
+from business.services.greeting import send_greeting, get_username
+
+# Send localized greeting
+await send_greeting(message)
+
+# Extract username
+username = get_username(message.from_user)
+```
+
+## 📊 Service Integration Patterns
+
+### Handler-Service Integration
+
+**Best Practice**: Keep handlers thin and delegate to services:
+
+```python
+@command("weather", description="Get weather information")
+async def cmd_weather(message: Message) -> None:
+    """Handle /weather command."""
+    args = message.text.split()[1:] if message.text else []
     
-    if len(args) < 2:
-        languages = get_supported_languages()
-        await message.answer(
-            f"Usage: /translate <language> <text>\n\n{languages}"
-        )
+    if not args:
+        error_msg = t("errors.missing_city", user=message.from_user)
+        await message.answer(error_msg)
         return
     
-    target_lang = args[0].lower()
-    text_to_translate = args[1]
+    city = " ".join(args)
     
-    result = await translate_text(text_to_translate, target_lang)
-    await message.answer(result)
+    # System log in English
+    logger.info(f"Weather request for {city} by user {message.from_user.id}")
+    
+    # Delegate to service
+    weather_info = await get_weather(city)
+    await message.answer(weather_info)
 ```
 
-## 🎯 Service Best Practices
+### Service Composition
 
-### 1. Error Handling
+**Pattern**: Services can depend on other services:
+
+```python
+class LocalizedHelpService:
+    def __init__(self):
+        self.registry = get_registry()
+        self.localization_service = get_localization_service()  # Dependency
+    
+    def generate_help_text(self, user: User) -> str:
+        # Uses both registry and localization services
+        title = self.localization_service.t("commands.help.header", user=user)
+        handlers = self.registry.get_all_handlers()
+        # ... combine both services
+```
+
+### Error Handling in Services
+
+**Pattern**: Consistent error handling across services:
 
 ```python
 async def robust_service_function(data: str) -> str:
@@ -312,287 +265,155 @@ async def robust_service_function(data: str) -> str:
         return result
         
     except ValueError as e:
-        # Input validation errors - don't log as errors
+        # Input validation errors - log in English (system log)
         logger.warning(f"Invalid input: {e}")
         return f"Invalid input: {e}"
         
     except ServiceError as e:
-        # Expected service errors
+        # Expected service errors - log in English (system log)
         logger.warning(f"Service error: {e}")
         return "Service temporarily unavailable"
         
     except Exception as e:
-        # Unexpected errors - log with full context
+        # Unexpected errors - log with full context in English
         logger.error(f"Unexpected error in service: {e}", exc_info=True)
         return "An unexpected error occurred"
 ```
 
-### 2. Input Validation
+## 🎯 Service Best Practices
+
+### 1. **Dependency Injection Ready**
+Design services to be easily injectable for testing:
 
 ```python
-def validate_email(email: str) -> bool:
-    """Validate email format."""
-    import re
-    pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
-    return bool(re.match(pattern, email))
-
-def sanitize_user_input(text: str, max_length: int = 1000) -> str:
-    """Sanitize user input for safe processing."""
-    if not text:
-        return ""
+class DatabaseService:
+    def __init__(self, connection_string: str = None):
+        self.connection_string = connection_string or config.database_url
+        self._connection = None
     
-    # Remove potentially dangerous characters
-    import re
-    text = re.sub(r'[<>"\']', '', text)
-    
-    # Truncate if too long
-    if len(text) > max_length:
-        text = text[:max_length-3] + "..."
-    
-    return text.strip()
+    async def connect(self):
+        """Connect to database."""
+        # Connection logic
+        pass
 ```
 
-### 3. Async Best Practices
+### 2. **Configuration Management**
+Services should get configuration from central config:
 
 ```python
-import asyncio
-from typing import List
-
-async def process_multiple_items(items: List[str]) -> List[str]:
-    """Process multiple items concurrently."""
-    # Process items concurrently for better performance
-    tasks = [process_single_item(item) for item in items]
-    results = await asyncio.gather(*tasks, return_exceptions=True)
-    
-    # Handle results and exceptions
-    processed_results = []
-    for i, result in enumerate(results):
-        if isinstance(result, Exception):
-            logger.error(f"Error processing item {i}: {result}")
-            processed_results.append(f"Error processing item {i}")
-        else:
-            processed_results.append(result)
-    
-    return processed_results
-
-async def process_with_retry(data: str, max_retries: int = 3) -> str:
-    """Process data with retry logic."""
-    for attempt in range(max_retries):
-        try:
-            return await external_service_call(data)
-        except TemporaryError as e:
-            if attempt == max_retries - 1:
-                raise
-            wait_time = 2 ** attempt  # Exponential backoff
-            logger.warning(f"Attempt {attempt + 1} failed, retrying in {wait_time}s: {e}")
-            await asyncio.sleep(wait_time)
-```
-
-### 4. Configuration and Environment
-
-```python
-import os
-from typing import Optional
+from config import config
 
 class ServiceConfig:
-    """Configuration for external services."""
-    
-    API_KEY: Optional[str] = os.getenv('WEATHER_API_KEY')
-    BASE_URL: str = os.getenv('WEATHER_BASE_URL', 'https://api.weather.com')
-    TIMEOUT: int = int(os.getenv('API_TIMEOUT', '10'))
-    MAX_RETRIES: int = int(os.getenv('MAX_RETRIES', '3'))
-    
-    @classmethod
-    def validate(cls) -> None:
-        """Validate required configuration."""
-        if not cls.API_KEY:
-            raise ValueError("WEATHER_API_KEY environment variable is required")
+    def __init__(self):
+        self.api_key = config.external_api_key
+        self.timeout = config.api_timeout
+        self.retries = config.api_retries
+```
 
-# Use in service
-async def get_weather_with_config(city: str) -> str:
-    """Get weather using configuration."""
-    ServiceConfig.validate()
-    
+### 3. **Caching and Performance**
+Use appropriate caching for expensive operations:
+
+```python
+from functools import lru_cache
+
+class LocalizationService:
+    @lru_cache(maxsize=32)
+    def _load_language(self, language_code: str) -> Dict[str, Any]:
+        """Load translations with caching."""
+        # Expensive file loading operation
+        pass
+```
+
+### 4. **Designed for Testing**
+Design services to be easily mockable:
+
+```python
+# Service interface
+from abc import ABC, abstractmethod
+
+class WeatherServiceProtocol(ABC):
+    @abstractmethod
+    async def get_weather(self, city: str) -> str:
+        pass
+
+# Implementation
+class WeatherService(WeatherServiceProtocol):
+    async def get_weather(self, city: str) -> str:
+        # Real implementation
+        pass
+
+# Test mock
+class MockWeatherService(WeatherServiceProtocol):
+    async def get_weather(self, city: str) -> str:
+        return "Mock weather data"
+```
+
+### 5. **Localization Guidelines**
+
+**Critical Rule**: Only user-facing messages should be localized. System logs, developer messages, and internal communications must be in English.
+
+```python
+async def my_service_function(user: User, data: str):
+    """Example of proper localization usage."""
     try:
-        async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=ServiceConfig.TIMEOUT)) as session:
-            url = f"{ServiceConfig.BASE_URL}/current"
-            headers = {"API-Key": ServiceConfig.API_KEY}
-            params = {"city": city}
-            
-            async with session.get(url, headers=headers, params=params) as response:
-                # Process response
-                pass
+        # System log - ALWAYS in English
+        logger.info(f"Processing request from user {user.id} with data length {len(data)}")
+        
+        result = process_data(data)
+        
+        # User message - localized
+        success_msg = t("messages.processing_complete", user=user, result=result)
+        return success_msg
+        
     except Exception as e:
-        logger.error(f"Weather service error: {e}")
-        raise
+        # System log - ALWAYS in English  
+        logger.error(f"Service error for user {user.id}: {e}")
+        
+        # User message - localized
+        error_msg = t("errors.service_unavailable", user=user)
+        return error_msg
 ```
 
-## 🧪 Testing Services
+**Do not localize:**
+- Logger messages (`logger.info`, `logger.error`, etc.)
+- Exception messages for developers
+- Debug information
+- System status messages
+- API responses to other services
+- Internal configuration or validation messages
 
-### Unit Testing
-
-```python
-import pytest
-from unittest.mock import AsyncMock, patch
-from business.services.weather import get_weather
-
-@pytest.mark.asyncio
-async def test_get_weather_success():
-    """Test successful weather API call."""
-    mock_response_data = {
-        'name': 'London',
-        'main': {'temp': 20},
-        'weather': [{'description': 'sunny'}]
-    }
-    
-    with patch('aiohttp.ClientSession.get') as mock_get:
-        mock_response = AsyncMock()
-        mock_response.status = 200
-        mock_response.json.return_value = mock_response_data
-        
-        mock_get.return_value.__aenter__.return_value = mock_response
-        
-        result = await get_weather("London")
-        
-        assert "London" in result
-        assert "20°C" in result
-        assert "Sunny" in result
-
-@pytest.mark.asyncio
-async def test_get_weather_api_error():
-    """Test weather API error handling."""
-    with patch('aiohttp.ClientSession.get') as mock_get:
-        mock_response = AsyncMock()
-        mock_response.status = 500
-        
-        mock_get.return_value.__aenter__.return_value = mock_response
-        
-        result = await get_weather("London")
-        
-        assert "unavailable" in result.lower()
-
-@pytest.mark.asyncio 
-async def test_get_weather_timeout():
-    """Test weather API timeout handling."""
-    with patch('aiohttp.ClientSession.get') as mock_get:
-        mock_get.side_effect = asyncio.TimeoutError()
-        
-        result = await get_weather("London")
-        
-        assert "taking too long" in result.lower()
-```
-
-### Integration Testing
-
-```python
-@pytest.mark.asyncio
-async def test_weather_service_integration():
-    """Test weather service with handler integration."""
-    from business.handlers.user_handlers import cmd_weather
-    from unittest.mock import MagicMock, AsyncMock
-    
-    # Mock message
-    message = MagicMock()
-    message.text = "/weather London"
-    message.answer = AsyncMock()
-    
-    # Mock service to return known result
-    with patch('business.services.weather.get_weather') as mock_service:
-        mock_service.return_value = "London: 20°C, Sunny"
-        
-        await cmd_weather(message)
-        
-        mock_service.assert_called_once_with("London")
-        message.answer.assert_called_once_with("London: 20°C, Sunny")
-```
-
-## 📁 Service Organization
-
-### File Structure
-
-```python
-business/services/
-├── __init__.py           # Export all services
-├── greeting.py           # User greeting logic
-├── weather.py            # Weather API integration
-├── translation.py        # Translation services
-├── database.py           # Data persistence
-├── auth.py              # Authentication/authorization
-├── notifications.py      # External notifications
-└── utils.py             # Shared service utilities
-```
-
-### Service Dependencies
-
-```python
-# services/utils.py - Shared utilities
-async def make_api_request(url: str, headers: dict = None, timeout: int = 10) -> dict:
-    """Common API request utility."""
-    # Shared HTTP client logic
-
-def format_error_message(error: Exception, context: str) -> str:
-    """Format error messages consistently."""
-    # Common error formatting
-
-# Use in other services
-from .utils import make_api_request, format_error_message
-
-async def some_service_function():
-    try:
-        data = await make_api_request("https://api.example.com/data")
-        return process_data(data)
-    except Exception as e:
-        error_msg = format_error_message(e, "some_service_function")
-        logger.error(error_msg)
-        raise
-```
+**Do localize:**
+- Messages shown to end users
+- Bot responses to user commands
+- Error messages displayed to users
+- Help text and command descriptions
+- User interface elements
 
 ## 🔄 Service Lifecycle
 
 ### Initialization
+Services are initialized when first accessed via getter functions:
 
 ```python
-# business/services/__init__.py
-from .greeting import send_greeting, get_username, create_greeting_message
-from .weather import get_weather
-from .database import DatabaseService
+# Lazy initialization pattern
+_service_instance = None
 
-# Initialize stateful services
-db_service = DatabaseService("sqlite:///bot.db")
-
-# Export functions and instances
-__all__ = [
-    # Greeting services
-    'send_greeting',
-    'get_username', 
-    'create_greeting_message',
-    
-    # Weather services
-    'get_weather',
-    
-    # Database service
-    'db_service'
-]
+def get_service():
+    global _service_instance
+    if _service_instance is None:
+        _service_instance = Service()
+    return _service_instance
 ```
 
 ### Cleanup
+Services with resources should implement cleanup:
 
 ```python
-# In main.py or application shutdown
-async def cleanup_services():
-    """Clean up service resources."""
-    from business.services import db_service
-    
-    await db_service.close()
-    logger.info("Services cleaned up")
+class DatabaseService:
+    async def close(self):
+        """Close database connections."""
+        if self._connection:
+            await self._connection.close()
 ```
 
-## 📚 Next Steps
-
-1. **Study existing service** in `business/services/greeting.py`
-2. **Start with simple utility functions** before complex services
-3. **Create comprehensive tests** for all service functions
-4. **Use proper error handling** and logging throughout
-5. **Export services properly** in package `__init__.py` files
-
-Services provide the business logic foundation that makes handlers thin and maintainable while keeping complex operations properly organized and testable. 
+This service architecture ensures scalable, maintainable, and testable business logic that follows SOLID principles and integrates seamlessly with the core framework. 

@@ -1,0 +1,57 @@
+{
+  "_language_name": "English",
+  "_language_code": "en",
+  "_version": "1.0.0",
+  
+  "greetings": {
+    "hello": "Hello, {username}!",
+    "welcome": "Welcome to the bot! Type /help to see available commands.",
+    "media_response": "{greeting} I can only respond to text messages right now."
+  },
+  
+  "commands": {
+    "help": {
+      "description": "Show available commands and usage information",
+      "header": "🤖 Available Commands:",
+      "category_header": "🤖 {category} Commands:",
+      "category_core": "Core:",
+      "category_user": "User:",
+      "category_admin": "Admin:",
+      "category_utility": "Utility:",
+      "usage_label": "Usage:",
+      "examples_label": "Examples:",
+      "no_commands": "No commands available."
+    },
+    "start": {
+      "description": "Get a welcome greeting message"
+    },
+    "greet": {
+      "description": "Send a friendly greeting message"
+    },
+    "language": {
+      "description": "View and change your language preference",
+      "current_and_options": "🌍 Your current language is: **{current_language}**\n\nSelect a language below:",
+      "changed_successfully": "✅ Language changed to **{language_name}** successfully!",
+      "change_failed": "❌ Failed to change language. Please try again.",
+      "supported_languages": "🌍 **Supported Languages:**\n\n{languages_list}\n\nUse /language to change your preference."
+    },
+    "languages": {
+      "description": "Show all supported languages"
+    }
+  },
+  
+  "errors": {
+    "generic": "Sorry, something went wrong. Please try again.",
+    "command_not_found": "Command not found. Type /help to see available commands.",
+    "invalid_input": "Invalid input: {error}",
+    "service_unavailable": "Service is temporarily unavailable. Please try again later.",
+    "help_generation_failed": "Sorry, couldn't generate help text. Please try again."
+  },
+  
+  "messages": {
+    "processing": "Processing your request...",
+    "done": "Done!",
+    "cancelled": "Operation cancelled.",
+    "unknown_content_type": "I received a {content_type} message, but I can only process text messages right now."
+  }
+} 

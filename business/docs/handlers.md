@@ -1,8 +1,88 @@
-# 🎨 Handler Development Guide
+# 📬 Handler Development Guide
 
-This guide explains how to add new handlers to extend bot functionality using the core framework's registry system.
+This guide explains how to create message handlers that respond to user interactions in the Telegram bot.
 
-## 📋 Handler Types
+## 🎯 Handler Overview
+
+Handlers are functions that process incoming messages and provide responses to users. They're automatically registered using decorators and support rich metadata for documentation and introspection.
+
+## 🚀 Quick Start: Adding a Localized Command
+
+### Step 1: Add translations to locale files
+
+```json
+// locales/en.json
+{
+  "commands": {
+    "joke": {
+      "description": "Get a random joke",
+      "no_jokes": "Sorry, no jokes available right now!",
+      "loading": "Getting you a joke..."
+    }
+  }
+}
+```
+
+```json
+// locales/es.json  
+{
+  "commands": {
+    "joke": {
+      "description": "Obtener un chiste aleatorio",
+      "no_jokes": "¡Lo siento, no hay chistes disponibles ahora!",
+      "loading": "Buscando un chiste para ti..."
+    }
+  }
+}
+```
+
+### Step 2: Create the handler
+
+```python
+# business/handlers/user_handlers.py
+from business.services.localization import t
+
+@command(
+    "joke",
+    description="Get a random joke",  # This gets localized automatically
+    category=HandlerCategory.USER,
+    usage="/joke",
+    examples=["/joke"]
+)
+async def cmd_joke(message: Message) -> None:
+    """Handle /joke command with localization."""
+    try:
+        # Show loading message in user's language
+        loading_msg = t("commands.joke.loading", user=message.from_user)
+        await message.answer(loading_msg)
+        
+        # Get joke from service (also localized)
+        joke = await get_random_joke(message.from_user)
+        await message.answer(joke)
+        
+    except Exception as e:
+        logger.error(f"Error getting joke: {e}")
+        error_msg = t("errors.generic", user=message.from_user)
+        await message.answer(error_msg)
+```
+
+### Step 3: Create the service
+
+```python  
+# business/services/joke.py
+from business.services.localization import t
+
+async def get_random_joke(user) -> str:
+    """Get a random joke in user's language."""
+    try:
+        # Your joke API logic here
+        joke_text = await fetch_joke_from_api()
+        return joke_text
+    except Exception:
+        return t("commands.joke.no_jokes", user=user)
+```
+
+## 🎨 Handler Types
 
 ### 1. Command Handlers (`@command`)
 
@@ -299,61 +379,15 @@ async def handle_text_message(message: Message) -> None: ...
 async def handle_other_messages(message: Message) -> None: ...
 ```
 
-## 🧪 Testing Handlers
+## 🧪 Testing Handlers (Future Enhancement)
 
-### Unit Testing
+**Note**: Comprehensive testing framework is planned for future releases. The current handler architecture is designed to support easy testing through dependency injection and clear separation of concerns.
 
-```python
-import pytest
-from unittest.mock import AsyncMock, MagicMock
-from business.handlers.user_handlers import cmd_weather
+### Planned Testing Approach
 
-@pytest.mark.asyncio
-async def test_weather_command_success():
-    """Test weather command with valid city."""
-    # Mock message
-    message = MagicMock()
-    message.text = "/weather London"
-    message.answer = AsyncMock()
-    
-    # Mock service
-    with patch('business.services.weather.get_weather') as mock_get_weather:
-        mock_get_weather.return_value = "London: 20°C, Sunny"
-        
-        # Call handler
-        await cmd_weather(message)
-        
-        # Verify
-        mock_get_weather.assert_called_once_with("London")
-        message.answer.assert_called_once_with("London: 20°C, Sunny")
-
-@pytest.mark.asyncio
-async def test_weather_command_no_args():
-    """Test weather command without city argument."""
-    message = MagicMock()
-    message.text = "/weather"
-    message.answer = AsyncMock()
-    
-    await cmd_weather(message)
-    
-    message.answer.assert_called_once_with("Please specify a city: /weather <city>")
-```
-
-### Integration Testing
-
-```python
-@pytest.mark.asyncio
-async def test_handler_registration():
-    """Test that handler is properly registered."""
-    from core import get_registry
-    
-    registry = get_registry()
-    handler = registry.get_handler_by_command("weather")
-    
-    assert handler is not None
-    assert handler.metadata.description == "Get weather information"
-    assert handler.metadata.category == HandlerCategory.UTILITY
-```
+- **Unit Testing**: Individual handler functions with mocked dependencies
+- **Integration Testing**: Handler registration and aiogram router integration  
+- **Localization Testing**: Multi-language response verification
 
 ## 🔍 Handler Introspection
 
@@ -453,7 +487,7 @@ async def cmd_upload(message: Message) -> None:
 1. **Study existing handlers** in `business/handlers/user_handlers.py`
 2. **Start with simple commands** and gradually add complexity
 3. **Create supporting services** in `business/services/`
-4. **Test thoroughly** with both unit and integration tests
+4. **Document thoroughly** with clear descriptions and examples
 5. **Use registry introspection** for debugging and monitoring
 
 The handler system provides a powerful, type-safe way to build scalable bot functionality with automatic help generation and comprehensive metadata. 

@@ -26,6 +26,7 @@ from aiogram.fsm.storage.memory import MemoryStorage
 from config import config
 from business.handlers import user_router
 from core.middleware import LoggingMiddleware
+from core.middleware.localization_middleware import LocalizationMiddleware
 from core.utils import setup_logger, get_logger
 
 
@@ -65,6 +66,10 @@ class TelegramBot:
         # Register middleware
         dp.message.middleware(LoggingMiddleware())
         dp.callback_query.middleware(LoggingMiddleware())
+        
+        # Register localization middleware
+        dp.message.middleware(LocalizationMiddleware())
+        dp.callback_query.middleware(LocalizationMiddleware())
         
         # Include routers
         dp.include_router(user_router)

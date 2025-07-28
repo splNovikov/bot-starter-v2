@@ -1,245 +1,132 @@
-# Telegram Bot Starter v2
+# 🤖 Modern Telegram Bot Starter
 
-A modern Telegram bot built with **aiogram v3.x**, featuring Router-based architecture, comprehensive logging, and following best practices for maintainability and scalability.
+[![Python](https://img.shields.io/badge/Python-3.11+-blue.svg)](https://python.org)
+[![aiogram](https://img.shields.io/badge/aiogram-3.13+-green.svg)](https://aiogram.dev)
+[![Localization](https://img.shields.io/badge/Localization-✅-brightgreen.svg)](locales/)
+[![Architecture](https://img.shields.io/badge/Architecture-Clean-brightgreen.svg)](#architecture)
 
-## ✨ Features
+A production-ready Telegram bot starter template built with **aiogram v3.x**, featuring clean architecture, comprehensive localization, and type-safe handler system.
 
-- 🚀 **Modern aiogram v3.x** with Router system
-- 🔧 **Environment-based configuration** with python-dotenv
-- 📝 **Structured logging** with loguru (console + file)
-- 🛡️ **Comprehensive error handling** and graceful shutdown
-- 🏗️ **Clean architecture** with separation of concerns
-- 🔄 **Middleware support** for cross-cutting concerns
-- ⚡ **Async/await patterns** for optimal performance
-- 🐳 **Production-ready** with proper logging and monitoring
+## ✨ Key Features
 
-## 📁 Project Structure
-
-```
-bot-starter-v2/
-├── main.py                    # Main application entry point
-├── config.py                  # Configuration management
-├── requirements.txt           # Python dependencies
-├── .env.example              # Environment variables template
-├── handlers/                 # Message and callback handlers
-│   ├── __init__.py
-│   └── user_handlers.py      # User interaction handlers
-├── middlewares/              # Custom middleware
-│   ├── __init__.py
-│   └── logging_middleware.py # Request/response logging
-├── utils/                    # Utility modules
-│   ├── __init__.py
-│   └── logger.py            # Logging configuration
-└── logs/                    # Log files (auto-created)
-    └── bot_errors.log       # Error logs
-```
+- **🏗️ Clean Architecture** - SOLID principles with layered design
+- **🌍 Multi-Language Support** - English, Spanish, Russian (easily extensible)
+- **🔧 Type-Safe Handlers** - Registry-based system with rich metadata
+- **⚡ Auto-Registration** - Decorators handle all the boilerplate
+- **📊 Built-in Analytics** - Performance monitoring and statistics
 
 ## 🚀 Quick Start
 
-### 1. Prerequisites
-
-- Python 3.8+
-- A Telegram bot token from [@BotFather](https://t.me/BotFather)
-
-### 2. Installation
+### Installation
 
 ```bash
-# Clone or create the project
+git clone https://github.com/yourusername/bot-starter-v2.git
 cd bot-starter-v2
 
-# Install dependencies
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+
 pip install -r requirements.txt
-
-# Copy environment template
 cp .env.example .env
+# Edit .env with your BOT_TOKEN
 ```
 
-### 3. Configuration
-
-Edit `.env` file and add your bot token:
-
-```env
-BOT_TOKEN=your_bot_token_from_botfather
-LOG_LEVEL=INFO
-```
-
-### 4. Run the Bot
+### Run the Bot
 
 ```bash
 python main.py
 ```
 
-You should see output like:
-```
-2024-01-20 12:00:00 | INFO     | main:start:123 | Starting Telegram bot application...
-2024-01-20 12:00:01 | INFO     | main:_bot_context:89 | Bot initialized: @YourBot (Your Bot Name)
-2024-01-20 12:00:01 | INFO     | main:start:145 | Starting polling...
-```
-
-## 🤖 Bot Commands
-
-- `/start` - Get a greeting message
-- `/help` - Show available commands
-- **Any text message** - Bot will respond with "Hello, {username}!"
+**Try these commands:**
+- `/start` - Welcome message in your language
+- `/help` - Auto-generated help (localized)
+- `/language` - Change language interactively  
+- `/greet` (or `/hi`, `/hello`) - Friendly greeting
 
 ## 🏗️ Architecture
 
-### Router System (aiogram v3.x)
-
-The bot uses aiogram's Router system for scalable message handling:
-
-```python
-# handlers/user_handlers.py
-user_router = Router(name="user_handlers")
-
-@user_router.message(Command("start"))
-async def cmd_start(message: Message) -> None:
-    # Handler logic
+```
+bot-starter-v2/
+├── 🔧 core/                    # Framework Layer (Reusable)
+│   ├── handlers/               # Registry system & decorators
+│   ├── middleware/             # Infrastructure components
+│   └── utils/                  # Core utilities
+├── 🎯 business/                # Business Layer (Application-specific)  
+│   ├── handlers/               # Message handling logic
+│   └── services/               # Domain services
+├── 🌍 locales/                 # Translation files
+│   ├── en.json, es.json, ru.json
+└── docs/                       # Documentation
 ```
 
-### Configuration Management
+**Core Principles:**
+- **Clean Dependency Flow**: Business → Core (never reverse)
+- **Single Responsibility**: Each class has one purpose
+- **Localization-First**: All user text uses translation system
+- **Type Safety**: Protocol-based interfaces with runtime validation
 
-Environment-based configuration with validation:
+## 🌍 Localization
 
-```python
-# config.py
-@dataclass
-class BotConfig:
-    token: str
-    log_level: str = "INFO"
-    
-    @classmethod
-    def from_env(cls) -> "BotConfig":
-        # Load and validate environment variables
-```
+The bot automatically detects user language and provides content in:
+- **🇺🇸 English** (default) 
+- **🇪🇸 Spanish**
+- **🇷🇺 Russian**
 
-### Structured Logging
+**Language Detection Chain:**
+1. User preference (via `/language` command)
+2. Telegram user locale  
+3. Default language fallback
 
-Comprehensive logging with loguru:
+## 📚 Documentation
 
-- **Console output**: Colored, structured logs
-- **File logging**: Error logs saved to `logs/bot_errors.log`
-- **Automatic rotation**: 10MB rotation with 1-month retention
+### 🎯 Business Layer Development
+- **[Business Overview](business/docs/README.md)** - Application architecture and patterns
+- **[Handler Development](business/docs/handlers.md)** - Creating commands and message processors  
+- **[Service Development](business/docs/services.md)** - Building business logic services
+- **[Implementation Examples](business/docs/examples.md)** - Real-world patterns and examples
 
-### Middleware Support
+### 🔧 Core Framework  
+- **[Core Overview](core/docs/README.md)** - Framework architecture and principles
+- **[Handler System](core/docs/handlers.md)** - Registry, decorators, and type system
+- **[Middleware](core/docs/middleware.md)** - Request processing pipeline
+- **[Utilities](core/docs/utils.md)** - Logging and helper functions
 
-Custom middleware for cross-cutting concerns:
+### 📖 General Documentation
+- **[Localization Guide](docs/localization.md)** - Complete multi-language support guide
+- **[Contributing Guide](docs/contributing.md)** - Development guidelines and standards
 
-```python
-# middlewares/logging_middleware.py
-class LoggingMiddleware(BaseMiddleware):
-    async def __call__(self, handler, event, data):
-        # Log request/response, handle errors
-```
+## 🔧 Configuration
 
-## 🛠️ Development
-
-### Adding New Handlers
-
-1. Create handler functions in `handlers/user_handlers.py`:
-
-```python
-@user_router.message(Command("new_command"))
-async def handle_new_command(message: Message) -> None:
-    await message.answer("New command response!")
-```
-
-2. Handlers are automatically registered via the router system.
-
-### Adding Middleware
-
-1. Create new middleware in `middlewares/`:
-
-```python
-class CustomMiddleware(BaseMiddleware):
-    async def __call__(self, handler, event, data):
-        # Middleware logic
-        return await handler(event, data)
-```
-
-2. Register in `main.py`:
-
-```python
-dp.message.middleware(CustomMiddleware())
-```
-
-### Environment Variables
-
-Add new configuration options in `config.py`:
-
-```python
-@dataclass
-class BotConfig:
-    token: str
-    log_level: str = "INFO"
-    new_setting: str = "default_value"  # Add new settings
-```
-
-## 🐳 Production Deployment
-
-### Using Docker
-
-```dockerfile
-FROM python:3.11-slim
-
-WORKDIR /app
-COPY requirements.txt .
-RUN pip install -r requirements.txt
-
-COPY . .
-CMD ["python", "main.py"]
-```
-
-### Process Management
-
-Use process managers like `systemd`, `supervisor`, or `pm2` for production:
-
-```ini
-# systemd service example
-[Unit]
-Description=Telegram Bot
-After=network.target
-
-[Service]
-Type=simple
-User=botuser
-WorkingDirectory=/path/to/bot
-ExecStart=/usr/bin/python3 main.py
-Restart=always
-
-[Install]
-WantedBy=multi-user.target
-```
-
-## 📊 Monitoring
-
-- **Logs**: Check `logs/bot_errors.log` for errors
-- **Console output**: Real-time logging with colored output
-- **Health checks**: Bot automatically handles connection issues
-
-## 🔒 Security Best Practices
-
-- ✅ Environment variables for sensitive data
-- ✅ Input validation and error handling
-- ✅ Structured logging (no sensitive data in logs)
-- ✅ Graceful shutdown handling
-- ✅ Rate limiting ready (via aiogram built-ins)
-
-## 📈 Scaling
-
-The Router-based architecture supports easy scaling:
-
-- **Horizontal**: Multiple bot instances with shared storage
-- **Vertical**: Async/await patterns for high concurrency
-- **Modular**: Easy to split into microservices
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `BOT_TOKEN` | - | **Required** - Your Telegram bot token |
+| `DEFAULT_LANGUAGE` | `en` | Default language for new users |
+| `SUPPORTED_LANGUAGES` | `en,es,ru` | Comma-separated language codes |
+| `LOG_LEVEL` | `INFO` | Logging level (DEBUG, INFO, WARNING) |
 
 ## 🤝 Contributing
 
-1. Follow the existing code structure
-2. Add proper error handling and logging
-3. Include type hints and docstrings
-4. Test your changes thoroughly
+We welcome contributions! Please see our [Contributing Guide](docs/contributing.md) for development guidelines, architecture patterns, and submission process.
+
+**Quick Start:**
+1. Fork the repository
+2. Create feature branch: `git checkout -b feature/amazing-feature`  
+3. Follow the [architecture patterns](business/docs/README.md)
+4. Add comprehensive documentation
+5. Submit a pull request
 
 ## 📄 License
 
-This project is open source and available under the MIT License. 
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- **[aiogram](https://aiogram.dev)** - Async Telegram Bot framework
+- **[loguru](https://loguru.readthedocs.io)** - Elegant logging
+- **Community** - Thanks to all contributors!
+
+---
+
+**Ready to build something amazing?** 🚀
+
+Start with the [Handler Development Guide](business/docs/handlers.md) and explore the [examples](business/docs/examples.md) to see what's possible! 
