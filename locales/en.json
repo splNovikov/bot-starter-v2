@@ -37,6 +37,51 @@
     },
     "languages": {
       "description": "Show all supported languages"
+    },
+    "questionnaire": {
+      "description": "Start an interactive questionnaire with multiple questions"
+    },
+    "gender": {
+      "description": "Provide your gender information"
+    },
+    "cancel": {
+      "description": "Cancel current questionnaire session"
+    }
+  },
+  
+  "questionnaire": {
+    "welcome": "🙋‍♀️ Welcome to the questionnaire! Please answer each question thoughtfully.",
+    "progress": "📊 Question {current} of {total}",
+    "completed": "✅ Questionnaire completed successfully!",
+    "thank_you": "🙏 Thank you for your participation. Your responses have been saved.",
+    "cancelled": "❌ Questionnaire cancelled. You can restart anytime with /questionnaire",
+    "restart_prompt": "🔄 You already have an active questionnaire. Please complete it first or use /cancel to restart.",
+    "gender_submitted": "✅ Thank you! Your gender information has been saved.",
+    "gender_instruction": "💡 Please type your gender (e.g., male, female, non-binary, or prefer not to say)",
+    "gender_summary": "📋 **Your Response Summary:**\n👤 Gender: {gender}",
+    
+    "questions": {
+      "question_1": "🎯 What is your primary goal for using this bot?",
+      "question_2": "⭐ How would you rate your overall experience with similar services? (1-10)",
+      "gender": "👤 What is your gender?",
+      "question_4": "💄 What are your favorite makeup or beauty brands? (Please list 2-3)"
+    },
+    
+    "summary": {
+      "header": "📋 **Your Response Summary:**",
+      "qa_format": "{number}. **Q:** {question}\n   **A:** {answer}"
+    },
+    
+    "errors": {
+      "no_session": "❌ No active questionnaire session. Start one with /questionnaire",
+      "no_current_question": "⚠️ No current question available. Please restart the questionnaire.",
+      "no_questions": "⚠️ No questions available. Please try again later.",
+      "start_failed": "❌ Failed to start questionnaire. Please try again.",
+      "submit_failed": "❌ Failed to save your answer. Please try again.",
+      "processing_failed": "⚠️ Error processing your answer. Please try again.",
+      "empty_answer": "⚠️ Please provide an answer before continuing.",
+      "no_active_session": "ℹ️ No active questionnaire to cancel.",
+      "cancel_failed": "❌ Failed to cancel questionnaire. Please try again."
     }
   },
   

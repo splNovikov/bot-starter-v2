@@ -4,28 +4,37 @@ This guide explains how to create reusable business logic services that handlers
 
 ## 📋 Service Principles
 
-### 1. Single Responsibility
-Each service should focus on one business domain or external integration:
+### 1. Single Responsibility Principle (SRP)
+Each service should focus on one business domain or responsibility:
 - **Greeting service**: User greeting and personalization
 - **Localization service**: Multi-language support and text localization
 - **Help service**: Localized help text generation
-- **Weather service**: Weather data and formatting  
+- **Questionnaire service**: Orchestrates questionnaire interactions
+- **Session manager**: Manages questionnaire session lifecycle
+- **Question provider**: Handles question logic and sequencing
+- **API client**: External HTTP communication
 - **Database service**: Data persistence operations
 - **Auth service**: User authentication and authorization
 
-### 2. Stateless Design
+### 2. Dependency Inversion Principle (DIP)
+Services depend on interfaces, not concrete implementations:
+- Use protocols to define service interfaces
+- Enable dependency injection for testing
+- Allow easy swapping of implementations
+
+### 3. Stateless Design
 Services should be stateless functions when possible:
 - Easy to test and reason about
 - No hidden dependencies or side effects
 - Predictable behavior across calls
 
-### 3. Clear Interfaces
+### 4. Clear Interfaces
 Services provide simple, clear APIs for handlers:
 - Handler calls service function
 - Service handles all business logic
 - Service returns result or raises exception
 
-### 4. Error Handling
+### 5. Error Handling
 Services handle their own errors gracefully:
 - Log errors with proper context
 - Provide fallback behavior when possible
@@ -57,363 +66,191 @@ def validate_command_args(args: list, min_args: int) -> bool:
     return len(args) >= min_args
 ```
 
-### 2. Singleton Services
+### 2. Orchestrating Services
 
-Services that maintain state and provide global access:
+Services that coordinate between multiple specialized services:
 
 ```python
-from typing import Optional
-from business.services.localization import LocalizationService
+from business.services.interfaces import ApiClientProtocol, SessionManagerProtocol
 
-# Global instance pattern (Singleton)
-_localization_service: Optional[LocalizationService] = None
-
-def get_localization_service() -> LocalizationService:
-    """Get the global localization service instance."""
-    global _localization_service
-    if _localization_service is None:
-        _localization_service = LocalizationService()
-    return _localization_service
+class QuestionnaireService:
+    """Orchestrates questionnaire interactions."""
+    
+    def __init__(
+        self,
+        api_client: ApiClientProtocol,
+        session_manager: SessionManagerProtocol
+    ):
+        self._api_client = api_client
+        self._session_manager = session_manager
+    
+    async def submit_answer(self, user_id: int, answer: str) -> bool:
+        """Submit answer using coordinated services."""
+        # Use session manager for state
+        session = self._session_manager.get_session(user_id)
+        if not session:
+            return False
+        
+        # Use API client for persistence
+        result = await self._api_client.submit_answer(user_id, answer)
+        return result.success
 ```
 
-### 3. Async Services
+### 3. Specialized Services
 
-Functions that perform I/O operations:
+Services with focused, single responsibilities:
 
 ```python
-import aiohttp
-from core.utils.logger import get_logger
+from business.services.interfaces import SessionManagerProtocol
 
-logger = get_logger()
+class SessionManager(SessionManagerProtocol):
+    """Manages questionnaire session lifecycle."""
+    
+    def create_session(self, user_id: int) -> str:
+        """Create new session."""
+        session_id = str(uuid.uuid4())
+        self._sessions[user_id] = QuestionnaireSession(
+            session_id=session_id,
+            user_id=user_id,
+            current_question=0,
+            answers={}
+        )
+        return session_id
+    
+    def add_answer(self, user_id: int, question_key: str, answer: str) -> bool:
+        """Add answer to session."""
+        session = self._sessions.get(user_id)
+        if not session:
+            return False
+        session.answers[question_key] = answer
+        return True
+```
 
-async def get_weather(city: str) -> str:
-    """Get weather information for a city."""
-    try:
-        async with aiohttp.ClientSession() as session:
-            async with session.get(f"http://api.weather.com/{city}") as response:
-                if response.status == 200:
+### 4. Interface-Based Services
+
+Services implementing protocols for testability:
+
+```python
+from business.services.interfaces import ApiClientProtocol, ApiResponse
+
+class ApiClient(ApiClientProtocol):
+    """HTTP client implementing the API protocol."""
+    
+    async def submit_questionnaire_answer(
+        self, 
+        user_id: int, 
+        question_key: str, 
+        answer: str,
+        session_id: Optional[str] = None
+    ) -> ApiResponse:
+        """Submit answer to external API."""
+        try:
+            async with self._get_session() as session:
+                async with session.post(
+                    f"{self.base_url}/questionnaire/answers",
+                    json={
+                        'user_id': user_id,
+                        'question_key': question_key,
+                        'answer': answer,
+                        'session_id': session_id
+                    }
+                ) as response:
                     data = await response.json()
-                    return format_weather_data(data)
-                else:
-                    logger.error(f"Weather API error: {response.status}")
-                    return "Weather information unavailable"
-                    
-    except aiohttp.ClientTimeout:
-        logger.error(f"Weather API timeout for city: {city}")
-        return "Weather service is currently unavailable"
-    except Exception as e:
-        logger.error(f"Weather API error for {city}: {e}")
-        return "Unable to get weather information"
-
-def format_weather_data(data: dict) -> str:
-    """Format weather data for user display."""
-    return f"🌤️ {data['city']}: {data['temp']}°C, {data['description']}"
+                    return ApiResponse(
+                        success=response.status < 400,
+                        data=data,
+                        status_code=response.status
+                    )
+        except Exception as e:
+            return ApiResponse(success=False, error=str(e))
 ```
 
-## 🚀 Core Services Documentation
+## 🧪 Testing Services
 
-### 🌍 LocalizationService
-
-**Purpose**: Provides multi-language support with automatic language detection and user preferences.
-
-**Features**:
-- JSON-based translations with lazy loading
-- Parameter substitution in messages  
-- User language preference storage
-- Automatic fallback chain
-- Caching for performance
-
-**Usage**:
-```python
-from business.services.localization import t, get_localization_service
-
-# Simple translation (for user-facing messages only)
-greeting = t("greetings.hello", user=message.from_user, username="John")
-
-# System logs should use regular logger in English
-logger.info(f"User {user.id} requested weather for {city}")
-
-# Direct service access
-service = get_localization_service()
-supported_langs = service.get_supported_languages()
-```
-
-**Important**: System logs, error messages for developers, and internal communications should always use regular Python logger in English. Only user-facing messages should use the localization system.
-
-**Architecture**:
-```
-LocalizationService
-├── _load_language()        # Cached language file loading
-├── get_user_language()     # Language detection with fallback
-├── set_user_language()     # User preference management
-├── get_supported_languages() # Available language enumeration
-└── t()                     # Main translation method
-```
-
-### 📖 LocalizedHelpService  
-
-**Purpose**: Generates localized help text that respects user language preferences.
-
-**Features**:
-- Uses localization keys instead of hardcoded metadata
-- Supports category filtering
-- Maintains consistent formatting across languages
-- Fallback error handling
-
-**Usage**:
-```python
-from business.services.help_service import generate_localized_help
-
-# Generate full help for user
-help_text = generate_localized_help(message.from_user)
-
-# Generate category-specific help
-admin_help = generate_localized_help(
-    message.from_user, 
-    category=HandlerCategory.ADMIN
-)
-```
-
-**Architecture**:
-```
-LocalizedHelpService
-├── generate_help_text()    # Main help generation
-├── get_command_help()      # Individual command help
-├── _group_by_category()    # Handler organization
-├── _get_category_name()    # Localized category names
-└── _format_command_help()  # Command formatting
-```
-
-### 👋 GreetingService
-
-**Purpose**: Handles user greeting and personalization logic.
-
-**Usage**:
-```python
-from business.services.greeting import send_greeting, get_username
-
-# Send localized greeting
-await send_greeting(message)
-
-# Extract username
-username = get_username(message.from_user)
-```
-
-## 📊 Service Integration Patterns
-
-### Handler-Service Integration
-
-**Best Practice**: Keep handlers thin and delegate to services:
+Services are designed for easy testing through dependency injection:
 
 ```python
-@command("weather", description="Get weather information")
-async def cmd_weather(message: Message) -> None:
-    """Handle /weather command."""
-    args = message.text.split()[1:] if message.text else []
+import pytest
+from unittest.mock import Mock
+from business.services.questionnaire_service import QuestionnaireService
+
+def test_questionnaire_service():
+    # Mock dependencies
+    mock_api_client = Mock()
+    mock_session_manager = Mock()
+    mock_question_provider = Mock()
     
-    if not args:
-        error_msg = t("errors.missing_city", user=message.from_user)
-        await message.answer(error_msg)
-        return
+    # Inject mocks
+    service = QuestionnaireService(
+        api_client=mock_api_client,
+        session_manager=mock_session_manager,
+        question_provider=mock_question_provider
+    )
     
-    city = " ".join(args)
+    # Test behavior
+    mock_session_manager.get_session.return_value = {'answers': {}}
+    mock_question_provider.get_next_question.return_value = 'question_1'
     
-    # System log in English
-    logger.info(f"Weather request for {city} by user {message.from_user.id}")
-    
-    # Delegate to service
-    weather_info = await get_weather(city)
-    await message.answer(weather_info)
+    # Verify service coordinates correctly
+    result = service.get_current_question_key(123, mock_user)
+    assert result == 'question_1'
+    mock_session_manager.get_session.assert_called_with(123)
 ```
 
-### Service Composition
+## 📚 Available Services
 
-**Pattern**: Services can depend on other services:
+### Core Services
+- **`LocalizationService`** - Multi-language text management
+- **`LoggingService`** - Structured logging with context
+
+### Business Services  
+- **`GreetingService`** - User greeting and personalization
+- **`HelpService`** - Localized help text generation
+
+### Questionnaire Services
+- **`QuestionnaireService`** - Orchestrates questionnaire flow
+- **`SessionManager`** - Manages session lifecycle and state
+- **`QuestionProvider`** - Handles question logic and sequencing
+- **`ApiClient`** - External API communication
+
+## 🔧 Service Registration
+
+Services are registered globally for easy access:
 
 ```python
-class LocalizedHelpService:
-    def __init__(self):
-        self.registry = get_registry()
-        self.localization_service = get_localization_service()  # Dependency
-    
-    def generate_help_text(self, user: User) -> str:
-        # Uses both registry and localization services
-        title = self.localization_service.t("commands.help.header", user=user)
-        handlers = self.registry.get_all_handlers()
-        # ... combine both services
+# business/services/__init__.py
+from .questionnaire_service import get_questionnaire_service
+from .session_manager import get_session_manager
+from .question_provider import get_question_provider
+from .api_client import get_api_client
+
+# Global access functions
+def get_questionnaire_service() -> QuestionnaireService:
+    global _questionnaire_service
+    if _questionnaire_service is None:
+        _questionnaire_service = QuestionnaireService()
+    return _questionnaire_service
 ```
 
-### Error Handling in Services
+## 🎯 Best Practices
 
-**Pattern**: Consistent error handling across services:
+### Service Design
+1. **Single Responsibility** - One service, one concern
+2. **Interface Segregation** - Small, focused interfaces
+3. **Dependency Injection** - Inject dependencies, don't create them
+4. **Fail Fast** - Validate inputs early
+5. **Comprehensive Logging** - Log all important operations
 
-```python
-async def robust_service_function(data: str) -> str:
-    """Example of robust error handling in services."""
-    try:
-        # Validate input
-        if not data or len(data.strip()) == 0:
-            raise ValueError("Input data is required")
-        
-        # Process data
-        result = await external_api_call(data)
-        
-        # Validate result
-        if not result:
-            raise ServiceError("No result from external service")
-        
-        return result
-        
-    except ValueError as e:
-        # Input validation errors - log in English (system log)
-        logger.warning(f"Invalid input: {e}")
-        return f"Invalid input: {e}"
-        
-    except ServiceError as e:
-        # Expected service errors - log in English (system log)
-        logger.warning(f"Service error: {e}")
-        return "Service temporarily unavailable"
-        
-    except Exception as e:
-        # Unexpected errors - log with full context in English
-        logger.error(f"Unexpected error in service: {e}", exc_info=True)
-        return "An unexpected error occurred"
-```
+### Error Handling
+1. **Graceful Degradation** - Continue operation when possible
+2. **Meaningful Messages** - Provide localized error messages
+3. **Proper Logging** - Log errors with context
+4. **Exception Propagation** - Let handlers decide error response
 
-## 🎯 Service Best Practices
+### Testing
+1. **Mock Dependencies** - Use interfaces to enable mocking
+2. **Test Behavior** - Focus on service interactions
+3. **Edge Cases** - Test error conditions and edge cases
+4. **Integration Tests** - Test service coordination
 
-### 1. **Dependency Injection Ready**
-Design services to be easily injectable for testing:
-
-```python
-class DatabaseService:
-    def __init__(self, connection_string: str = None):
-        self.connection_string = connection_string or config.database_url
-        self._connection = None
-    
-    async def connect(self):
-        """Connect to database."""
-        # Connection logic
-        pass
-```
-
-### 2. **Configuration Management**
-Services should get configuration from central config:
-
-```python
-from config import config
-
-class ServiceConfig:
-    def __init__(self):
-        self.api_key = config.external_api_key
-        self.timeout = config.api_timeout
-        self.retries = config.api_retries
-```
-
-### 3. **Caching and Performance**
-Use appropriate caching for expensive operations:
-
-```python
-from functools import lru_cache
-
-class LocalizationService:
-    @lru_cache(maxsize=32)
-    def _load_language(self, language_code: str) -> Dict[str, Any]:
-        """Load translations with caching."""
-        # Expensive file loading operation
-        pass
-```
-
-### 4. **Designed for Testing**
-Design services to be easily mockable:
-
-```python
-# Service interface
-from abc import ABC, abstractmethod
-
-class WeatherServiceProtocol(ABC):
-    @abstractmethod
-    async def get_weather(self, city: str) -> str:
-        pass
-
-# Implementation
-class WeatherService(WeatherServiceProtocol):
-    async def get_weather(self, city: str) -> str:
-        # Real implementation
-        pass
-
-# Test mock
-class MockWeatherService(WeatherServiceProtocol):
-    async def get_weather(self, city: str) -> str:
-        return "Mock weather data"
-```
-
-### 5. **Localization Guidelines**
-
-**Critical Rule**: Only user-facing messages should be localized. System logs, developer messages, and internal communications must be in English.
-
-```python
-async def my_service_function(user: User, data: str):
-    """Example of proper localization usage."""
-    try:
-        # System log - ALWAYS in English
-        logger.info(f"Processing request from user {user.id} with data length {len(data)}")
-        
-        result = process_data(data)
-        
-        # User message - localized
-        success_msg = t("messages.processing_complete", user=user, result=result)
-        return success_msg
-        
-    except Exception as e:
-        # System log - ALWAYS in English  
-        logger.error(f"Service error for user {user.id}: {e}")
-        
-        # User message - localized
-        error_msg = t("errors.service_unavailable", user=user)
-        return error_msg
-```
-
-**Do not localize:**
-- Logger messages (`logger.info`, `logger.error`, etc.)
-- Exception messages for developers
-- Debug information
-- System status messages
-- API responses to other services
-- Internal configuration or validation messages
-
-**Do localize:**
-- Messages shown to end users
-- Bot responses to user commands
-- Error messages displayed to users
-- Help text and command descriptions
-- User interface elements
-
-## 🔄 Service Lifecycle
-
-### Initialization
-Services are initialized when first accessed via getter functions:
-
-```python
-# Lazy initialization pattern
-_service_instance = None
-
-def get_service():
-    global _service_instance
-    if _service_instance is None:
-        _service_instance = Service()
-    return _service_instance
-```
-
-### Cleanup
-Services with resources should implement cleanup:
-
-```python
-class DatabaseService:
-    async def close(self):
-        """Close database connections."""
-        if self._connection:
-            await self._connection.close()
-```
-
-This service architecture ensures scalable, maintainable, and testable business logic that follows SOLID principles and integrates seamlessly with the core framework. 
+This architecture ensures services are maintainable, testable, and follow SOLID principles while providing clear separation of concerns. 

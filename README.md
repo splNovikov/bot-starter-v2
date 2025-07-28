@@ -100,6 +100,8 @@ The bot automatically detects user language and provides content in:
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `BOT_TOKEN` | - | **Required** - Your Telegram bot token |
+| `API_BASE_URL` | `https://api.example.com` | Base URL for questionnaire API |
+| `API_TIMEOUT` | `30` | API request timeout in seconds |
 | `DEFAULT_LANGUAGE` | `en` | Default language for new users |
 | `SUPPORTED_LANGUAGES` | `en,es,ru` | Comma-separated language codes |
 | `LOG_LEVEL` | `INFO` | Logging level (DEBUG, INFO, WARNING) |

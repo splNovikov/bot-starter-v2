@@ -16,6 +16,10 @@ from .help_service import (
     get_help_service,
     generate_localized_help
 )
+from .questionnaire_service import get_questionnaire_service
+from .api_client import get_api_client
+from .session_manager import get_session_manager
+from .question_provider import get_question_provider
 
 __version__ = "2.0.0"
 
@@ -33,5 +37,11 @@ __all__ = [
     # Help services
     'LocalizedHelpService',
     'get_help_service',
-    'generate_localized_help'
+    'generate_localized_help',
+    
+    # Questionnaire services
+    'get_questionnaire_service',
+    'get_api_client',
+    'get_session_manager',
+    'get_question_provider'
 ] 

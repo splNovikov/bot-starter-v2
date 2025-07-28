@@ -23,6 +23,10 @@ class BotConfig:
     locales_dir: str = "locales"
     supported_languages: list[str] = None
     
+    # API settings
+    api_base_url: str = "https://api.example.com"
+    api_timeout: int = 30
+    
     @classmethod
     def from_env(cls) -> "BotConfig":
         """Create BotConfig instance from environment variables."""
@@ -39,7 +43,9 @@ class BotConfig:
             log_level=os.getenv("LOG_LEVEL", "INFO"),
             default_language=os.getenv("DEFAULT_LANGUAGE", "en"),
             locales_dir=os.getenv("LOCALES_DIR", "locales"),
-            supported_languages=supported_languages
+            supported_languages=supported_languages,
+            api_base_url=os.getenv("API_BASE_URL", "https://api.example.com"),
+            api_timeout=int(os.getenv("API_TIMEOUT", "30"))
         )
 
 

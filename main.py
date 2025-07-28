@@ -24,7 +24,7 @@ from aiogram.enums import ParseMode
 from aiogram.fsm.storage.memory import MemoryStorage
 
 from config import config
-from business.handlers import user_router
+from business.handlers import user_router, questionnaire_router
 from core.middleware import LoggingMiddleware
 from core.middleware.localization_middleware import LocalizationMiddleware
 from core.utils import setup_logger, get_logger
@@ -71,7 +71,8 @@ class TelegramBot:
         dp.message.middleware(LocalizationMiddleware())
         dp.callback_query.middleware(LocalizationMiddleware())
         
-        # Include routers
+        # Include routers (order matters - specific handlers first)
+        dp.include_router(questionnaire_router)
         dp.include_router(user_router)
         
         return dp
