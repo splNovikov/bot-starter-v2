@@ -23,9 +23,9 @@ from aiogram.enums import ParseMode
 from aiogram.fsm.storage.memory import MemoryStorage
 
 from config import config
-from handlers.user_handlers import user_router
-from middlewares.logging_middleware import LoggingMiddleware
-from utils.logger import setup_logger, get_logger
+from handlers import user_router
+from middlewares import LoggingMiddleware
+from utils import setup_logger, get_logger
 
 
 class TelegramBot:
