@@ -6,7 +6,7 @@ Provides clean, type-safe decorators for registering handlers with metadata.
 from functools import wraps
 from typing import Optional, List, Callable, TypeVar, Union
 
-from .protocols import CommandHandler, TextHandler, MessageHandler, AnyHandler
+from .protocols import CommandHandler, TextHandler, MessageHandler, CallbackHandler, AnyHandler
 from .registry import get_registry
 from .types import HandlerType, HandlerCategory, HandlerMetadata
 from core.utils.logger import get_logger
@@ -84,6 +84,68 @@ def command(
         func.__handler_id__ = handler_id  # type: ignore
         
         logger.debug(f"Registered command handler: /{name}")
+        return func
+    
+    return decorator
+
+
+def callback_query(
+    name: str,
+    *,
+    description: str,
+    category: HandlerCategory = HandlerCategory.USER,
+    enabled: bool = True,
+    hidden: bool = False,
+    admin_only: bool = False,
+    tags: Optional[List[str]] = None,
+    version: str = "1.0.0",
+    author: Optional[str] = None
+) -> Callable[[CallbackHandler], CallbackHandler]:
+    """
+    Decorator for registering callback query handlers.
+    
+    Args:
+        name: Handler name
+        description: Human-readable description
+        category: Handler category
+        enabled: Whether the handler is enabled
+        hidden: Whether to hide from help
+        admin_only: Whether handler requires admin privileges
+        tags: Tags for categorization
+        version: Handler version
+        author: Handler author
+        
+    Returns:
+        Decorated handler function
+        
+    Example:
+        @callback_query("locale_change", description="Handle locale change")
+        async def handle_locale_change(callback: CallbackQuery) -> None:
+            await process_locale_change(callback)
+    """
+    def decorator(func: CallbackHandler) -> CallbackHandler:
+        metadata = HandlerMetadata(
+            name=name,
+            description=description,
+            handler_type=HandlerType.CALLBACK,
+            category=category,
+            enabled=enabled,
+            hidden=hidden,
+            admin_only=admin_only,
+            tags=tags or [],
+            version=version,
+            author=author
+        )
+        
+        # Register with global registry
+        registry = get_registry()
+        handler_id = registry.register(func, metadata)
+        
+        # Add metadata to function for introspection
+        func.__handler_metadata__ = metadata  # type: ignore
+        func.__handler_id__ = handler_id  # type: ignore
+        
+        logger.debug(f"Registered callback query handler: {name}")
         return func
     
     return decorator

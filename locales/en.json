@@ -7,6 +7,14 @@
     "hello": "Hello, {username}!"
   },
   
+  "locale": {
+    "current": "Current language: {language_name}",
+    "select": "Select your preferred language:",
+    "changed": "Language changed to {language_name}!",
+    "error": "Failed to change language. Please try again.",
+    "unsupported": "Language '{language_name}' is not supported."
+  },
+  
   "errors": {
     "generic": "Sorry, something went wrong. Please try again."
   }

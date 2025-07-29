@@ -126,6 +126,12 @@ class HandlersRegistry:
         elif metadata.handler_type == HandlerType.MESSAGE:
             self._router.message.register(wrapped_func)
             
+        elif metadata.handler_type == HandlerType.CALLBACK:
+            # For callback queries, we need to register them manually
+            # since they require specific filters that can't be determined from metadata alone
+            # The callback query handler will be registered directly with the router
+            pass
+            
         # Add more handler types as needed
         
     def _wrap_handler_with_stats(self, handler: RegisteredHandler) -> Callable:
