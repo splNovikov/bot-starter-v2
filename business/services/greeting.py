@@ -8,7 +8,7 @@ and personalized greeting message creation.
 from aiogram.types import Message, User
 
 from core.utils.logger import get_logger
-from business.services.localization import t
+from core.services.localization import t
 
 logger = get_logger()
 

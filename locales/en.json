@@ -61,10 +61,114 @@
     "gender_summary": "📋 **Your Response Summary:**\n👤 Gender: {gender}",
     
     "questions": {
-      "question_1": "🎯 What is your primary goal for using this bot?",
-      "question_2": "⭐ How would you rate your overall experience with similar services? (1-10)",
-      "gender": "👤 What is your gender?",
-      "question_4": "💄 What are your favorite makeup or beauty brands? (Please list 2-3)"
+      "question_1": {
+        "text": "🎯 What is your primary goal for using this bot?",
+        "image": null,
+        "type": "buttons",
+        "options": [
+          {
+            "text": "📚 Learning and Education",
+            "value": "learning"
+          },
+          {
+            "text": "💼 Business and Productivity",
+            "value": "business"
+          },
+          {
+            "text": "🎮 Entertainment",
+            "value": "entertainment"
+          },
+          {
+            "text": "🤝 Social Interaction",
+            "value": "social"
+          },
+          {
+            "text": "🔧 Technical Support",
+            "value": "support"
+          }
+        ]
+      },
+      "question_2": {
+        "text": "⭐ How would you rate your overall experience with similar services?",
+        "image": "https://example.com/rating-scale.jpg",
+        "type": "buttons",
+        "options": [
+          {
+            "text": "⭐ Poor (1-2)",
+            "value": "1-2"
+          },
+          {
+            "text": "⭐⭐ Fair (3-4)",
+            "value": "3-4"
+          },
+          {
+            "text": "⭐⭐⭐ Good (5-6)",
+            "value": "5-6"
+          },
+          {
+            "text": "⭐⭐⭐⭐ Very Good (7-8)",
+            "value": "7-8"
+          },
+          {
+            "text": "⭐⭐⭐⭐⭐ Excellent (9-10)",
+            "value": "9-10"
+          }
+        ]
+      },
+      "gender": {
+        "text": "👤 What is your gender?",
+        "image": null,
+        "type": "buttons",
+        "options": [
+          {
+            "text": "👨 Male",
+            "value": "male"
+          },
+          {
+            "text": "👩 Female", 
+            "value": "female"
+          },
+          {
+            "text": "🏳️‍⚧️ Non-binary",
+            "value": "non-binary"
+          },
+          {
+            "text": "🤐 Prefer not to say",
+            "value": "prefer-not-to-say"
+          }
+        ]
+      },
+      "question_4": {
+        "text": "💄 What are your favorite makeup or beauty brands?",
+        "image": "https://example.com/beauty-brands.jpg",
+        "type": "buttons",
+        "options": [
+          {
+            "text": "💋 MAC Cosmetics",
+            "value": "mac"
+          },
+          {
+            "text": "✨ Sephora",
+            "value": "sephora"
+          },
+          {
+            "text": "🌸 L'Oréal",
+            "value": "loreal"
+          },
+          {
+            "text": "💫 Urban Decay",
+            "value": "urban-decay"
+          },
+          {
+            "text": "🎨 Fenty Beauty",
+            "value": "fenty"
+          },
+          {
+            "text": "📝 Other/Custom",
+            "value": "other"
+          }
+        ]
+      }
     },
     
     "summary": {
@@ -81,7 +185,8 @@
       "processing_failed": "⚠️ Error processing your answer. Please try again.",
       "empty_answer": "⚠️ Please provide an answer before continuing.",
       "no_active_session": "ℹ️ No active questionnaire to cancel.",
-      "cancel_failed": "❌ Failed to cancel questionnaire. Please try again."
+      "cancel_failed": "❌ Failed to cancel questionnaire. Please try again.",
+      "invalid_option": "❌ Invalid option selected. Please try again."
     }
   },
   

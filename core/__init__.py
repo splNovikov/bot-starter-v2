@@ -16,6 +16,8 @@ from .handlers import (
     HandlerType, HandlerCategory, HandlerMetadata
 )
 from .middleware import LoggingMiddleware
+from .services import LocalizationService, get_localization_service, t
+from .protocols import ApiClientProtocol, ApiResponse
 from .utils import get_logger, setup_logger
 
 __version__ = "1.0.0"
@@ -39,6 +41,15 @@ __all__ = [
     
     # Middleware
     'LoggingMiddleware',
+    
+    # Services
+    'LocalizationService',
+    'get_localization_service',
+    't',
+    
+    # Protocols
+    'ApiClientProtocol',
+    'ApiResponse',
     
     # Utilities
     'get_logger',

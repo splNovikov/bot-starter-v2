@@ -13,7 +13,7 @@ from core.handlers.types import HandlerCategory
 from core.utils.logger import get_logger
 from business.services.greeting import send_greeting, get_username
 from business.services.help_service import generate_localized_help
-from business.services.localization import t
+from core.services.localization import t
 from business.handlers.language_handlers import cmd_language, cmd_languages, handle_language_selection
 
 # Create router for user handlers

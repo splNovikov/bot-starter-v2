@@ -10,7 +10,7 @@ from aiogram.types import User
 from core.handlers.registry import get_registry
 from core.handlers.types import HandlerCategory, HandlerType
 from core.utils.logger import get_logger
-from business.services.localization import t, get_localization_service
+from core.services.localization import t, get_localization_service
 
 logger = get_logger()
 

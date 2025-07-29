@@ -10,7 +10,7 @@ from typing import Dict, Optional
 from dataclasses import dataclass, asdict
 
 from core.utils.logger import get_logger
-from business.services.interfaces import SessionManagerProtocol
+from business.protocols.questionnaire import SessionManagerProtocol
 
 logger = get_logger()
 

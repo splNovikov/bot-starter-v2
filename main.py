@@ -98,11 +98,9 @@ class TelegramBot:
             self.bot = await self._create_bot()
             self.dp = await self._create_dispatcher()
             
-            # Get bot info
+            # Get bot info and setup polling mode
             bot_info = await self.bot.get_me()
             self.logger.info(f"Bot initialized: @{bot_info.username} ({bot_info.first_name})")
-            
-            # Setup webhook deletion (ensures polling mode)
             await self.bot.delete_webhook(drop_pending_updates=True)
             
             yield self.bot, self.dp
@@ -111,7 +109,6 @@ class TelegramBot:
             self.logger.error(f"Error during bot initialization: {e}")
             raise
         finally:
-            # Cleanup
             if self.bot:
                 await self.bot.session.close()
                 self.logger.info("Bot session closed")

@@ -6,11 +6,12 @@ following the Single Responsibility Principle.
 """
 
 from typing import Optional, Tuple
-from aiogram.types import User
+from aiogram.types import User, Message, InlineKeyboardMarkup
 
 from core.utils.logger import get_logger
-from business.services.localization import t
-from business.services.interfaces import ApiClientProtocol, SessionManagerProtocol, QuestionProviderProtocol
+from core.services.localization import t
+from core.protocols.base import ApiClientProtocol
+from business.protocols.questionnaire import SessionManagerProtocol, QuestionProviderProtocol
 from business.services.api_client import get_api_client
 from business.services.session_manager import get_session_manager
 from business.services.question_provider import get_question_provider
@@ -82,6 +83,64 @@ class QuestionnaireService:
         
         return self._question_provider.get_next_question(session_data['answers'], user)
     
+    async def send_question(
+        self, 
+        message: Message, 
+        question_key: str, 
+        user: User,
+        show_progress: bool = True
+    ) -> bool:
+        """
+        Send a question to the user with appropriate formatting, keyboard, and media.
+        
+        Args:
+            message: Telegram message object to reply to
+            question_key: Question identifier
+            user: Telegram user object
+            show_progress: Whether to include progress information
+            
+        Returns:
+            True if question was sent successfully
+        """
+        try:
+            question_data = self._question_provider.get_question_data(question_key, user)
+            
+            # Build message text
+            message_parts = []
+            
+            if show_progress:
+                user_id = user.id
+                progress_msg = self.get_progress_text(user_id, user)
+                if progress_msg:
+                    message_parts.append(progress_msg)
+            
+            message_parts.append(question_data.text)
+            full_message = "\n\n".join(message_parts)
+            
+            # Create keyboard if question has options
+            keyboard = self._question_provider.create_question_keyboard(question_key, user)
+            
+            # Send question with image if present
+            if question_data.image:
+                try:
+                    await message.answer_photo(
+                        photo=question_data.image,
+                        caption=full_message,
+                        reply_markup=keyboard
+                    )
+                    return True
+                except Exception as e:
+                    logger.warning(f"Failed to send image {question_data.image}: {e}")
+                    # Fall back to text message
+            
+            # Send text message with keyboard
+            await message.answer(full_message, reply_markup=keyboard)
+            return True
+            
+        except Exception as e:
+            logger.error(f"Error sending question {question_key}: {e}")
+            return False
+    
     def get_question_text(self, question_key: str, user: User) -> str:
         """
         Get localized question text.
@@ -94,6 +153,33 @@ class QuestionnaireService:
             Localized question text
         """
         return self._question_provider.get_question_text(question_key, user)
+    
+    def get_question_keyboard(self, question_key: str, user: User) -> Optional[InlineKeyboardMarkup]:
+        """
+        Get inline keyboard for a question.
+        
+        Args:
+            question_key: Question identifier
+            user: Telegram user object for localization
+            
+        Returns:
+            InlineKeyboardMarkup if question has options, None otherwise
+        """
+        return self._question_provider.create_question_keyboard(question_key, user)
+    
+    def validate_answer(self, question_key: str, answer: str, user: User) -> bool:
+        """
+        Validate if an answer is valid for the given question.
+        
+        Args:
+            question_key: Question identifier
+            answer: User's answer
+            user: Telegram user object
+            
+        Returns:
+            True if answer is valid
+        """
+        return self._question_provider.validate_answer(question_key, answer, user)
     
     async def submit_answer(
         self, 
@@ -113,21 +199,18 @@ class QuestionnaireService:
             Tuple of (success, next_question_key, error_message)
         """
         try:
-            # Get current session
             session_data = self._session_manager.get_session(user_id)
             if not session_data:
                 return False, None, t("questionnaire.errors.no_session", user=user)
             
-            # Get current question key
             current_question_key = self._question_provider.get_next_question(session_data['answers'], user)
             if not current_question_key:
                 return False, None, t("questionnaire.errors.no_current_question", user=user)
             
-            # Add answer to session
             if not self._session_manager.add_answer(user_id, current_question_key, answer):
                 return False, None, t("questionnaire.errors.submit_failed", user=user)
             
-            # Submit answer to API
+            # Submit to API (continue on failure)
             api_response = await self._api_client.submit_questionnaire_answer(
                 user_id=user_id,
                 question_key=current_question_key,
@@ -137,16 +220,11 @@ class QuestionnaireService:
             
             if not api_response.success:
                 logger.warning(f"Failed to submit answer to API: {api_response.error}")
-                # Continue with local processing even if API fails
             
-            # Advance session
             self._session_manager.advance_question(user_id)
-            
-            # Get updated session data for next question
             updated_session = self._session_manager.get_session(user_id)
             next_question_key = self._question_provider.get_next_question(updated_session['answers'], user)
             
-            # If no next question, questionnaire is complete
             if not next_question_key:
                 await self._complete_questionnaire(user_id, updated_session['session_id'], user)
                 return True, None, None
@@ -261,12 +339,8 @@ class QuestionnaireService:
         
         answers = session_data['answers']
         
-        # Build summary sections
-        summary_parts = [
-            t("questionnaire.summary.header", user=user)
-        ]
+        summary_parts = [t("questionnaire.summary.header", user=user)]
         
-        # Add each answer to summary
         question_keys = ['question_1', 'question_2', 'gender']
         if 'question_4' in answers:
             question_keys.append('question_4')
@@ -276,11 +350,11 @@ class QuestionnaireService:
                 question_text = self.get_question_text(question_key, user)
                 answer = answers[question_key]
                 
-                # Format each Q&A pair
+                clean_question = question_text.replace("🎯 ", "").replace("⭐ ", "").replace("👤 ", "").replace("💄 ", "")
                 qa_text = t("questionnaire.summary.qa_format", 
                            user=user, 
                            number=i,
-                           question=question_text.replace("🎯 ", "").replace("⭐ ", "").replace("👤 ", "").replace("💄 ", ""),
+                           question=clean_question,
                            answer=answer)
                 summary_parts.append(qa_text)
         

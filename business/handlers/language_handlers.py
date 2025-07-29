@@ -9,7 +9,7 @@ from aiogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton, C
 from core.handlers.decorators import command
 from core.handlers.types import HandlerCategory
 from core.utils.logger import get_logger
-from business.services.localization import t, get_localization_service
+from core.services.localization import t, get_localization_service
 
 logger = get_logger()
 

@@ -40,7 +40,7 @@ Handlers are functions that process incoming messages and provide responses to u
 
 ```python
 # business/handlers/user_handlers.py
-from business.services.localization import t
+from core.services.localization import t
 
 @command(
     "joke",
@@ -70,7 +70,7 @@ async def cmd_joke(message: Message) -> None:
 
 ```python  
 # business/services/joke.py
-from business.services.localization import t
+from core.services.localization import t
 
 async def get_random_joke(user) -> str:
     """Get a random joke in user's language."""

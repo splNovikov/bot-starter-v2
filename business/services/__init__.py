@@ -6,11 +6,6 @@ All services follow SOLID principles and are designed for easy testing and maint
 """
 
 from .greeting import send_greeting, get_username, create_greeting_message
-from .localization import (
-    LocalizationService, 
-    get_localization_service, 
-    t
-)
 from .help_service import (
     LocalizedHelpService,
     get_help_service,
@@ -28,11 +23,6 @@ __all__ = [
     'send_greeting',
     'get_username', 
     'create_greeting_message',
-    
-    # Localization services
-    'LocalizationService',
-    'get_localization_service', 
-    't',
     
     # Help services
     'LocalizedHelpService',

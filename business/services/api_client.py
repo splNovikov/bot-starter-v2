@@ -5,14 +5,15 @@ Handles HTTP requests to external APIs for submitting questionnaire answers
 and other data persistence operations.
 """
 
-import aiohttp
 import asyncio
 from typing import Dict, Any, Optional
 from dataclasses import dataclass
 
-from core.utils.logger import get_logger
+import aiohttp
+
 from config import config
-from business.services.interfaces import ApiClientProtocol, ApiResponse
+from core.protocols.base import ApiClientProtocol, ApiResponse
+from core.utils.logger import get_logger
 
 logger = get_logger()
 

@@ -71,7 +71,8 @@ def validate_command_args(args: list, min_args: int) -> bool:
 Services that coordinate between multiple specialized services:
 
 ```python
-from business.services.interfaces import ApiClientProtocol, SessionManagerProtocol
+from core.protocols.base import ApiClientProtocol
+from business.protocols.questionnaire import SessionManagerProtocol
 
 class QuestionnaireService:
     """Orchestrates questionnaire interactions."""
@@ -101,7 +102,7 @@ class QuestionnaireService:
 Services with focused, single responsibilities:
 
 ```python
-from business.services.interfaces import SessionManagerProtocol
+from business.protocols.questionnaire import SessionManagerProtocol
 
 class SessionManager(SessionManagerProtocol):
     """Manages questionnaire session lifecycle."""
@@ -131,7 +132,7 @@ class SessionManager(SessionManagerProtocol):
 Services implementing protocols for testability:
 
 ```python
-from business.services.interfaces import ApiClientProtocol, ApiResponse
+from core.protocols.base import ApiClientProtocol, ApiResponse
 
 class ApiClient(ApiClientProtocol):
     """HTTP client implementing the API protocol."""

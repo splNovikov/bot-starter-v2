@@ -5,11 +5,12 @@ Handles question sequences, conditional logic, and localization following
 the Single Responsibility Principle.
 """
 
-from typing import List, Optional
-from aiogram.types import User
+from typing import List, Optional, Dict
 
-from business.services.localization import t
-from business.services.interfaces import QuestionProviderProtocol
+from aiogram.types import User, InlineKeyboardMarkup, InlineKeyboardButton
+
+from business.protocols.questionnaire import QuestionProviderProtocol, QuestionData, QuestionOption
+from core.services.localization import t
 from core.utils.logger import get_logger
 
 logger = get_logger()
@@ -34,9 +35,50 @@ class QuestionProvider(QuestionProviderProtocol):
             'gender'
         ]
     
+    def get_question_data(self, question_key: str, user: User) -> QuestionData:
+        """
+        Get enhanced question data including text, image, and options.
+        
+        Args:
+            question_key: Question identifier
+            user: Telegram user object for localization
+            
+        Returns:
+            QuestionData object with question details
+        """
+        try:
+            question_data_raw = t(f"questionnaire.questions.{question_key}", user=user, raw=True)
+            
+            if isinstance(question_data_raw, dict):
+                options = []
+                if question_data_raw.get('options'):
+                    options = [
+                        QuestionOption(text=opt['text'], value=opt['value'])
+                        for opt in question_data_raw['options']
+                    ]
+                
+                return QuestionData(
+                    text=question_data_raw.get('text', ''),
+                    image=question_data_raw.get('image'),
+                    question_type=question_data_raw.get('type', 'text'),
+                    options=options if options else None
+                )
+            else:
+                return QuestionData(
+                    text=str(question_data_raw),
+                    question_type='text'
+                )
+        except Exception as e:
+            logger.error(f"Error getting question data for {question_key}: {e}")
+            # Fallback to simple text
+            return QuestionData(
+                text=f"Question {question_key}",
+                question_type='text'
+            )
+    
     def get_question_text(self, question_key: str, user: User) -> str:
         """
-        Get localized question text.
+        Get localized question text (backward compatibility).
         
         Args:
             question_key: Question identifier
@@ -45,9 +87,83 @@ class QuestionProvider(QuestionProviderProtocol):
         Returns:
             Localized question text
         """
-        return t(f"questionnaire.questions.{question_key}", user=user)
+        question_data = self.get_question_data(question_key, user)
+        return question_data.text
     
-    def should_ask_additional_question(self, answers: dict) -> bool:
+    def create_question_keyboard(self, question_key: str, user: User) -> Optional[InlineKeyboardMarkup]:
+        """
+        Create inline keyboard for question options.
+        
+        Args:
+            question_key: Question identifier
+            user: Telegram user object for localization
+            
+        Returns:
+            InlineKeyboardMarkup if question has options, None otherwise
+        """
+        question_data = self.get_question_data(question_key, user)
+        
+        if question_data.question_type != 'buttons' or not question_data.options:
+            return None
+        
+        # Create keyboard buttons
+        keyboard_buttons = []
+        for option in question_data.options:
+            keyboard_buttons.append([
+                InlineKeyboardButton(
+                    text=option.text,
+                    callback_data=f"q_answer:{question_key}:{option.value}"
+                )
+            ])
+        
+        return InlineKeyboardMarkup(inline_keyboard=keyboard_buttons)
+    
+    def validate_answer(self, question_key: str, answer: str, user: User) -> bool:
+        """
+        Validate if the answer is valid for the given question.
+        
+        Args:
+            question_key: Question identifier
+            answer: User's answer
+            user: Telegram user object for localization
+            
+        Returns:
+            True if answer is valid
+        """
+        question_data = self.get_question_data(question_key, user)
+        
+        if question_data.question_type == 'buttons' and question_data.options:
+            # Check if answer matches any option value
+            valid_values = [option.value for option in question_data.options]
+            return answer in valid_values
+        
+        # For text questions, any non-empty answer is valid
+        return bool(answer.strip())
+    
+    def get_answer_display_text(self, question_key: str, answer: str, user: User) -> str:
+        """
+        Get display text for an answer value.
+        
+        Args:
+            question_key: Question identifier
+            answer: Answer value
+            user: Telegram user object for localization
+            
+        Returns:
+            Human-readable answer text
+        """
+        question_data = self.get_question_data(question_key, user)
+        
+        if question_data.question_type == 'buttons' and question_data.options:
+            # Find the option with matching value
+            for option in question_data.options:
+                if option.value == answer:
+                    return option.text
+        
+        # Return the answer as-is for text questions or if no match found
+        return answer
+    
+    def should_ask_additional_question(self, answers: Dict[str, str]) -> bool:
         """
         Determine if additional questions should be asked based on answers.
         
@@ -58,9 +174,11 @@ class QuestionProvider(QuestionProviderProtocol):
             True if additional question should be asked
         """
         gender_answer = answers.get('gender', '').lower()
-        return gender_answer in ['female', 'woman', 'f', 'женщина', 'ж', 'mujer', 'm']
+        # Check for female values in button format and legacy text format
+        female_values = ['female', 'woman', 'f', 'женщина', 'ж', 'mujer', 'm', 'femenino']
+        return gender_answer in female_values
     
-    def get_next_question(self, current_answers: dict, user: User) -> Optional[str]:
+    def get_next_question(self, current_answers: Dict[str, str], user: User) -> Optional[str]:
         """
         Get the next question key based on current answers and user.
         
@@ -87,7 +205,7 @@ class QuestionProvider(QuestionProviderProtocol):
         # No more questions
         return None
     
-    def get_progress(self, current_answers: dict, user: User) -> tuple[int, int]:
+    def get_progress(self, current_answers: Dict[str, str], user: User) -> tuple[int, int]:
         """
         Get progress information for the current questionnaire.
         

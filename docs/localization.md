@@ -104,7 +104,7 @@ Example locale file structure:
 ### Using Translations in Code
 
 ```python
-from business.services.localization import t
+from core.services.localization import t
 from core.utils.logger import get_logger
 
 logger = get_logger()
@@ -229,7 +229,7 @@ async def my_handler(message: Message, user_language: str, t: Callable) -> None:
 ### User Language Management
 
 ```python
-from business.services.localization import get_localization_service
+from core.services.localization import get_localization_service
 
 service = get_localization_service()
 
@@ -395,7 +395,7 @@ INFO - Сообщение от Pavel (ID: 123, Chat: 456): text
 
 ```python
 from core.handlers.registry import get_registry
-from business.services.localization import get_localization_service
+from core.services.localization import get_localization_service
 
 # Language usage stats - system logs in English
 localization = get_localization_service()
