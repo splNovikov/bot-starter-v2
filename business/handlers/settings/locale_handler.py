@@ -1,47 +1,24 @@
 """
-User interaction handlers for the Telegram bot.
+Locale command handler.
 
-Contains the essential /start handler for bot initialization and user greeting,
-plus locale change functionality with inline keyboard support.
-This module maintains clean architecture with proper separation of concerns.
+Handles the /locale command and related callback queries for language selection.
+This allows users to change the bot's language preference.
 """
 
 # Third-party imports
-from aiogram import Router
+from aiogram import Router, F
 from aiogram.types import Message, CallbackQuery, InlineKeyboardMarkup, InlineKeyboardButton
-from aiogram import F
 
 # Local application imports
 from core.handlers.decorators import command
 from core.handlers.types import HandlerCategory
 from core.utils.logger import get_logger
 from core.services.localization import get_localization_service, t
-from business.services.greeting import send_greeting
 
-# Create router for user handlers
-user_router = Router(name="user_handlers")
+# Create router for locale handler
+locale_router = Router(name="locale_handler")
 
 logger = get_logger()
-
-
-@command(
-    "start",
-    description="Get a welcome greeting message",
-    category=HandlerCategory.CORE,
-    usage="/start",
-    examples=["/start"]
-)
-async def cmd_start(message: Message) -> None:
-    """
-    Handle /start command.
-    
-    Sends a personalized greeting message to the user when they start the bot.
-    This is the primary entry point for user interaction.
-    
-    Args:
-        message: The incoming message from the user
-    """
-    await send_greeting(message)
 
 
 @command(
@@ -103,7 +80,7 @@ async def cmd_locale(message: Message) -> None:
         await message.answer(error_message)
 
 
-@user_router.callback_query(F.data.startswith("locale:"))
+@locale_router.callback_query(F.data.startswith("locale:"))
 async def handle_locale_callback(callback: CallbackQuery) -> None:
     """
     Handle locale change callback queries.
@@ -159,40 +136,4 @@ async def handle_locale_callback(callback: CallbackQuery) -> None:
     except Exception as e:
         logger.error(f"Error in locale callback handler: {e}")
         error_message = t("errors.generic", user=callback.from_user)
-        await callback.answer(error_message, show_alert=True)
-
-
-def initialize_registry():
-    """
-    Initialize the handlers registry with the user router.
-    
-    This function connects the registry system to the aiogram router and ensures
-    all registered handlers are properly connected for message handling.
-    
-    Raises:
-        RuntimeError: If registry initialization fails
-    """
-    try:
-        from core.handlers.registry import get_registry
-        
-        # Get registry instance and assign router
-        registry = get_registry()
-        registry._router = user_router
-        
-        # Re-register all enabled handlers with the router
-        enabled_handlers = [
-            handler for handler in registry.get_all_handlers() 
-            if handler.metadata.enabled
-        ]
-        
-        for handler in enabled_handlers:
-            registry._register_with_router(handler)
-        
-        logger.info(
-            f"Registry initialized successfully with {len(enabled_handlers)} "
-            f"enabled handlers out of {len(registry.get_all_handlers())} total"
-        )
-        
-    except Exception as e:
-        logger.error(f"Failed to initialize registry: {e}")
-        raise RuntimeError(f"Registry initialization failed: {e}") from e 
+        await callback.answer(error_message, show_alert=True) 

@@ -18,7 +18,7 @@ from aiogram.enums import ParseMode
 from aiogram.fsm.storage.memory import MemoryStorage
 
 # Local application imports
-from business.handlers import user_router, initialize_registry
+from business.handlers import main_router, initialize_registry
 from config import config
 from core.middleware.localization_middleware import LocalizationMiddleware
 from core.middleware.logging_middleware import LoggingMiddleware
@@ -90,10 +90,10 @@ async def create_dispatcher() -> Dispatcher:
     # This ensures @command decorators are properly registered for message handling
     initialize_registry()
     
-    # Include user router (contains registered handlers like /start)
-    dp.include_router(user_router)
+    # Include main router (contains all registered handlers)
+    dp.include_router(main_router)
     
-    logger.info("✅ Dispatcher configured with user router and middleware")
+    logger.info("✅ Dispatcher configured with main router and middleware")
     return dp
 
 
