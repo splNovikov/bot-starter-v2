@@ -3,6 +3,11 @@
   "_language_code": "en",
   "_version": "1.0.0",
   
+  "common": {
+    "yes": "Yes",
+    "no": "No"
+  },
+  
   "greetings": {
     "hello": "Hello, {username}!",
     "welcome": "Welcome to the bot! Type /help to see available commands.",
@@ -59,6 +64,8 @@
     "gender_submitted": "✅ Thank you! Your gender information has been saved.",
     "gender_instruction": "💡 Please type your gender (e.g., male or female)",
     "gender_summary": "📋 **Your Response Summary:**\n👤 Gender: {gender}",
+    "answer_submitted": "✅ Thank you! Your answer has been saved.",
+    "standalone_summary": "📋 **Your Response Summary:**\n**Q:** {question}\n**A:** {answer}",
     
     "questions": {
       "question_1": {
@@ -178,7 +185,8 @@
       "empty_answer": "⚠️ Please provide an answer before continuing.",
       "no_active_session": "ℹ️ No active questionnaire to cancel.",
       "cancel_failed": "❌ Failed to cancel questionnaire. Please try again.",
-      "invalid_option": "❌ Invalid option selected. Please try again."
+      "invalid_option": "❌ Invalid option selected. Please try again.",
+      "invalid_answer": "❌ Invalid answer. Please select one of the provided options."
     }
   },
   

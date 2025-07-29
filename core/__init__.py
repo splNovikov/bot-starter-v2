@@ -20,6 +20,17 @@ from .services import LocalizationService, get_localization_service, t
 from .protocols import ApiClientProtocol, ApiResponse
 from .utils import get_logger, setup_logger
 
+# Export questionnaire framework
+from .questionnaire import (
+    SessionManagerProtocol, QuestionProviderProtocol, QuestionnaireServiceProtocol,
+    QuestionData, QuestionOption, QuestionType, QuestionnaireSession,
+    BaseQuestionnaireStates, BaseGenderStates,
+    BaseSessionManager, BaseQuestionProvider, QuestionnaireService,
+    get_questionnaire_service, set_questionnaire_service,
+    questionnaire_handler, single_question_handler, multi_step_questionnaire_handler,
+    survey_handler, quiz_handler
+)
+
 __version__ = "1.0.0"
 
 __all__ = [
@@ -53,5 +64,34 @@ __all__ = [
     
     # Utilities
     'get_logger',
-    'setup_logger'
+    'setup_logger',
+    
+    # Questionnaire framework - Protocols
+    'SessionManagerProtocol',
+    'QuestionProviderProtocol', 
+    'QuestionnaireServiceProtocol',
+    
+    # Questionnaire framework - Types
+    'QuestionData',
+    'QuestionOption',
+    'QuestionType',
+    'QuestionnaireSession',
+    
+    # Questionnaire framework - States
+    'BaseQuestionnaireStates',
+    'BaseGenderStates',
+    
+    # Questionnaire framework - Services
+    'BaseSessionManager',
+    'BaseQuestionProvider',
+    'QuestionnaireService',
+    'get_questionnaire_service',
+    'set_questionnaire_service',
+    
+    # Questionnaire framework - Decorators
+    'questionnaire_handler',
+    'single_question_handler',
+    'multi_step_questionnaire_handler',
+    'survey_handler',
+    'quiz_handler'
 ] 

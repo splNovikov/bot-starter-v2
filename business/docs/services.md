@@ -72,7 +72,7 @@ Services that coordinate between multiple specialized services:
 
 ```python
 from core.protocols.base import ApiClientProtocol
-from business.protocols.questionnaire import SessionManagerProtocol
+from core.questionnaire.protocols import SessionManagerProtocol
 
 class QuestionnaireService:
     """Orchestrates questionnaire interactions."""
@@ -102,7 +102,7 @@ class QuestionnaireService:
 Services with focused, single responsibilities:
 
 ```python
-from business.protocols.questionnaire import SessionManagerProtocol
+from core.questionnaire.protocols import SessionManagerProtocol
 
 class SessionManager(SessionManagerProtocol):
     """Manages questionnaire session lifecycle."""

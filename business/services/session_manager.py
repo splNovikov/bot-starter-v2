@@ -1,93 +1,36 @@
 """
 Session management service for questionnaire interactions.
 
-Handles session lifecycle, data storage, and cleanup following the 
-Single Responsibility Principle.
+Concrete implementation extending the core base session manager
+with business-specific logic and in-memory storage.
 """
 
-import uuid
-from typing import Dict, Optional
-from dataclasses import dataclass, asdict
+from typing import Optional
 
 from core.utils.logger import get_logger
-from business.protocols.questionnaire import SessionManagerProtocol
+from core.questionnaire.services import BaseSessionManager
+from core.questionnaire.types import QuestionnaireSession
 
 logger = get_logger()
 
 
-@dataclass
-class QuestionnaireSession:
-    """Active questionnaire session data."""
-    session_id: str
-    user_id: int
-    current_question: int
-    answers: Dict[str, str]
-    is_female: Optional[bool] = None
-    
-    def __post_init__(self):
-        """Initialize session with default values."""
-        if not self.answers:
-            self.answers = {}
-
-    def to_dict(self) -> dict:
-        """Convert session to dictionary."""
-        return asdict(self)
-
-
-class SessionManager(SessionManagerProtocol):
+class SessionManager(BaseSessionManager):
     """Manages questionnaire sessions in memory."""
     
     def __init__(self):
         """Initialize session manager."""
-        self._sessions: Dict[int, QuestionnaireSession] = {}
+        super().__init__()
     
-    def create_session(self, user_id: int) -> str:
+    def _persist_session(self, session: QuestionnaireSession) -> None:
         """
-        Create a new questionnaire session.
+        Persist session data (in-memory implementation).
         
         Args:
-            user_id: Telegram user ID
-            
-        Returns:
-            Session ID string
+            session: Session to persist
         """
-        session_id = str(uuid.uuid4())
-        session = QuestionnaireSession(
-            session_id=session_id,
-            user_id=user_id,
-            current_question=0,
-            answers={}
-        )
-        
-        self._sessions[user_id] = session
-        logger.info(f"Created session {session_id} for user {user_id}")
-        
-        return session_id
-    
-    def get_session(self, user_id: int) -> Optional[dict]:
-        """
-        Get active session for user.
-        
-        Args:
-            user_id: Telegram user ID
-            
-        Returns:
-            Session data as dict or None if no session exists
-        """
-        session = self._sessions.get(user_id)
-        return session.to_dict() if session else None
-    
-    def get_session_object(self, user_id: int) -> Optional[QuestionnaireSession]:
-        """
-        Get active session object for user.
-        
-        Args:
-            user_id: Telegram user ID
-            
-        Returns:
-            Session object or None if no session exists
-        """
-        return self._sessions.get(user_id)
+        # In-memory implementation - no additional persistence needed
+        # Data is already stored in self._sessions from BaseSessionManager
+        pass
     
     def update_session(self, user_id: int, **kwargs) -> bool:
         """

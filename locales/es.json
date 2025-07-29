@@ -3,6 +3,11 @@
   "_language_code": "es",
   "_version": "1.0.0",
   
+  "common": {
+    "yes": "Sí",
+    "no": "No"
+  },
+  
   "greetings": {
     "hello": "¡Hola, {username}!",
     "welcome": "¡Bienvenido al bot! Escribe /help para ver los comandos disponibles.",
@@ -59,6 +64,8 @@
     "gender_submitted": "✅ ¡Gracias! Tu información de género ha sido guardada.",
     "gender_instruction": "💡 Por favor escribe tu género (ej: masculino o femenino)",
     "gender_summary": "📋 **Resumen de tu Respuesta:**\n👤 Género: {gender}",
+    "answer_submitted": "✅ ¡Gracias! Tu respuesta ha sido guardada.",
+    "standalone_summary": "📋 **Resumen de tu Respuesta:**\n**P:** {question}\n**R:** {answer}",
     
     "questions": {
       "question_1": {
@@ -178,7 +185,8 @@
       "empty_answer": "⚠️ Por favor proporciona una respuesta antes de continuar.",
       "no_active_session": "ℹ️ No hay cuestionario activo para cancelar.",
       "cancel_failed": "❌ Error al cancelar cuestionario. Por favor inténtalo de nuevo.",
-      "invalid_option": "❌ Opción inválida seleccionada. Por favor inténtalo de nuevo."
+      "invalid_option": "❌ Opción inválida seleccionada. Por favor inténtalo de nuevo.",
+      "invalid_answer": "❌ Respuesta inválida. Por favor selecciona una de las opciones proporcionadas."
     }
   },
   

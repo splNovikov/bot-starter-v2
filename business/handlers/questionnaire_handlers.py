@@ -13,6 +13,7 @@ from aiogram.types import Message, CallbackQuery
 
 from business.services.questionnaire_service import get_questionnaire_service
 from business.states.questionnaire_states import QuestionnaireStates, GenderStates
+from core.questionnaire.decorators import multi_step_questionnaire_handler, single_question_handler
 from core.handlers.decorators import command
 from core.handlers.types import HandlerCategory
 from core.services.localization import t
@@ -26,8 +27,9 @@ questionnaire_service = get_questionnaire_service()
 @questionnaire_router.message(Command("questionnaire"))
 @questionnaire_router.message(Command("quiz"))
 @questionnaire_router.message(Command("survey"))
-@command(
+@multi_step_questionnaire_handler(
     "questionnaire",
+    question_keys=["question_1", "question_2", "gender", "question_4"],
     description="Start an interactive questionnaire with multiple questions",
     category=HandlerCategory.USER,
     usage="/questionnaire",
@@ -78,7 +80,8 @@ async def cmd_questionnaire(message: Message, state: FSMContext) -> None:
 
 
 @questionnaire_router.message(Command("gender"))
-@command(
+@single_question_handler(
+    "gender",
     "gender",
     description="Provide your gender information",
     category=HandlerCategory.USER,
