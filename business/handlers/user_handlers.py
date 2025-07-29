@@ -39,7 +39,7 @@ async def cmd_start(message: Message) -> None:
     description="Send a friendly greeting message",
     category=HandlerCategory.USER, 
     usage="/greet",
-    examples=["/greet"],
+    examples=["/greet", "/hi", "/hello"],
     aliases=["hi", "hello"]
 )
 async def cmd_greet(message: Message) -> None:

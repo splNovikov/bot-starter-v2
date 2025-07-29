@@ -31,7 +31,7 @@ questionnaire_service = get_questionnaire_service()
     description="Start an interactive questionnaire with multiple questions",
     category=HandlerCategory.USER,
     usage="/questionnaire",
-    examples=["/questionnaire"],
+    examples=["/questionnaire", "/quiz", "/survey"],
     aliases=["quiz", "survey"]
 )
 async def cmd_questionnaire(message: Message, state: FSMContext) -> None:
