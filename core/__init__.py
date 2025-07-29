@@ -20,15 +20,14 @@ from .services import LocalizationService, get_localization_service, t
 from .protocols import ApiClientProtocol, ApiResponse
 from .utils import get_logger, setup_logger
 
-# Export questionnaire framework
-from .questionnaire import (
-    SessionManagerProtocol, QuestionProviderProtocol, QuestionnaireServiceProtocol,
-    QuestionData, QuestionOption, QuestionType, QuestionnaireSession,
-    BaseQuestionnaireStates, BaseGenderStates,
-    BaseSessionManager, BaseQuestionProvider, QuestionnaireService,
-    get_questionnaire_service, set_questionnaire_service,
-    questionnaire_handler, single_question_handler, multi_step_questionnaire_handler,
-    survey_handler, quiz_handler
+# Export sequence framework (unified abstraction for all interactive flows)
+from .sequence import (
+    SequenceStatus, SequenceSession, SequenceDefinition, SequenceQuestion, SequenceAnswer,
+    SequenceManagerProtocol, SequenceProviderProtocol, SequenceServiceProtocol,
+    SequenceStates, SequenceStateManager,
+    BaseSequenceManager, SequenceService, get_sequence_service, set_sequence_service,
+    sequence_handler, create_simple_sequence_definition,
+    is_sequence_handler, get_sequence_metadata, get_behavior_type
 )
 
 __version__ = "1.0.0"
@@ -66,32 +65,34 @@ __all__ = [
     'get_logger',
     'setup_logger',
     
-    # Questionnaire framework - Protocols
-    'SessionManagerProtocol',
-    'QuestionProviderProtocol', 
-    'QuestionnaireServiceProtocol',
+    # Sequence framework (unified abstraction) - Types
+    'SequenceStatus',
+    'SequenceSession',
+    'SequenceDefinition',
+    'SequenceQuestion',
+    'SequenceAnswer',
     
-    # Questionnaire framework - Types
-    'QuestionData',
-    'QuestionOption',
-    'QuestionType',
-    'QuestionnaireSession',
+    # Sequence framework - Protocols
+    'SequenceManagerProtocol',
+    'SequenceProviderProtocol',
+    'SequenceServiceProtocol',
     
-    # Questionnaire framework - States
-    'BaseQuestionnaireStates',
-    'BaseGenderStates',
+    # Sequence framework - States
+    'SequenceStates',
+    'SequenceStateManager',
     
-    # Questionnaire framework - Services
-    'BaseSessionManager',
-    'BaseQuestionProvider',
-    'QuestionnaireService',
-    'get_questionnaire_service',
-    'set_questionnaire_service',
+    # Sequence framework - Services
+    'BaseSequenceManager',
+    'SequenceService',
+    'get_sequence_service',
+    'set_sequence_service',
     
-    # Questionnaire framework - Decorators
-    'questionnaire_handler',
-    'single_question_handler',
-    'multi_step_questionnaire_handler',
-    'survey_handler',
-    'quiz_handler'
+    # Sequence framework - Decorators
+    'sequence_handler',
+    
+    # Sequence framework - Utilities
+    'create_simple_sequence_definition',
+    'is_sequence_handler',
+    'get_sequence_metadata',
+    'get_behavior_type'
 ] 
