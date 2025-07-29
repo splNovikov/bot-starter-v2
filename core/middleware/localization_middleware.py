@@ -12,7 +12,7 @@ from aiogram import BaseMiddleware
 from aiogram.types import Message, CallbackQuery, TelegramObject, User
 
 from core.utils.logger import get_logger
-from business.services.localization import get_localization_service
+from core.services.localization import get_localization_service
 
 logger = get_logger()
 

@@ -4,7 +4,8 @@ Localization service for the Telegram bot.
 Provides centralized text localization with support for multiple languages,
 parameter substitution, user preferences, and automatic language detection.
 
-See business/docs/services.md for comprehensive documentation on creating business services.
+This is a core infrastructure service that can be reused across different
+business domains and applications.
 """
 
 import json
@@ -42,9 +43,7 @@ class LocalizationService:
         self.locales_dir = Path(locales_dir)
         self.default_language = default_language
         self._translations: Dict[str, Dict[str, Any]] = {}
-        self._user_languages: Dict[int, str] = {}  # user_id -> language_code
-        
-        # Ensure locales directory exists
+        self._user_languages: Dict[int, str] = {}
         self.locales_dir.mkdir(exist_ok=True)
         
         logger.info(f"Localization service initialized with directory: {self.locales_dir}")
@@ -99,22 +98,16 @@ class LocalizationService:
         """
         user_id = user.id
         
-        # Check stored preference
         if user_id in self._user_languages:
             return self._user_languages[user_id]
         
-        # Check Telegram locale
         if user.language_code:
-            # Handle language codes like 'en-US' -> 'en'
             language_code = user.language_code.split('-')[0].lower()
-            
-            # Verify the language file exists
             locale_file = self.locales_dir / f"{language_code}.json"
             if locale_file.exists():
                 logger.debug(f"Detected language {language_code} for user {user_id}")
                 return language_code
         
-        # Fallback to default
         logger.debug(f"Using default language {self.default_language} for user {user_id}")
         return self.default_language
     
@@ -160,7 +153,7 @@ class LocalizationService:
         
         return supported
     
-    def t(self, key: str, user: Optional[User] = None, language: Optional[str] = None, **params) -> str:
+    def t(self, key: str, user: Optional[User] = None, language: Optional[str] = None, raw: bool = False, **params) -> Any:
         """
         Translate a message key to the appropriate language.
         
@@ -168,12 +161,12 @@ class LocalizationService:
             key: Translation key (can be nested with dots, e.g., 'messages.greeting')
             user: Telegram user object for language detection
             language: Override language code
+            raw: Return raw translation data without string formatting
             **params: Parameters for string formatting
             
         Returns:
-            Translated and formatted message
+            Translated and formatted message, or raw translation data if raw=True
         """
-        # Determine language
         if language:
             target_language = language
         elif user:
@@ -181,34 +174,32 @@ class LocalizationService:
         else:
             target_language = self.default_language
         
-        # Load translations
         translations = self._load_language(target_language)
         
-        # Navigate nested keys
         value = translations
         for key_part in key.split('.'):
             if isinstance(value, dict) and key_part in value:
                 value = value[key_part]
             else:
-                # Key not found, try default language if not already using it
                 if target_language != self.default_language:
                     logger.warning(f"Translation key '{key}' not found in {target_language}, trying {self.default_language}")
-                    return self.t(key, language=self.default_language, **params)
+                    return self.t(key, language=self.default_language, raw=raw, **params)
                 else:
                     logger.error(f"Translation key '{key}' not found in default language {self.default_language}")
-                    return f"[{key}]"  # Return key as fallback
+                    return f"[{key}]" if not raw else None
         
-        # Ensure we have a string
+        if raw:
+            return value
+        
         if not isinstance(value, str):
             logger.error(f"Translation key '{key}' does not resolve to a string: {type(value)}")
             return f"[{key}]"
         
-        # Apply parameter substitution
         try:
             return value.format(**params)
         except (KeyError, ValueError) as e:
             logger.error(f"Error formatting translation '{key}' with params {params}: {e}")
-            return value  # Return unformatted string as fallback
+            return value
 
 
 # Global localization service instance
@@ -226,7 +217,7 @@ def get_localization_service() -> LocalizationService:
     return _localization_service
 
 
-def t(key: str, user: Optional[User] = None, language: Optional[str] = None, **params) -> str:
+def t(key: str, user: Optional[User] = None, language: Optional[str] = None, raw: bool = False, **params) -> Any:
     """
     Convenience function for translation.
     
@@ -234,9 +225,10 @@ def t(key: str, user: Optional[User] = None, language: Optional[str] = None, **p
         key: Translation key
         user: Telegram user object for language detection  
         language: Override language code
+        raw: Return raw translation data without string formatting
         **params: Parameters for string formatting
         
     Returns:
-        Translated and formatted message
+        Translated and formatted message, or raw translation data if raw=True
     """
-    return get_localization_service().t(key, user, language, **params) 
+    return get_localization_service().t(key, user, language, raw, **params) 

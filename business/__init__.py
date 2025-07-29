@@ -1,24 +1,27 @@
 """
-Business logic package for the Telegram bot.
+Business layer initialization.
 
-Contains application-specific business logic and handlers.
-See business/docs/README.md for comprehensive documentation.
+This module provides the business logic layer for the Telegram bot,
+containing essential handlers and services for user interactions.
+
+The business layer follows clean architecture principles with:
+- Handlers: Command and message handlers (/start)
+- Services: Core business logic (greeting functionality)
+
+This structure maintains separation of concerns and supports future scalability.
 """
 
+# Import essential components for external access
 from .handlers import user_router, initialize_registry
 from .services import send_greeting, get_username, create_greeting_message
 
-# Initialize the registry system when business layer is imported
-initialize_registry()
-
-__version__ = "1.0.0"
-
 __all__ = [
-    # Handlers
+    # Router and registry management
     'user_router',
+    'initialize_registry',
     
-    # Services
+    # Greeting services  
     'send_greeting',
-    'get_username', 
-    'create_greeting_message'
+    'get_username',
+    'create_greeting_message',
 ] 

@@ -1,183 +1,162 @@
-#!/usr/bin/env python3
 """
-Modern Telegram Bot using aiogram v3.x with Router system.
+Main bot entry point with enhanced error handling and configuration.
 
-Features:
-- Router-based architecture for scalability
-- Comprehensive logging with loguru
-- Environment configuration with python-dotenv
-- Async/await patterns for performance
-- Proper error handling and graceful shutdown
-- Middleware support for cross-cutting concerns
-- Well-typed handlers registry system
+This module initializes the Telegram bot with aiogram 3.x, sets up routers,
+middleware, and provides graceful shutdown handling. It includes comprehensive
+logging and error recovery mechanisms for production deployment.
 """
 
+# Standard library imports
 import asyncio
-import signal
 import sys
 from contextlib import asynccontextmanager
-from typing import AsyncGenerator
 
+# Third-party imports
 from aiogram import Bot, Dispatcher
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 from aiogram.fsm.storage.memory import MemoryStorage
 
+# Local application imports
+from business.handlers import user_router, initialize_registry
 from config import config
-from business.handlers import user_router
-from core.middleware import LoggingMiddleware
 from core.middleware.localization_middleware import LocalizationMiddleware
-from core.utils import setup_logger, get_logger
+from core.middleware.logging_middleware import LoggingMiddleware
+from core.utils.logger import setup_logger, get_logger
+
+# Setup logging
+setup_logger()
+logger = get_logger()
 
 
-class TelegramBot:
+@asynccontextmanager
+async def lifespan_context():
     """
-    Main bot application class.
+    Async context manager for bot lifespan management.
     
-    Encapsulates bot initialization, configuration, and lifecycle management.
+    Handles startup and cleanup operations gracefully.
     """
-    
-    def __init__(self):
-        """Initialize bot application."""
-        self.logger = get_logger()
-        self.bot: Bot | None = None
-        self.dp: Dispatcher | None = None
-        self._shutdown_event = asyncio.Event()
-    
-    async def _create_bot(self) -> Bot:
-        """Create and configure bot instance."""
-        return Bot(
-            token=config.token,
-            default=DefaultBotProperties(
-                parse_mode=ParseMode.HTML,
-                protect_content=False,
-                allow_sending_without_reply=True
-            )
-        )
-    
-    async def _create_dispatcher(self) -> Dispatcher:
-        """Create and configure dispatcher with routers and middleware."""
-        # Create dispatcher with memory storage for FSM
-        dp = Dispatcher(
-            storage=MemoryStorage(),
-            name="main_dispatcher"
-        )
-        
-        # Register middleware
-        dp.message.middleware(LoggingMiddleware())
-        dp.callback_query.middleware(LoggingMiddleware())
-        
-        # Register localization middleware
-        dp.message.middleware(LocalizationMiddleware())
-        dp.callback_query.middleware(LocalizationMiddleware())
-        
-        # Include routers
-        dp.include_router(user_router)
-        
-        return dp
-    
-    async def _setup_signal_handlers(self) -> None:
-        """Setup signal handlers for graceful shutdown."""
-        def signal_handler(signum, frame):
-            self.logger.info(f"Received signal {signum}, initiating shutdown...")
-            self._shutdown_event.set()
-        
-        # Register signal handlers
-        signal.signal(signal.SIGINT, signal_handler)
-        signal.signal(signal.SIGTERM, signal_handler)
-        
-        if sys.platform != "win32":
-            signal.signal(signal.SIGHUP, signal_handler)
-    
-    @asynccontextmanager
-    async def _bot_context(self) -> AsyncGenerator[tuple[Bot, Dispatcher], None]:
-        """Context manager for bot lifecycle."""
-        try:
-            # Create bot and dispatcher
-            self.bot = await self._create_bot()
-            self.dp = await self._create_dispatcher()
-            
-            # Get bot info
-            bot_info = await self.bot.get_me()
-            self.logger.info(f"Bot initialized: @{bot_info.username} ({bot_info.first_name})")
-            
-            # Setup webhook deletion (ensures polling mode)
-            await self.bot.delete_webhook(drop_pending_updates=True)
-            
-            yield self.bot, self.dp
-            
-        except Exception as e:
-            self.logger.error(f"Error during bot initialization: {e}")
-            raise
-        finally:
-            # Cleanup
-            if self.bot:
-                await self.bot.session.close()
-                self.logger.info("Bot session closed")
-    
-    async def start(self) -> None:
-        """Start the bot application."""
-        self.logger.info("Starting Telegram bot application...")
-        
-        try:
-            # Setup signal handlers
-            await self._setup_signal_handlers()
-            
-            async with self._bot_context() as (bot, dp):
-                # Start polling with error handling
-                self.logger.info("Starting polling...")
-                
-                # Create polling task
-                polling_task = asyncio.create_task(
-                    dp.start_polling(
-                        bot,
-                        allowed_updates=dp.resolve_used_update_types(),
-                        drop_pending_updates=True
-                    )
-                )
-                
-                # Wait for shutdown signal
-                await self._shutdown_event.wait()
-                
-                # Cancel polling
-                polling_task.cancel()
-                try:
-                    await polling_task
-                except asyncio.CancelledError:
-                    self.logger.info("Polling cancelled")
-                
-        except Exception as e:
-            self.logger.error(f"Critical error in bot application: {e}")
-            raise
-        finally:
-            self.logger.info("Bot application stopped")
-
-
-async def main() -> None:
-    """Main application entry point."""
-    # Setup logging
-    setup_logger()
-    logger = get_logger()
+    logger.info("🚀 Bot is starting up...")
     
     try:
-        logger.info("Initializing Telegram bot...")
+        # Initialize any startup operations here
+        logger.info("✅ Bot startup completed successfully")
+        yield
         
-        # Create and start bot application
-        app = TelegramBot()
-        await app.start()
-        
-    except KeyboardInterrupt:
-        logger.info("Application interrupted by user")
     except Exception as e:
-        logger.critical(f"Fatal error: {e}", exc_info=True)
+        logger.error(f"❌ Error during bot startup: {e}")
+        raise
+    
+    finally:
+        logger.info("🛑 Bot is shutting down...")
+        # Cleanup operations here
+        logger.info("✅ Bot shutdown completed")
+
+
+async def create_bot() -> Bot:
+    """
+    Create and configure bot instance.
+    
+    Returns:
+        Configured Bot instance
+    """
+    return Bot(
+        token=config.token,
+        default=DefaultBotProperties(
+            parse_mode=ParseMode.MARKDOWN,
+            link_preview_is_disabled=True
+        )
+    )
+
+
+async def create_dispatcher() -> Dispatcher:
+    """
+    Create and configure dispatcher with routers and middleware.
+    
+    Returns:
+        Configured Dispatcher instance
+    """
+    # Use in-memory storage for FSM (consider Redis for production)
+    storage = MemoryStorage()
+    dp = Dispatcher(storage=storage)
+    
+    # Register middleware in order
+    dp.message.middleware(LoggingMiddleware())
+    dp.message.middleware(LocalizationMiddleware())
+    dp.callback_query.middleware(LoggingMiddleware())
+    dp.callback_query.middleware(LocalizationMiddleware())
+    
+    # Initialize registry to connect decorated handlers with aiogram router
+    # This ensures @command decorators are properly registered for message handling
+    initialize_registry()
+    
+    # Include user router (contains registered handlers like /start)
+    dp.include_router(user_router)
+    
+    logger.info("✅ Dispatcher configured with user router and middleware")
+    return dp
+
+
+async def main():
+    """
+    Main bot execution function with comprehensive error handling.
+    """
+    try:
+        async with lifespan_context():
+            # Create bot and dispatcher
+            bot = await create_bot()
+            dp = await create_dispatcher()
+            
+            # Verify bot token and get bot info
+            try:
+                bot_info = await bot.get_me()
+                logger.info(f"🤖 Bot @{bot_info.username} (ID: {bot_info.id}) started successfully")
+                
+                if config.api_base_url:
+                    logger.info(f"🌐 API base URL configured: {config.api_base_url}")
+                else:
+                    logger.warning("⚠️ No API base URL configured")
+                
+            except Exception as e:
+                logger.error(f"❌ Failed to get bot info: {e}")
+                raise
+            
+            # Delete webhook if exists and start polling
+            try:
+                await bot.delete_webhook(drop_pending_updates=True)
+                logger.info("🔄 Starting bot polling...")
+                
+                # Start polling with error handling
+                await dp.start_polling(
+                    bot,
+                    allowed_updates=dp.resolve_used_update_types(),
+                    skip_updates=True
+                )
+                
+            except Exception as e:
+                logger.error(f"❌ Error in polling: {e}")
+                raise
+                
+    except KeyboardInterrupt:
+        logger.info("👋 Bot stopped by user (Ctrl+C)")
+        
+    except Exception as e:
+        logger.error(f"💥 Critical error in main: {e}")
         sys.exit(1)
 
 
 if __name__ == "__main__":
     try:
+        if sys.platform.startswith('win'):
+            # Fix for Windows event loop policy
+            asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+        
+        # Run the bot
         asyncio.run(main())
+        
     except KeyboardInterrupt:
-        print("\n👋 Bot stopped by user")
+        logger.info("👋 Application terminated by user")
+        
     except Exception as e:
-        print(f"💥 Fatal error: {e}")
+        logger.error(f"💥 Failed to start application: {e}")
         sys.exit(1) 

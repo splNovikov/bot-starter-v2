@@ -1,57 +1,13 @@
 {
   "_language_name": "Español",
-  "_language_code": "es", 
+  "_language_code": "es",
   "_version": "1.0.0",
   
   "greetings": {
-    "hello": "¡Hola, {username}!",
-    "welcome": "¡Bienvenido al bot! Escribe /help para ver los comandos disponibles.",
-    "media_response": "{greeting} Solo puedo responder a mensajes de texto por ahora."
-  },
-  
-  "commands": {
-    "help": {
-      "description": "Mostrar comandos disponibles e información de uso",
-      "header": "🤖 Comandos Disponibles:",
-      "category_header": "🤖 Comandos de {category}:",
-      "category_core": "Núcleo:",
-      "category_user": "Usuario:",
-      "category_admin": "Administrador:",
-      "category_utility": "Utilidad:",
-      "usage_label": "Uso:",
-      "examples_label": "Ejemplos:",
-      "no_commands": "No hay comandos disponibles."
-    },
-    "start": {
-      "description": "Obtener un mensaje de bienvenida"
-    },
-    "greet": {
-      "description": "Enviar un mensaje de saludo amistoso"
-    },
-    "language": {
-      "description": "Ver y cambiar tu preferencia de idioma",
-      "current_and_options": "🌍 Tu idioma actual es: **{current_language}**\n\nSelecciona un idioma a continuación:",
-      "changed_successfully": "✅ ¡Idioma cambiado a **{language_name}** exitosamente!",
-      "change_failed": "❌ Error al cambiar el idioma. Por favor, inténtalo de nuevo.",
-      "supported_languages": "🌍 **Idiomas Soportados:**\n\n{languages_list}\n\nUsa /language para cambiar tu preferencia."
-    },
-    "languages": {
-      "description": "Mostrar todos los idiomas soportados"
-    }
+    "hello": "¡Hola, {username}!"
   },
   
   "errors": {
-    "generic": "Lo siento, algo salió mal. Por favor, inténtalo de nuevo.",
-    "command_not_found": "Comando no encontrado. Escribe /help para ver los comandos disponibles.",
-    "invalid_input": "Entrada inválida: {error}",
-    "service_unavailable": "El servicio no está disponible temporalmente. Por favor, inténtalo más tarde.",
-    "help_generation_failed": "Lo siento, no pude generar el texto de ayuda. Por favor, inténtalo de nuevo."
-  },
-  
-  "messages": {
-    "processing": "Procesando tu solicitud...",
-    "done": "¡Hecho!",
-    "cancelled": "Operación cancelada.",
-    "unknown_content_type": "Recibí un mensaje de tipo {content_type} pero solo puedo procesar mensajes de texto por ahora."
+    "generic": "Lo siento, algo salió mal. Por favor inténtalo de nuevo."
   }
 } 

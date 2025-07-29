@@ -16,7 +16,19 @@ from .handlers import (
     HandlerType, HandlerCategory, HandlerMetadata
 )
 from .middleware import LoggingMiddleware
+from .services import LocalizationService, get_localization_service, t
+from .protocols import ApiClientProtocol, ApiResponse
 from .utils import get_logger, setup_logger
+
+# Export sequence framework (unified abstraction for all interactive flows)
+from .sequence import (
+    SequenceStatus, SequenceSession, SequenceDefinition, SequenceQuestion, SequenceAnswer,
+    SequenceManagerProtocol, SequenceProviderProtocol, SequenceServiceProtocol,
+    SequenceStates, SequenceStateManager,
+    BaseSequenceManager, SequenceService, get_sequence_service, set_sequence_service,
+    sequence_handler, create_simple_sequence_definition,
+    is_sequence_handler, get_sequence_metadata, get_behavior_type
+)
 
 __version__ = "1.0.0"
 
@@ -40,7 +52,47 @@ __all__ = [
     # Middleware
     'LoggingMiddleware',
     
+    # Services
+    'LocalizationService',
+    'get_localization_service',
+    't',
+    
+    # Protocols
+    'ApiClientProtocol',
+    'ApiResponse',
+    
     # Utilities
     'get_logger',
-    'setup_logger'
+    'setup_logger',
+    
+    # Sequence framework (unified abstraction) - Types
+    'SequenceStatus',
+    'SequenceSession',
+    'SequenceDefinition',
+    'SequenceQuestion',
+    'SequenceAnswer',
+    
+    # Sequence framework - Protocols
+    'SequenceManagerProtocol',
+    'SequenceProviderProtocol',
+    'SequenceServiceProtocol',
+    
+    # Sequence framework - States
+    'SequenceStates',
+    'SequenceStateManager',
+    
+    # Sequence framework - Services
+    'BaseSequenceManager',
+    'SequenceService',
+    'get_sequence_service',
+    'set_sequence_service',
+    
+    # Sequence framework - Decorators
+    'sequence_handler',
+    
+    # Sequence framework - Utilities
+    'create_simple_sequence_definition',
+    'is_sequence_handler',
+    'get_sequence_metadata',
+    'get_behavior_type'
 ] 
