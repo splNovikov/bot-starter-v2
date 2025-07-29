@@ -57,7 +57,7 @@
     "cancelled": "❌ Questionnaire cancelled. You can restart anytime with /questionnaire",
     "restart_prompt": "🔄 You already have an active questionnaire. Please complete it first or use /cancel to restart.",
     "gender_submitted": "✅ Thank you! Your gender information has been saved.",
-    "gender_instruction": "💡 Please type your gender (e.g., male, female, non-binary, or prefer not to say)",
+    "gender_instruction": "💡 Please type your gender (e.g., male or female)",
     "gender_summary": "📋 **Your Response Summary:**\n👤 Gender: {gender}",
     
     "questions": {
@@ -127,14 +127,6 @@
           {
             "text": "👩 Female", 
             "value": "female"
-          },
-          {
-            "text": "🏳️‍⚧️ Non-binary",
-            "value": "non-binary"
-          },
-          {
-            "text": "🤐 Prefer not to say",
-            "value": "prefer-not-to-say"
           }
         ]
       },
