@@ -1,20 +1,10 @@
-"""
-User greeting business logic.
-
-Handles user greeting functionality including username extraction
-and personalized greeting message creation with proper error handling
-and localization support.
-"""
-
-# Third-party imports
 from aiogram.types import Message, User
 
-# Local application imports  
 from core.services.localization import t
 from core.utils.logger import get_logger
 
-logger = get_logger()
 
+logger = get_logger()
 
 def get_username(user: User) -> str:
     return user.first_name or user.username or "Anonymous"
