@@ -1,6 +1,6 @@
-# Import essential components for external access
-from .handlers import initialize_registry
+from .handlers import initialize_registry, main_router
 
 __all__ = [
     'initialize_registry',
+    'main_router'
 ] 

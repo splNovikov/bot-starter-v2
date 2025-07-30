@@ -18,7 +18,7 @@ from aiogram.enums import ParseMode
 from aiogram.fsm.storage.memory import MemoryStorage
 
 # Local application imports
-from application.handlers import main_router, initialize_registry
+from application import main_router, initialize_registry
 from infrastructure import initialize_sequences
 from config import config
 from core.middleware.localization_middleware import LocalizationMiddleware

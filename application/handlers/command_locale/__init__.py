@@ -1,5 +1,5 @@
-from .locale_handler import command_locale_router
+from .locale_router import locale_router
 
 __all__ = [
-    'command_locale_router'
+    'locale_router'
 ] 
