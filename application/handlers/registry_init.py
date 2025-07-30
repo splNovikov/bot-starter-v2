@@ -1,25 +1,9 @@
-"""
-Registry initialization module.
-
-Handles the initialization of the handlers registry with the main router.
-This ensures all registered handlers are properly connected for message handling.
-"""
-
 from core.utils.logger import get_logger
+
 
 logger = get_logger()
 
-
 def initialize_registry():
-    """
-    Initialize the handlers registry with the main router.
-    
-    This function connects the registry system to the aiogram router and ensures
-    all registered handlers are properly connected for message handling.
-    
-    Raises:
-        RuntimeError: If registry initialization fails
-    """
     try:
         from core.handlers.registry import get_registry
         from .router import main_router

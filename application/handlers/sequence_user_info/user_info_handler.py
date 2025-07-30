@@ -4,10 +4,10 @@ from aiogram.types import Message, CallbackQuery
 from core.sequence import sequence_handler, get_sequence_service
 from core.utils.logger import get_logger
 
+
 logger = get_logger()
 
-sequence_user_info_router = Router()
-
+sequence_user_info_router = Router(name="sequence_user_info")
 
 @sequence_handler(
     "user_info",

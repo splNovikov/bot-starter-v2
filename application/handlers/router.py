@@ -1,27 +1,15 @@
-"""
-Main router aggregator.
-
-Combines all handler routers from different modules into a single router.
-This provides a centralized point for registering all handlers with the dispatcher.
-"""
-
-# Third-party imports
 from aiogram import Router
 
-# Local application imports
+# Commands
 from .start import start_router
-from .settings import locale_router
+from .command_locale import command_locale_router
+# Sequences
 from .sequence_user_info import sequence_user_info_router
 
 # Create main router
 main_router = Router(name="main_router")
-
-# Include all handler routers
+# Commands
 main_router.include_router(start_router)
-main_router.include_router(locale_router)
-
-# Include sequence routers
+main_router.include_router(command_locale_router)
+# Sequences
 main_router.include_router(sequence_user_info_router)
-
-# Future routers can be added here:
-# main_router.include_router(admin_router) 

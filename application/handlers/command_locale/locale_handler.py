@@ -1,25 +1,15 @@
-"""
-Locale command handler.
-
-Handles the /locale command and related callback queries for language selection.
-This allows users to change the bot's language preference.
-"""
-
-# Third-party imports
 from aiogram import Router, F
 from aiogram.types import Message, CallbackQuery, InlineKeyboardMarkup, InlineKeyboardButton
 
-# Local application imports
 from core.handlers.decorators import command
 from core.handlers.types import HandlerCategory
 from core.utils.logger import get_logger
 from core.services.localization import get_localization_service, t
 
-# Create router for locale handler
-locale_router = Router(name="locale_handler")
 
 logger = get_logger()
 
+command_locale_router = Router(name="command_locale")
 
 @command(
     "locale",
@@ -30,15 +20,6 @@ logger = get_logger()
     aliases=["language", "lang"]
 )
 async def cmd_locale(message: Message) -> None:
-    """
-    Handle /locale command.
-    
-    Shows an inline keyboard with available languages for the user to select.
-    Displays current language and allows changing to any supported language.
-    
-    Args:
-        message: The incoming message from the user
-    """
     try:
         # Get localization service
         localization_service = get_localization_service()
@@ -80,17 +61,8 @@ async def cmd_locale(message: Message) -> None:
         await message.answer(error_message)
 
 
-@locale_router.callback_query(F.data.startswith("locale:"))
+@command_locale_router.callback_query(F.data.startswith("locale:"))
 async def handle_locale_callback(callback: CallbackQuery) -> None:
-    """
-    Handle locale change callback queries.
-    
-    Processes language selection from inline keyboard and updates user's
-    language preference. Provides feedback on success or failure.
-    
-    Args:
-        callback: The callback query from the inline keyboard
-    """
     try:
         # Extract language code from callback data
         language_code = callback.data.split(":")[1]
