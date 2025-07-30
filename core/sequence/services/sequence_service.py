@@ -227,7 +227,7 @@ class SequenceService(SequenceServiceProtocol):
             # Use custom renderer if available
             if self._question_renderer:
                 question_text, keyboard = await self._question_renderer.render_question(
-                    question, session, show_progress
+                    question, session, show_progress, user
                 )
             else:
                 question_text, keyboard = await self._default_render_question(
@@ -271,7 +271,7 @@ class SequenceService(SequenceServiceProtocol):
             # Use custom renderer if available
             if self._question_renderer:
                 completion_text = await self._question_renderer.render_completion_message(
-                    session, sequence_definition
+                    session, sequence_definition, user
                 )
             else:
                 completion_text = await self._default_render_completion(session, user, sequence_definition)

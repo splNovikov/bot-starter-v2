@@ -5,7 +5,7 @@ Provides comprehensive request/response logging for debugging and monitoring.
 
 from typing import Callable, Dict, Any, Awaitable
 from aiogram import BaseMiddleware
-from aiogram.types import Message, CallbackQuery, InlineQuery, TelegramObject
+from aiogram.types import Message, CallbackQuery, TelegramObject
 from core.utils.logger import get_logger
 
 logger = get_logger()

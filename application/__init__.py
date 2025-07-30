@@ -1,19 +1,19 @@
 """
-Business layer initialization.
+Application layer initialization.
 
-This module provides the business logic layer for the Telegram bot,
+This module provides the application layer for the Telegram bot,
 containing essential handlers and services for user interactions.
 
-The business layer follows clean architecture principles with:
+The application layer follows clean architecture principles with:
 - Handlers: Command and message handlers (/start)
-- Services: Core business logic (greeting functionality)
+- Services: Core application logic (greeting functionality)
 
 This structure maintains separation of concerns and supports future scalability.
 """
 
 # Import essential components for external access
 from .handlers import user_router, initialize_registry
-from .services import send_greeting, get_username, create_greeting_message
+from .handlers.start import send_greeting, get_username, create_greeting_message
 
 __all__ = [
     # Router and registry management

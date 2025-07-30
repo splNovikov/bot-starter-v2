@@ -354,7 +354,8 @@ class SequenceQuestionRendererProtocol(Protocol):
         self, 
         question: SequenceQuestion, 
         session: SequenceSession,
-        show_progress: bool = True
+        show_progress: bool = True,
+        user: Optional[User] = None
     ) -> Tuple[str, Optional[InlineKeyboardMarkup]]:
         """
         Render question text and keyboard.
@@ -363,6 +364,7 @@ class SequenceQuestionRendererProtocol(Protocol):
             question: SequenceQuestion to render
             session: Current session for context
             show_progress: Whether to include progress indicator
+            user: User object for localization context
             
         Returns:
             Tuple of (message_text, keyboard_markup)
@@ -372,7 +374,8 @@ class SequenceQuestionRendererProtocol(Protocol):
     async def render_completion_message(
         self, 
         session: SequenceSession, 
-        sequence_definition: SequenceDefinition
+        sequence_definition: SequenceDefinition,
+        user: Optional[User] = None
     ) -> str:
         """
         Render sequence completion message.
@@ -380,6 +383,7 @@ class SequenceQuestionRendererProtocol(Protocol):
         Args:
             session: Completed session
             sequence_definition: Sequence definition
+            user: User object for localization context
             
         Returns:
             Formatted completion message

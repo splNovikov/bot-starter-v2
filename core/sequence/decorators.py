@@ -113,9 +113,9 @@ def sequence_handler(
         
         # Single question with AI summary
         @sequence_handler(
-            "gender",
-            questions=["gender"],
-            description="Gender information with AI summary",
+            "example",
+            questions=["example_question"],
+            description="Example question with AI summary",
             generate_summary=True,
             show_progress=False
         )

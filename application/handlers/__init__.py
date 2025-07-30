@@ -9,12 +9,12 @@ This package provides a clean separation of concerns with different handler type
 from .router import main_router
 
 # Import individual routers for direct access if needed
-from .basic import start_router
+from .start import start_router
 from .settings import locale_router
 
 # Maintain backward compatibility by providing the old user_router
 # This allows existing code to continue working during transition
-from .basic.start_handler import start_router as user_router
+from .start import start_router as user_router
 
 # Import the registry initialization function
 from .registry_init import initialize_registry

@@ -4,7 +4,7 @@ Provides type-safe handler registration, metadata management, and introspection.
 """
 
 import time
-from typing import Dict, List, Optional, Set, Type, Callable, Any
+from typing import Dict, List, Optional, Callable, Any
 from collections import defaultdict
 from functools import wraps
 

@@ -13,7 +13,7 @@ from aiogram.types import Message
 from core.handlers.decorators import command
 from core.handlers.types import HandlerCategory
 from core.utils.logger import get_logger
-from business.services.greeting import send_greeting
+from .greeting import send_greeting
 
 # Create router for start handler
 start_router = Router(name="start_handler")

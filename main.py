@@ -18,7 +18,8 @@ from aiogram.enums import ParseMode
 from aiogram.fsm.storage.memory import MemoryStorage
 
 # Local application imports
-from business.handlers import main_router, initialize_registry
+from application.handlers import main_router, initialize_registry
+from infrastructure import initialize_sequences
 from config import config
 from core.middleware.localization_middleware import LocalizationMiddleware
 from core.middleware.logging_middleware import LoggingMiddleware
@@ -39,7 +40,11 @@ async def lifespan_context():
     logger.info("🚀 Bot is starting up...")
     
     try:
-        # Initialize any startup operations here
+        # Initialize sequence system
+        initialize_sequences()
+        logger.info("✅ Sequence system initialized")
+        
+        # Initialize any other startup operations here
         logger.info("✅ Bot startup completed successfully")
         yield
         

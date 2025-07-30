@@ -32,14 +32,6 @@ class ApiClientProtocol(Protocol):
         """Submit questionnaire answer to external API."""
         ...
     
-    async def submit_gender(
-        self, 
-        user_id: int, 
-        gender: str
-    ) -> ApiResponse:
-        """Submit gender data to external API."""
-        ...
-    
     async def complete_questionnaire(
         self,
         user_id: int,

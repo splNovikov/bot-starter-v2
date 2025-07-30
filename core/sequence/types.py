@@ -38,7 +38,8 @@ class QuestionType(Enum):
 class SequenceOption:
     """Option for choice-based questions."""
     value: str
-    label: str
+    label: Optional[str] = None  # Direct text label
+    label_key: Optional[str] = None  # Localization key for label
     description: Optional[str] = None
     emoji: Optional[str] = None
     is_correct: Optional[bool] = None  # For scored sequences
@@ -48,8 +49,9 @@ class SequenceOption:
 class SequenceQuestion:
     """Individual question within a sequence."""
     key: str
-    question_text: str
     question_type: QuestionType
+    question_text: Optional[str] = None  # Direct text question
+    question_text_key: Optional[str] = None  # Localization key for question text
     options: Optional[List[SequenceOption]] = None
     is_required: bool = True
     validation_regex: Optional[str] = None
@@ -176,11 +178,17 @@ class SequenceDefinition:
     name: str
     questions: List[SequenceQuestion]
     
-    # Basic properties
+    # Basic properties (direct text)
     title: Optional[str] = None
     description: Optional[str] = None
     welcome_message: Optional[str] = None
     completion_message: Optional[str] = None
+    
+    # Basic properties (localization keys)
+    title_key: Optional[str] = None
+    description_key: Optional[str] = None
+    welcome_message_key: Optional[str] = None
+    completion_message_key: Optional[str] = None
     
     # Behavior configuration flags
     scored: bool = False  # Enable scoring (makes it "quiz-like")

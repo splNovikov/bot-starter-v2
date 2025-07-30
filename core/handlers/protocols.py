@@ -3,7 +3,7 @@ Protocol definitions for type-safe handler interfaces.
 Defines the contracts that all handlers must implement.
 """
 
-from typing import Protocol, Awaitable, Optional, Any, runtime_checkable
+from typing import Protocol, Optional, Any, runtime_checkable
 from aiogram.types import Message, CallbackQuery, InlineQuery
 
 

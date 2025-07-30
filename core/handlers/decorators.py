@@ -3,8 +3,7 @@ Decorators for declarative handler registration.
 Provides clean, type-safe decorators for registering handlers with metadata.
 """
 
-from functools import wraps
-from typing import Optional, List, Callable, TypeVar, Union
+from typing import Optional, List, Callable, TypeVar
 
 from .protocols import CommandHandler, TextHandler, MessageHandler, CallbackHandler, AnyHandler
 from .registry import get_registry
