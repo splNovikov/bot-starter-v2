@@ -1,10 +1,3 @@
-"""
-Business handlers package.
-
-Contains application-specific handler implementations organized by feature.
-This package provides a clean separation of concerns with different handler types.
-"""
-
 # Import the main router aggregator
 from .router import main_router
 

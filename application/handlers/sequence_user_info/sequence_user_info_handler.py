@@ -1,23 +1,16 @@
-"""
-User info sequence handler.
-
-Handles the user information collection sequence with eyes color and marital status questions.
-"""
-
 from aiogram import Router, F
 from aiogram.types import Message, CallbackQuery
-from aiogram.fsm.context import FSMContext
 
 from core.sequence import sequence_handler, get_sequence_service
 from core.utils.logger import get_logger
 
 logger = get_logger()
 
-router = Router()
+sequence_user_info_router = Router()
 
 
 @sequence_handler(
-    "userinfo",
+    "user_info",
     sequence_name="user_info",
     questions=["eyes_color", "marital_status"],
     description="Collect user information (eyes color, marital status)",
@@ -25,14 +18,7 @@ router = Router()
     allow_restart=True,
     generate_summary=True
 )
-async def cmd_userinfo(message: Message, state: FSMContext):
-    """
-    Start user information collection sequence.
-    
-    Args:
-        message: Telegram message
-        state: FSM context
-    """
+async def cmd_user_info(message: Message):
     sequence_service = get_sequence_service()
     if not sequence_service:
         await message.answer("❌ Sequence service is not available. Please try again later.")
@@ -40,7 +26,7 @@ async def cmd_userinfo(message: Message, state: FSMContext):
     
     try:
         # Start the sequence
-        session_id = sequence_service.start_sequence(message.from_user.id, "user_info")
+        sequence_service.start_sequence(message.from_user.id, "user_info")
         
         # Get the first question
         next_question_key = sequence_service.get_current_question_key(message.from_user.id, message.from_user)
@@ -55,15 +41,8 @@ async def cmd_userinfo(message: Message, state: FSMContext):
         await message.answer("❌ An error occurred while starting the sequence. Please try again.")
 
 
-@router.callback_query(F.data.startswith("seq_answer:user_info:"))
-async def handle_userinfo_answer(callback: CallbackQuery, state: FSMContext):
-    """
-    Handle user info sequence answer from button callback.
-    
-    Args:
-        callback: Callback query
-        state: FSM context
-    """
+@sequence_user_info_router.callback_query(F.data.startswith("seq_answer:user_info:"))
+async def handle_user_info_answer(callback: CallbackQuery):
     sequence_service = get_sequence_service()
     if not sequence_service:
         await callback.answer("❌ Sequence service is not available.")
@@ -107,6 +86,3 @@ async def handle_userinfo_answer(callback: CallbackQuery, state: FSMContext):
     except Exception as e:
         logger.error(f"Error processing user info answer for user {callback.from_user.id}: {e}")
         await callback.answer("❌ An error occurred while processing your answer.")
-
-
-__all__ = ['router'] 

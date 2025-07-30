@@ -5,9 +5,8 @@ Coordinates between session management, sequence provision, and integration
 using the framework protocols for maximum flexibility and reusability.
 """
 
-from typing import Optional, Tuple, Dict, Any
+from typing import Optional, Tuple, Any
 from aiogram.types import User, Message, InlineKeyboardMarkup
-import re
 import time
 
 from core.utils.logger import get_logger
@@ -24,8 +23,7 @@ from ..types import (
     SequenceSession, 
     SequenceAnswer, 
     SequenceQuestion,
-    SequenceStatus,
-    QuestionType
+    SequenceStatus
 )
 
 logger = get_logger()

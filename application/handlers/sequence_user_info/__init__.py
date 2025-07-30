@@ -1,11 +1,5 @@
-"""
-Sequence user info handler package.
-
-Contains the user info sequence handler and related services.
-"""
-
-from .handler import router
+from .sequence_user_info_handler import sequence_user_info_router
 
 __all__ = [
-    'router'
+    'sequence_user_info_router'
 ] 
