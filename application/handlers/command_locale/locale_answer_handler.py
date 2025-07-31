@@ -5,7 +5,7 @@ from core.utils.logger import get_logger
 
 logger = get_logger()
 
-async def handle_locale_callback(callback: CallbackQuery) -> None:
+async def handle_locale_answer(callback: CallbackQuery) -> None:
     try:
         # Extract language code from callback data
         language_code = callback.data.split(":")[1]

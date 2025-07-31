@@ -263,6 +263,3 @@ class ButtonQuestionRenderer(SequenceQuestionRendererProtocol):
             return fallback
         
         return default
-
-
-__all__ = ['ButtonQuestionRenderer'] 

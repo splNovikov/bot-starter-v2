@@ -6,7 +6,7 @@ from core.handlers.types import HandlerCategory
 from core.utils.logger import get_logger
 
 from .locale_handler import handle_locale
-from .locale_callback_handler import handle_locale_callback
+from .locale_answer_handler import handle_locale_answer
 
 logger = get_logger()
 
@@ -25,4 +25,4 @@ async def cmd_locale(message: Message) -> None:
 
 @locale_router.callback_query(F.data.startswith("locale:"))
 async def locale_callback(callback: CallbackQuery) -> None:
-    await handle_locale_callback(callback)
+    await handle_locale_answer(callback)

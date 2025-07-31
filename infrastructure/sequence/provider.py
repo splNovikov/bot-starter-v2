@@ -12,7 +12,6 @@ from core.sequence.types import (
     SequenceDefinition, 
     SequenceQuestion, 
     SequenceSession, 
-    SequenceOption,
     QuestionType
 )
 from core.utils.logger import get_logger
@@ -29,10 +28,62 @@ class InMemorySequenceProvider(SequenceProviderProtocol):
     Supports localization for all text content.
     """
     
-    def __init__(self):
-        """Initialize the sequence provider with predefined sequences."""
+    def __init__(self, sequence_definitions: Optional[List[SequenceDefinition]] = None):
+        """
+        Initialize the sequence provider with predefined sequences.
+        
+        Args:
+            sequence_definitions: List of sequence definitions to register
+        """
         self._sequences: Dict[str, SequenceDefinition] = {}
-        self._initialize_sequences()
+        if sequence_definitions:
+            self._register_sequences(sequence_definitions)
+        logger.info(f"Initialized sequence provider with {len(self._sequences)} sequences: {list(self._sequences.keys())}")
+    
+    def register_sequence(self, sequence_definition: SequenceDefinition) -> None:
+        """
+        Register a sequence definition.
+        
+        Args:
+            sequence_definition: SequenceDefinition to register
+        """
+        self._sequences[sequence_definition.name] = sequence_definition
+        logger.info(f"Registered sequence: {sequence_definition.name}")
+    
+    def register_sequences(self, sequence_definitions: List[SequenceDefinition]) -> None:
+        """
+        Register multiple sequence definitions.
+        
+        Args:
+            sequence_definitions: List of SequenceDefinition objects to register
+        """
+        self._register_sequences(sequence_definitions)
+    
+    def unregister_sequence(self, sequence_name: str) -> bool:
+        """
+        Unregister a sequence definition.
+        
+        Args:
+            sequence_name: Name of the sequence to unregister
+            
+        Returns:
+            True if sequence was unregistered, False if not found
+        """
+        if sequence_name in self._sequences:
+            del self._sequences[sequence_name]
+            logger.info(f"Unregistered sequence: {sequence_name}")
+            return True
+        return False
+    
+    def _register_sequences(self, sequence_definitions: List[SequenceDefinition]) -> None:
+        """
+        Register multiple sequence definitions internally.
+        
+        Args:
+            sequence_definitions: List of SequenceDefinition objects to register
+        """
+        for sequence_def in sequence_definitions:
+            self.register_sequence(sequence_def)
     
     def get_sequence_definition(self, sequence_name: str) -> Optional[SequenceDefinition]:
         """
@@ -139,57 +190,3 @@ class InMemorySequenceProvider(SequenceProviderProtocol):
             return False, "This question is required. Please provide an answer."
         
         return True, None
-    
-    def _initialize_sequences(self) -> None:
-        """Initialize predefined sequences."""
-        self._sequences.update({
-            "user_info": self._create_user_info_sequence()
-        })
-        logger.info(f"Initialized {len(self._sequences)} sequences: {list(self._sequences.keys())}")
-    
-    def _create_user_info_sequence(self) -> SequenceDefinition:
-        """Create user info sequence with eyes color and marital status."""
-        questions = [
-            SequenceQuestion(
-                key="eyes_color",
-                question_text_key="sequence.user_info.eyes_color.question",
-                question_type=QuestionType.SINGLE_CHOICE,
-                options=[
-                    SequenceOption(value="brown", label_key="sequence.user_info.eyes_color.brown", emoji="👁️"),
-                    SequenceOption(value="blue", label_key="sequence.user_info.eyes_color.blue", emoji="👁️"),
-                    SequenceOption(value="green", label_key="sequence.user_info.eyes_color.green", emoji="👁️"),
-                    SequenceOption(value="hazel", label_key="sequence.user_info.eyes_color.hazel", emoji="👁️"),
-                    SequenceOption(value="gray", label_key="sequence.user_info.eyes_color.gray", emoji="👁️"),
-                    SequenceOption(value="other", label_key="sequence.user_info.eyes_color.other", emoji="👁️")
-                ],
-                is_required=True
-            ),
-            SequenceQuestion(
-                key="marital_status",
-                question_text_key="sequence.user_info.marital_status.question",
-                question_type=QuestionType.SINGLE_CHOICE,
-                options=[
-                    SequenceOption(value="single", label_key="sequence.user_info.marital_status.single", emoji="💚"),
-                    SequenceOption(value="married", label_key="sequence.user_info.marital_status.married", emoji="💍"),
-                    SequenceOption(value="divorced", label_key="sequence.user_info.marital_status.divorced", emoji="💔"),
-                    SequenceOption(value="widowed", label_key="sequence.user_info.marital_status.widowed", emoji="🕊️"),
-                    SequenceOption(value="prefer_not_to_say", label_key="sequence.user_info.marital_status.prefer_not_to_say", emoji="🤐")
-                ],
-                is_required=True
-            )
-        ]
-        
-        return SequenceDefinition(
-            name="user_info",
-            questions=questions,
-            title_key="sequence.user_info.title",
-            description_key="sequence.user_info.description",
-            welcome_message_key="sequence.user_info.welcome",
-            completion_message_key="sequence.user_info.completion",
-            show_progress=True,
-            allow_restart=True,
-            generate_summary=True
-        )
-
-
-__all__ = ['InMemorySequenceProvider'] 

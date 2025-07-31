@@ -192,6 +192,36 @@ class SequenceProviderProtocol(Protocol):
             Tuple of (is_valid, error_message)
         """
         ...
+    
+    def register_sequence(self, definition: SequenceDefinition) -> None:
+        """
+        Register a sequence definition.
+        
+        Args:
+            definition: SequenceDefinition to register
+        """
+        ...
+    
+    def register_sequences(self, definitions: List[SequenceDefinition]) -> None:
+        """
+        Register multiple sequence definitions.
+        
+        Args:
+            definitions: List of SequenceDefinition objects to register
+        """
+        ...
+    
+    def unregister_sequence(self, sequence_name: str) -> bool:
+        """
+        Unregister a sequence definition.
+        
+        Args:
+            sequence_name: Name of the sequence to unregister
+            
+        Returns:
+            True if sequence was unregistered, False if not found
+        """
+        ...
 
 
 @runtime_checkable
