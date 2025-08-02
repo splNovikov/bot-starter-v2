@@ -33,16 +33,16 @@ class LocalizationService:
     - Caching for performance
     """
 
-    def __init__(self, locales_dir: str = "locales", default_language: str = "en"):
+    def __init__(self, locales_dir: str = "locales", fallback_language: str = "ru"):
         """
         Initialize localization service.
 
         Args:
             locales_dir: Directory containing locale JSON files
-            default_language: Default language code to fall back to
+            fallback_language: Fallback language code to use when user preferences can't be determined
         """
         self.locales_dir = Path(locales_dir)
-        self.default_language = default_language
+        self.fallback_language = fallback_language
         self._translations: Dict[str, Dict[str, Any]] = {}
         self._user_languages: Dict[int, str] = {}
         self.locales_dir.mkdir(exist_ok=True)
@@ -65,13 +65,13 @@ class LocalizationService:
         locale_file = self.locales_dir / f"{language_code}.json"
 
         if not locale_file.exists():
-            if language_code != self.default_language:
+            if language_code != self.fallback_language:
                 logger.warning(
-                    f"Locale file not found: {locale_file}, falling back to {self.default_language}"
+                    f"Locale file not found: {locale_file}, falling back to {self.fallback_language}"
                 )
-                return self._load_language(self.default_language)
+                return self._load_language(self.fallback_language)
             else:
-                logger.error(f"Default locale file not found: {locale_file}")
+                logger.error(f"Fallback locale file not found: {locale_file}")
                 return {}
 
         try:
@@ -84,8 +84,8 @@ class LocalizationService:
 
         except (json.JSONDecodeError, IOError) as e:
             logger.error(f"Error loading locale file {locale_file}: {e}")
-            if language_code != self.default_language:
-                return self._load_language(self.default_language)
+            if language_code != self.fallback_language:
+                return self._load_language(self.fallback_language)
             return {}
 
     def get_user_language(self, user: User) -> str:
@@ -116,9 +116,9 @@ class LocalizationService:
                 return language_code
 
         logger.debug(
-            f"Using default language {self.default_language} for user {user_id}"
+            f"Using fallback language {self.fallback_language} for user {user_id}"
         )
-        return self.default_language
+        return self.fallback_language
 
     def set_user_language(self, user_id: int, language_code: str) -> bool:
         """
@@ -192,7 +192,7 @@ class LocalizationService:
         elif user:
             target_language = self.get_user_language(user)
         else:
-            target_language = self.default_language
+            target_language = self.fallback_language
 
         translations = self._load_language(target_language)
 
@@ -201,16 +201,16 @@ class LocalizationService:
             if isinstance(value, dict) and key_part in value:
                 value = value[key_part]
             else:
-                if target_language != self.default_language:
+                if target_language != self.fallback_language:
                     logger.warning(
-                        f"Translation key '{key}' not found in {target_language}, trying {self.default_language}"
+                        f"Translation key '{key}' not found in {target_language}, trying {self.fallback_language}"
                     )
                     return self.t(
-                        key, language=self.default_language, raw=raw, **params
+                        key, language=self.fallback_language, raw=raw, **params
                     )
                 else:
                     logger.error(
-                        f"Translation key '{key}' not found in default language {self.default_language}"
+                        f"Translation key '{key}' not found in fallback language {self.fallback_language}"
                     )
                     return f"[{key}]" if not raw else None
 
@@ -241,7 +241,7 @@ def get_localization_service() -> LocalizationService:
     global _localization_service
     if _localization_service is None:
         _localization_service = LocalizationService(
-            locales_dir=config.locales_dir, default_language=config.default_language
+            locales_dir=config.locales_dir, fallback_language=config.fallback_language
         )
     return _localization_service
 

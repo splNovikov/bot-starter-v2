@@ -70,8 +70,8 @@ class LocalizationMiddleware(BaseMiddleware):
                 f"({user.first_name or user.username or 'Unknown'}): {user_language}"
             )
         else:
-            # No user context available, provide default localization
-            data["user_language"] = self.localization_service.default_language
+            # No user context available, provide fallback localization
+            data["user_language"] = self.localization_service.fallback_language
             data["localization_service"] = self.localization_service
             data["t"] = lambda key, **params: self.localization_service.t(key, **params)
 

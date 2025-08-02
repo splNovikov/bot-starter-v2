@@ -20,7 +20,7 @@ class BotConfig:
     log_level: str = "INFO"
 
     # Localization settings
-    default_language: str = "en"
+    fallback_language: str = "ru"
     locales_dir: str = "locales"
 
     # API settings
@@ -37,7 +37,7 @@ class BotConfig:
         return cls(
             token=token,
             log_level=os.getenv("LOG_LEVEL", "INFO"),
-            default_language=os.getenv("DEFAULT_LANGUAGE", "en"),
+            fallback_language=os.getenv("FALLBACK_LANGUAGE", "ru"),
             locales_dir=os.getenv("LOCALES_DIR", "locales"),
             api_base_url=os.getenv("API_BASE_URL", "https://api.example.com"),
             api_timeout=int(os.getenv("API_TIMEOUT", "30")),

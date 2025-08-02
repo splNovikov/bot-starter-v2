@@ -187,7 +187,7 @@ Create a `.env` file in the project root:
 BOT_TOKEN=your_telegram_bot_token_here
 
 # Optional (with defaults)
-DEFAULT_LANGUAGE=en
+FALLBACK_LANGUAGE=ru
 LOG_LEVEL=INFO
 API_BASE_URL=https://api.example.com
 API_TIMEOUT=30
@@ -198,7 +198,7 @@ API_TIMEOUT=30
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `BOT_TOKEN` | - | **Required** - Your Telegram bot token |
-| `DEFAULT_LANGUAGE` | `en` | Default language for new users |
+| `FALLBACK_LANGUAGE` | `ru` | Fallback language when user preferences can't be determined |
 | `LOG_LEVEL` | `INFO` | Logging level (DEBUG, INFO, WARNING) |
 | `API_BASE_URL` | `https://api.example.com` | Base URL for external APIs |
 | `API_TIMEOUT` | `30` | API request timeout in seconds |
