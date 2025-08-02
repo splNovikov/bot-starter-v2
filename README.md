@@ -123,8 +123,7 @@ The bot automatically detects user language and provides content in:
 ### Adding New Languages
 
 1. Create a new JSON file in `locales/` (e.g., `fr.json`)
-2. Add the language code to `SUPPORTED_LANGUAGES` in your `.env`
-3. Translate all keys from `en.json`
+2. Translate all keys from `en.json`
 
 ## 🔧 Code Quality & Formatting
 
@@ -189,7 +188,6 @@ BOT_TOKEN=your_telegram_bot_token_here
 
 # Optional (with defaults)
 DEFAULT_LANGUAGE=en
-SUPPORTED_LANGUAGES=en,es,ru
 LOG_LEVEL=INFO
 API_BASE_URL=https://api.example.com
 API_TIMEOUT=30
@@ -201,7 +199,6 @@ API_TIMEOUT=30
 |----------|---------|-------------|
 | `BOT_TOKEN` | - | **Required** - Your Telegram bot token |
 | `DEFAULT_LANGUAGE` | `en` | Default language for new users |
-| `SUPPORTED_LANGUAGES` | `en,es,ru` | Comma-separated language codes |
 | `LOG_LEVEL` | `INFO` | Logging level (DEBUG, INFO, WARNING) |
 | `API_BASE_URL` | `https://api.example.com` | Base URL for external APIs |
 | `API_TIMEOUT` | `30` | API request timeout in seconds |
