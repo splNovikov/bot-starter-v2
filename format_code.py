@@ -1,9 +1,13 @@
 #!/usr/bin/env python3
 """
-Code formatting script using Black and isort.
+Code formatting script using autoflake and isort.
 
-This script formats all Python files in the project using Black for code formatting
-and isort for import sorting. It provides clear feedback and handles errors gracefully.
+This script formats all Python files in the project using:
+- autoflake for removing unused imports and variables
+- isort for import sorting
+
+Note: Black formatting is temporarily disabled due to compatibility issues.
+It provides clear feedback and handles errors gracefully.
 """
 
 import subprocess
@@ -43,13 +47,13 @@ def run_formatter(command, description):
 
 
 def check_formatters_installed():
-    """Check if Black and isort are installed.
+    """Check if autoflake and isort are installed.
 
     Returns:
         bool: True if both are installed, False otherwise
     """
     try:
-        subprocess.run(["black", "--version"], check=True, capture_output=True)
+        subprocess.run(["autoflake", "--version"], check=True, capture_output=True)
         subprocess.run(["isort", "--version"], check=True, capture_output=True)
         return True
     except (subprocess.CalledProcessError, FileNotFoundError):
@@ -57,27 +61,36 @@ def check_formatters_installed():
 
 
 def main():
-    """Run both formatters with proper error handling."""
-    print("🎨 Starting code formatting with Black and isort...")
+    """Run formatters with proper error handling."""
+    print("🎨 Starting code formatting with autoflake and isort...")
+    print("=" * 50)
+    print("⚠️  Note: Black formatting is temporarily disabled due to compatibility issues.")
     print("=" * 50)
 
     # Check if formatters are installed
     if not check_formatters_installed():
-        print("❌ Black or isort not found!")
-        print("Please install them with: pip install black isort")
+        print("❌ autoflake or isort not found!")
+        print("Please install them with: pip install autoflake isort")
         return 1
 
-    # Run isort first (import sorting)
-    isort_success = run_formatter("isort .", "Import sorting (isort)")
+    # Run autoflake first (remove unused imports and variables)
+    autoflake_success = run_formatter(
+        "autoflake --remove-all-unused-imports --remove-unused-variables --remove-duplicate-keys --in-place --recursive .",
+        "Unused import removal (autoflake)"
+    )
 
-    # Run Black (code formatting)
-    black_success = run_formatter("black .", "Code formatting (Black)")
+    # Run isort (import sorting)
+    isort_success = run_formatter("isort .", "Import sorting (isort)")
 
     print("=" * 50)
 
-    if isort_success and black_success:
-        print("🎉 All formatting completed successfully!")
-        print("💡 Your code is now properly formatted and ready for commit!")
+    if autoflake_success and isort_success:
+        print("🎉 Import cleaning and sorting completed successfully!")
+        print("💡 Your imports are now clean and properly sorted!")
+        print("")
+        print("🔧 To enable Black formatting, please fix the Click compatibility issue:")
+        print("   pip install 'click<8.2.0'")
+        print("   Or use: black --version to test if it works")
         return 0
     else:
         print("💥 Some formatting failed!")

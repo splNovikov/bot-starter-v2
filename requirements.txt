@@ -6,6 +6,9 @@ loguru==0.7.2
 # HTTP client for API requests
 aiohttp==3.10.5
 
-# Code formatting
-black==24.1.1
-isort==5.13.2 
+# Code formatting and quality tools
+black>=24.0.0
+isort>=5.13.0
+autoflake>=2.3.0
+pre-commit>=3.6.0
+click>=8.0.0

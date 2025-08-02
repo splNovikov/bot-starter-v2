@@ -238,7 +238,6 @@ class BaseSequenceManager(SequenceManagerProtocol, ABC):
         Args:
             session: Created session
         """
-        pass
 
     def _on_session_accessed(self, session: SequenceSession) -> None:
         """
@@ -247,7 +246,6 @@ class BaseSequenceManager(SequenceManagerProtocol, ABC):
         Args:
             session: Accessed session
         """
-        pass
 
     def _on_answer_added(
         self, session: SequenceSession, answer: SequenceAnswer
@@ -259,7 +257,6 @@ class BaseSequenceManager(SequenceManagerProtocol, ABC):
             session: Session that received the answer
             answer: Added answer
         """
-        pass
 
     def _on_step_advanced(self, session: SequenceSession) -> None:
         """
@@ -268,7 +265,6 @@ class BaseSequenceManager(SequenceManagerProtocol, ABC):
         Args:
             session: Session that advanced
         """
-        pass
 
     def _on_session_completed(self, session: SequenceSession) -> None:
         """
@@ -277,7 +273,6 @@ class BaseSequenceManager(SequenceManagerProtocol, ABC):
         Args:
             session: Completed session
         """
-        pass
 
     def _on_session_abandoned(self, session: SequenceSession) -> None:
         """
@@ -286,7 +281,6 @@ class BaseSequenceManager(SequenceManagerProtocol, ABC):
         Args:
             session: Abandoned session
         """
-        pass
 
     def _on_session_cleared(self, session: SequenceSession) -> None:
         """
@@ -295,7 +289,6 @@ class BaseSequenceManager(SequenceManagerProtocol, ABC):
         Args:
             session: Cleared session
         """
-        pass
 
     # Utility methods
 

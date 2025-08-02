@@ -1,0 +1,126 @@
+#!/usr/bin/env python3
+"""
+Development environment setup script.
+
+This script automates the setup of the development environment by:
+1. Installing development dependencies (if needed)
+2. Setting up pre-commit hooks
+3. Verifying the installation
+
+It provides clear feedback and handles errors gracefully.
+"""
+
+import subprocess
+import sys
+from pathlib import Path
+
+
+def run_command(command, description):
+    """Run a command and handle errors.
+
+    Args:
+        command (str): The command to run
+        description (str): Human-readable description of what the command does
+
+    Returns:
+        bool: True if successful, False otherwise
+    """
+    try:
+        print(f"🔄 {description}...")
+        result = subprocess.run(
+            command,
+            shell=True,
+            check=True,
+            capture_output=True,
+            text=True,
+            cwd=Path(__file__).parent,
+        )
+        print(f"✅ {description} completed successfully")
+        return True
+    except subprocess.CalledProcessError as e:
+        print(f"❌ {description} failed: {e}")
+        if e.stdout:
+            print(f"Output: {e.stdout}")
+        if e.stderr:
+            print(f"Error: {e.stderr}")
+        return False
+
+
+def check_tools_installed():
+    """Check if all required tools are installed.
+
+    Returns:
+        bool: True if all tools are installed, False otherwise
+    """
+    tools = ["black", "isort", "autoflake", "pre-commit"]
+    missing_tools = []
+
+    for tool in tools:
+        try:
+            subprocess.run([tool, "--version"], check=True, capture_output=True)
+        except (subprocess.CalledProcessError, FileNotFoundError):
+            missing_tools.append(tool)
+
+    if missing_tools:
+        print(f"❌ Missing tools: {', '.join(missing_tools)}")
+        return False
+
+    return True
+
+
+def main():
+    """Set up the development environment."""
+    print("🚀 Setting up development environment...")
+    print("=" * 50)
+
+    # Check if tools are already installed
+    if check_tools_installed():
+        print("✅ All required tools are already installed!")
+    else:
+        print("⚠️  Some tools are missing. Attempting to install...")
+        # Try to install dependencies, but don't fail if it doesn't work
+        install_success = run_command(
+            "pip install -r requirements.txt",
+            "Installing development dependencies"
+        )
+
+        if not install_success:
+            print("⚠️  Failed to install dependencies via pip.")
+            print("💡 You may need to install them manually:")
+            print("   pip install black isort autoflake pre-commit")
+            print("   Or try: python -m pip install -r requirements.txt")
+
+            # Check again after the attempt
+            if not check_tools_installed():
+                print("💥 Critical tools are still missing!")
+                print("🔧 Please install the missing tools manually and run this script again.")
+                return 1
+
+    # Setup pre-commit hooks
+    precommit_success = run_command(
+        "pre-commit install",
+        "Setting up pre-commit hooks"
+    )
+
+    if not precommit_success:
+        print("💥 Failed to setup pre-commit hooks!")
+        return 1
+
+    print("=" * 50)
+    print("🎉 Development environment setup completed successfully!")
+    print("")
+    print("📋 Available commands:")
+    print("  make format           - Format all code")
+    print("  make check-format     - Check formatting")
+    print("  make clean-imports    - Remove unused imports")
+    print("  make run              - Run the bot")
+    print("  make help             - Show all commands")
+    print("")
+    print("💡 Your code will now be automatically formatted on every commit!")
+    print("🔧 If you need to format manually, run: make format")
+
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

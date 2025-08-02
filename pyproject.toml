@@ -17,8 +17,10 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = [
-    "black==24.1.1",
-    "isort==5.13.2",
+    "black>=24.0.0",
+    "isort>=5.13.0",
+    "autoflake>=2.3.0",
+    "pre-commit>=3.6.0",
 ]
 
 [tool.black]
@@ -47,4 +49,11 @@ multi_line_output = 3
 line_length = 88
 known_first_party = ["application", "core", "infrastructure"]
 sections = ["FUTURE", "STDLIB", "THIRDPARTY", "FIRSTPARTY", "LOCALFOLDER"]
-skip = ["venv", "__pycache__", ".git", ".idea"] 
+skip = ["venv", "__pycache__", ".git", ".idea"]
+
+[tool.autoflake]
+remove-all-unused-imports = true
+remove-unused-variables = true
+remove-duplicate-keys = true
+expand-star-imports = false
+ignore-init-module-imports = false

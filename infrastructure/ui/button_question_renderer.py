@@ -170,8 +170,9 @@ class ButtonQuestionRenderer(SequenceQuestionRendererProtocol):
             Formatted completion message
         """
         # Get the answer value
-        answer = list(session.answers.values())[0]
-        answer_value = answer.answer_value
+        # pnovikov: I commented the unused code
+        # answer = list(session.answers.values())[0]
+        # answer_value = answer.answer_value
 
         # Replace placeholders in template
         message = template

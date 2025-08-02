@@ -40,7 +40,7 @@ python main.py
 **Try these commands:**
 - `/start` - Welcome message in your language
 - `/help` - Auto-generated help (localized)
-- `/language` - Change language interactively  
+- `/language` - Change language interactively
 - `/greet` (or `/hi`, `/hello`) - Friendly greeting
 
 ## 🏗️ Architecture
@@ -51,7 +51,7 @@ bot-starter-v2/
 │   ├── handlers/               # Registry system & decorators
 │   ├── middleware/             # Infrastructure components
 │   └── utils/                  # Core utilities
-├── 🎯 business/                # Business Layer (Application-specific)  
+├── 🎯 business/                # Business Layer (Application-specific)
 │   ├── handlers/               # Message handling logic
 │   └── services/               # Domain services
 ├── 🌍 locales/                 # Translation files
@@ -68,24 +68,24 @@ bot-starter-v2/
 ## 🌍 Localization
 
 The bot automatically detects user language and provides content in:
-- **🇺🇸 English** (default) 
+- **🇺🇸 English** (default)
 - **🇪🇸 Spanish**
 - **🇷🇺 Russian**
 
 **Language Detection Chain:**
 1. User preference (via `/language` command)
-2. Telegram user locale  
+2. Telegram user locale
 3. Default language fallback
 
 ## 📚 Documentation
 
 ### 🎯 Business Layer Development
 - **[Business Overview](business/docs/README.md)** - Application architecture and patterns
-- **[Handler Development](business/docs/handlers.md)** - Creating commands and message processors  
+- **[Handler Development](business/docs/handlers.md)** - Creating commands and message processors
 - **[Service Development](business/docs/services.md)** - Building business logic services
 - **[Implementation Examples](business/docs/examples.md)** - Real-world patterns and examples
 
-### 🔧 Core Framework  
+### 🔧 Core Framework
 - **[Core Overview](core/docs/README.md)** - Framework architecture and principles
 - **[Handler System](core/docs/handlers.md)** - Registry, decorators, and type system
 - **[Middleware](core/docs/middleware.md)** - Request processing pipeline
@@ -95,9 +95,20 @@ The bot automatically detects user language and provides content in:
 - **[Localization Guide](docs/localization.md)** - Complete multi-language support guide
 - **[Contributing Guide](docs/contributing.md)** - Development guidelines and standards
 
-## 🔧 Code Formatting
+## 🔧 Code Quality & Formatting
 
-This project uses **Black** and **isort** for consistent code formatting.
+This project uses **autoflake** and **isort** for import management and code quality. Black is temporarily disabled due to compatibility issues (see [BLACK_COMPATIBILITY.md](BLACK_COMPATIBILITY.md)).
+
+### 🚀 Quick Setup
+
+```bash
+# Automated setup (recommended)
+python setup_dev.py
+
+# Manual setup
+pip install -r requirements.txt
+pre-commit install
+```
 
 ### Quick Format
 ```bash
@@ -108,7 +119,7 @@ python format_code.py
 make format
 
 # Or run formatters individually
-black .
+autoflake --remove-all-unused-imports --remove-unused-variables --in-place --recursive .
 isort .
 ```
 
@@ -118,14 +129,33 @@ isort .
 make check-format
 
 # Or run individually
-black --check .
+autoflake --remove-all-unused-imports --remove-unused-variables --check .
 isort --check-only --diff .
 ```
 
+### Remove Unused Imports Only
+```bash
+# Using Makefile
+make clean-imports
+
+# Or run directly
+autoflake --remove-all-unused-imports --remove-unused-variables --in-place --recursive .
+```
+
 ### IDE Integration
-- **VS Code**: Install "Black Formatter" and "isort" extensions
-- **PyCharm**: Enable Black and isort in Settings → Tools → External Tools
-- **Vim/Neovim**: Use `black` and `isort` with your preferred plugin
+- **VS Code**: Install "isort" and "autoflake" extensions
+- **PyCharm**: Enable isort and autoflake in Settings → Tools → External Tools
+- **Vim/Neovim**: Use `isort` and `autoflake` with your preferred plugin
+
+### Pre-commit Hooks
+The project includes pre-commit hooks that automatically:
+- Remove unused imports and variables
+- Sort imports
+- Fix trailing whitespace and file endings
+
+These hooks run automatically on every commit to ensure code quality.
+
+**Note**: Black formatting is temporarily disabled in pre-commit hooks due to compatibility issues. See [BLACK_COMPATIBILITY.md](BLACK_COMPATIBILITY.md) for resolution steps.
 
 ## 🔧 Configuration
 
@@ -144,7 +174,7 @@ We welcome contributions! Please see our [Contributing Guide](docs/contributing.
 
 **Quick Start:**
 1. Fork the repository
-2. Create feature branch: `git checkout -b feature/amazing-feature`  
+2. Create feature branch: `git checkout -b feature/amazing-feature`
 3. Follow the [architecture patterns](business/docs/README.md)
 4. Add comprehensive documentation
 5. Submit a pull request
@@ -163,4 +193,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 **Ready to build something amazing?** 🚀
 
-Start with the [Handler Development Guide](business/docs/handlers.md) and explore the [examples](business/docs/examples.md) to see what's possible! 
+Start with the [Handler Development Guide](business/docs/handlers.md) and explore the [examples](business/docs/examples.md) to see what's possible!
