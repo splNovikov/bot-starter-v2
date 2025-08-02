@@ -12,11 +12,7 @@ from aiogram import Router
 
 from core.utils.logger import get_logger
 
-from .protocols import (
-    AnyHandler,
-    get_handler_protocol,
-    validate_handler_signature,
-)
+from .protocols import AnyHandler, get_handler_protocol, validate_handler_signature
 from .types import (
     HandlerCategory,
     HandlerMetadata,
