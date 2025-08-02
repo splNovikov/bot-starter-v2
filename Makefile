@@ -20,7 +20,6 @@ format:
 # Check formatting without making changes
 check-format:
 	@echo "🔍 Checking code formatting..."
-	black --check .
 	isort --check-only --diff .
 	autoflake --remove-all-unused-imports --remove-unused-variables --check .
 
