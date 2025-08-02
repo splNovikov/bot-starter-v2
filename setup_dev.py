@@ -86,14 +86,28 @@ def main():
 
         if not install_success:
             print("⚠️  Failed to install dependencies via pip.")
-            print("💡 You may need to install them manually:")
+            print("💡 This might be due to Python 3.13 compatibility issues.")
+            print("")
+            print("🔧 Alternative solutions:")
+            print("")
+            print("Option 1: Install tools globally (Recommended)")
+            print("   brew install pipx")
+            print("   pipx install autoflake isort pre-commit")
+            print("   export PATH=\"$HOME/.local/bin:$PATH\"")
+            print("   pre-commit install")
+            print("")
+            print("Option 2: Manual installation")
             print("   pip install black isort autoflake pre-commit")
             print("   Or try: python -m pip install -r requirements.txt")
+            print("")
+            print("Option 3: Use different Python version")
+            print("   Consider using Python 3.11 or 3.12 instead of 3.13")
+            print("")
 
             # Check again after the attempt
             if not check_tools_installed():
                 print("💥 Critical tools are still missing!")
-                print("🔧 Please install the missing tools manually and run this script again.")
+                print("🔧 Please try one of the alternative solutions above.")
                 return 1
 
     # Setup pre-commit hooks
@@ -104,6 +118,10 @@ def main():
 
     if not precommit_success:
         print("💥 Failed to setup pre-commit hooks!")
+        print("💡 Try installing pre-commit globally:")
+        print("   pipx install pre-commit")
+        print("   export PATH=\"$HOME/.local/bin:$PATH\"")
+        print("   pre-commit install")
         return 1
 
     print("=" * 50)
@@ -118,6 +136,8 @@ def main():
     print("")
     print("💡 Your code will now be automatically formatted on every commit!")
     print("🔧 If you need to format manually, run: make format")
+    print("")
+    print("📖 For troubleshooting, see: BLACK_COMPATIBILITY.md")
 
     return 0
 
