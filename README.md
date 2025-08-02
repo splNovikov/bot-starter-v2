@@ -107,7 +107,6 @@ python setup_dev.py
 
 # Manual setup
 pip install -r requirements.txt
-pre-commit install
 ```
 
 ### Quick Format
@@ -147,15 +146,14 @@ autoflake --remove-all-unused-imports --remove-unused-variables --in-place --rec
 - **PyCharm**: Enable isort and autoflake in Settings → Tools → External Tools
 - **Vim/Neovim**: Use `isort` and `autoflake` with your preferred plugin
 
-### Pre-commit Hooks
-The project includes pre-commit hooks that automatically:
-- Remove unused imports and variables
-- Sort imports
-- Fix trailing whitespace and file endings
+### Manual Workflow
+Since pre-commit hooks are not used, follow this manual workflow:
 
-These hooks run automatically on every commit to ensure code quality.
+1. **Before committing**: Run `make format` to clean up your code
+2. **For unused imports only**: Run `make clean-imports`
+3. **To check formatting**: Run `make check-format`
 
-**Note**: Black formatting is temporarily disabled in pre-commit hooks due to compatibility issues. See [BLACK_COMPATIBILITY.md](BLACK_COMPATIBILITY.md) for resolution steps.
+This ensures your code is properly formatted before committing.
 
 ## 🔧 Configuration
 

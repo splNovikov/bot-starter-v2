@@ -1,14 +1,13 @@
-.PHONY: setup format check-format clean-imports install-dev setup-pre-commit help
+.PHONY: setup format check-format clean-imports install-dev help
 
 # Default target
 help:
 	@echo "Available commands:"
 	@echo "  make setup            - Complete development environment setup"
-	@echo "  make format           - Format all Python files with autoflake, isort, and Black"
+	@echo "  make format           - Format all Python files with autoflake and isort"
 	@echo "  make check-format     - Check if files need formatting (without changes)"
 	@echo "  make clean-imports    - Remove unused imports and variables only"
 	@echo "  make install-dev      - Install development dependencies"
-	@echo "  make setup-pre-commit - Install pre-commit hooks"
 	@echo "  make run              - Run the bot"
 	@echo "  make clean            - Clean up Python cache files"
 	@echo "  make help             - Show this help message"
@@ -16,7 +15,7 @@ help:
 # Format all Python files
 format:
 	@echo "🎨 Formatting code..."
-	python format_code.py
+	python3 format_code.py
 
 # Check formatting without making changes
 check-format:
@@ -33,24 +32,17 @@ clean-imports:
 # Complete development environment setup
 setup:
 	@echo "🚀 Setting up complete development environment..."
-	python setup_dev.py
+	python3 setup_dev.py
 
 # Install development dependencies
 install-dev:
 	@echo "📦 Installing development dependencies..."
 	pip install -r requirements.txt
 
-# Setup pre-commit hooks
-setup-pre-commit:
-	@echo "🔧 Setting up pre-commit hooks..."
-	pre-commit install
-	@echo "✅ Pre-commit hooks installed successfully!"
-	@echo "💡 Now your code will be automatically formatted on every commit!"
-
 # Run the bot
 run:
 	@echo "🤖 Starting the bot..."
-	python main.py
+	python3 main.py
 
 # Clean up Python cache files
 clean:

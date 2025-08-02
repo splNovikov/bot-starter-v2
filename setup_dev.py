@@ -4,8 +4,7 @@ Development environment setup script.
 
 This script automates the setup of the development environment by:
 1. Installing development dependencies (if needed)
-2. Setting up pre-commit hooks
-3. Verifying the installation
+2. Verifying the installation
 
 It provides clear feedback and handles errors gracefully.
 """
@@ -52,19 +51,19 @@ def check_tools_installed():
     Returns:
         bool: True if all tools are installed, False otherwise
     """
-    tools = ["black", "isort", "autoflake", "pre-commit"]
+    tools = ["black", "isort", "autoflake"]
     missing_tools = []
-
+    
     for tool in tools:
         try:
             subprocess.run([tool, "--version"], check=True, capture_output=True)
         except (subprocess.CalledProcessError, FileNotFoundError):
             missing_tools.append(tool)
-
+    
     if missing_tools:
         print(f"❌ Missing tools: {', '.join(missing_tools)}")
         return False
-
+    
     return True
 
 
@@ -92,37 +91,22 @@ def main():
             print("")
             print("Option 1: Install tools globally (Recommended)")
             print("   brew install pipx")
-            print("   pipx install autoflake isort pre-commit")
+            print("   pipx install autoflake isort black")
             print("   export PATH=\"$HOME/.local/bin:$PATH\"")
-            print("   pre-commit install")
             print("")
             print("Option 2: Manual installation")
-            print("   pip install black isort autoflake pre-commit")
+            print("   pip install black isort autoflake")
             print("   Or try: python -m pip install -r requirements.txt")
             print("")
             print("Option 3: Use different Python version")
             print("   Consider using Python 3.11 or 3.12 instead of 3.13")
             print("")
-
+            
             # Check again after the attempt
             if not check_tools_installed():
                 print("💥 Critical tools are still missing!")
                 print("🔧 Please try one of the alternative solutions above.")
                 return 1
-
-    # Setup pre-commit hooks
-    precommit_success = run_command(
-        "pre-commit install",
-        "Setting up pre-commit hooks"
-    )
-
-    if not precommit_success:
-        print("💥 Failed to setup pre-commit hooks!")
-        print("💡 Try installing pre-commit globally:")
-        print("   pipx install pre-commit")
-        print("   export PATH=\"$HOME/.local/bin:$PATH\"")
-        print("   pre-commit install")
-        return 1
 
     print("=" * 50)
     print("🎉 Development environment setup completed successfully!")
@@ -134,11 +118,13 @@ def main():
     print("  make run              - Run the bot")
     print("  make help             - Show all commands")
     print("")
-    print("💡 Your code will now be automatically formatted on every commit!")
-    print("🔧 If you need to format manually, run: make format")
+    print("💡 Manual formatting workflow:")
+    print("   1. Run 'make clean-imports' to remove unused imports")
+    print("   2. Run 'make format' to sort imports and format code")
+    print("   3. Commit your changes")
     print("")
     print("📖 For troubleshooting, see: BLACK_COMPATIBILITY.md")
-
+    
     return 0
 
 

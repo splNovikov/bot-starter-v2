@@ -10,5 +10,3 @@ aiohttp==3.10.5
 black>=24.0.0
 isort>=5.13.0
 autoflake>=2.3.0
-pre-commit>=3.6.0
-click>=8.0.0
