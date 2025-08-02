@@ -3,23 +3,26 @@
 Development environment setup script.
 
 This script automates the setup of the development environment by:
-1. Installing development dependencies (if needed)
-2. Verifying the installation
+1. Creating a virtual environment (if needed)
+2. Installing development dependencies
+3. Verifying the installation
 
 It provides clear feedback and handles errors gracefully.
 """
 
+import os
 from pathlib import Path
 import subprocess
 import sys
 
 
-def run_command(command, description):
+def run_command(command, description, cwd=None):
     """Run a command and handle errors.
 
     Args:
         command (str): The command to run
         description (str): Human-readable description of what the command does
+        cwd (Path, optional): Working directory for the command
 
     Returns:
         bool: True if successful, False otherwise
@@ -32,7 +35,7 @@ def run_command(command, description):
             check=True,
             capture_output=True,
             text=True,
-            cwd=Path(__file__).parent,
+            cwd=cwd or Path(__file__).parent,
         )
         print(f"✅ {description} completed successfully")
         return True
@@ -45,18 +48,48 @@ def run_command(command, description):
         return False
 
 
+def create_virtual_environment():
+    """Create a virtual environment if it doesn't exist.
+
+    Returns:
+        bool: True if successful, False otherwise
+    """
+    venv_path = Path(__file__).parent / "venv"
+
+    if venv_path.exists():
+        print("✅ Virtual environment already exists")
+        return True
+
+    return run_command("python3 -m venv venv", "Creating virtual environment")
+
+
+def activate_venv_command():
+    """Get the command to activate virtual environment.
+
+    Returns:
+        str: Command to activate virtual environment
+    """
+    if os.name == "nt":  # Windows
+        return "venv\\Scripts\\activate"
+    else:  # Unix/Linux/macOS
+        return "source venv/bin/activate"
+
+
 def check_tools_installed():
     """Check if all required tools are installed.
 
     Returns:
         bool: True if all tools are installed, False otherwise
     """
-    tools = ["black", "isort", "autoflake"]
+    tools = ["isort", "autoflake", "ruff"]
     missing_tools = []
 
     for tool in tools:
         try:
-            subprocess.run([tool, "--version"], check=True, capture_output=True)
+            # Try to run the tool from the virtual environment
+            activate_cmd = activate_venv_command()
+            check_cmd = f"{activate_cmd} && {tool} --version"
+            subprocess.run(check_cmd, shell=True, check=True, capture_output=True)
         except (subprocess.CalledProcessError, FileNotFoundError):
             missing_tools.append(tool)
 
@@ -72,30 +105,38 @@ def main():
     print("🚀 Setting up development environment...")
     print("=" * 50)
 
+    # Create virtual environment
+    if not create_virtual_environment():
+        print("💥 Failed to create virtual environment!")
+        return 1
+
     # Check if tools are already installed
     if check_tools_installed():
         print("✅ All required tools are already installed!")
     else:
         print("⚠️  Some tools are missing. Attempting to install...")
-        # Try to install dependencies, but don't fail if it doesn't work
+        # Install dependencies in virtual environment
+        activate_cmd = activate_venv_command()
+        install_cmd = f"{activate_cmd} && python3 -m pip install -r requirements.txt"
+
         install_success = run_command(
-            "pip install -r requirements.txt", "Installing development dependencies"
+            install_cmd, "Installing development dependencies"
         )
 
         if not install_success:
-            print("⚠️  Failed to install dependencies via pip.")
-            print("💡 This might be due to Python 3.13 compatibility issues.")
+            print("⚠️  Failed to install dependencies.")
+            print("💡 This might be due to network issues or package conflicts.")
             print("")
             print("🔧 Alternative solutions:")
             print("")
             print("Option 1: Install tools globally (Recommended)")
             print("   brew install pipx")
-            print("   pipx install autoflake isort black")
+            print("   pipx install autoflake isort ruff")
             print('   export PATH="$HOME/.local/bin:$PATH"')
             print("")
-            print("Option 2: Manual installation")
-            print("   pip install black isort autoflake")
-            print("   Or try: python -m pip install -r requirements.txt")
+            print("Option 2: Manual installation in venv")
+            print(f"   {activate_cmd}")
+            print("   python3 -m pip install ruff isort autoflake")
             print("")
             print("Option 3: Use different Python version")
             print("   Consider using Python 3.11 or 3.12 instead of 3.13")

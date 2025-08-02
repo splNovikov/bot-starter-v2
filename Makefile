@@ -4,7 +4,7 @@
 help:
 	@echo "Available commands:"
 	@echo "  make setup            - Complete development environment setup"
-	@echo "  make format           - Format all Python files with autoflake and isort"
+	@echo "  make format           - Format all Python files with autoflake, isort, and ruff"
 	@echo "  make check-format     - Check if files need formatting (without changes)"
 	@echo "  make clean-imports    - Remove unused imports and variables only"
 	@echo "  make install-dev      - Install development dependencies"
@@ -15,18 +15,34 @@ help:
 # Format all Python files
 format:
 	@echo "🎨 Formatting code..."
-	python3 format_code.py
+	@if [ -d "venv" ]; then \
+		source venv/bin/activate && python3 format_code.py; \
+	else \
+		echo "❌ Virtual environment not found. Run 'make setup' first."; \
+		exit 1; \
+	fi
 
 # Check formatting without making changes
 check-format:
 	@echo "🔍 Checking code formatting..."
-	isort --check-only --diff .
-	autoflake --remove-all-unused-imports --remove-unused-variables --check .
+	@if [ -d "venv" ]; then \
+		source venv/bin/activate && isort --check-only --diff . && \
+		source venv/bin/activate && autoflake --remove-all-unused-imports --remove-unused-variables --check . && \
+		source venv/bin/activate && ruff format --check .; \
+	else \
+		echo "❌ Virtual environment not found. Run 'make setup' first."; \
+		exit 1; \
+	fi
 
 # Remove unused imports and variables only
 clean-imports:
 	@echo "🧹 Removing unused imports and variables..."
-	autoflake --remove-all-unused-imports --remove-unused-variables --remove-duplicate-keys --in-place --recursive .
+	@if [ -d "venv" ]; then \
+		source venv/bin/activate && autoflake --remove-all-unused-imports --remove-unused-variables --remove-duplicate-keys --in-place --recursive .; \
+	else \
+		echo "❌ Virtual environment not found. Run 'make setup' first."; \
+		exit 1; \
+	fi
 
 # Complete development environment setup
 setup:
@@ -36,12 +52,22 @@ setup:
 # Install development dependencies
 install-dev:
 	@echo "📦 Installing development dependencies..."
-	pip install -r requirements.txt
+	@if [ -d "venv" ]; then \
+		source venv/bin/activate && python3 -m pip install -r requirements.txt; \
+	else \
+		echo "❌ Virtual environment not found. Run 'make setup' first."; \
+		exit 1; \
+	fi
 
 # Run the bot
 run:
 	@echo "🤖 Starting the bot..."
-	python3 main.py
+	@if [ -d "venv" ]; then \
+		source venv/bin/activate && python3 main.py; \
+	else \
+		echo "❌ Virtual environment not found. Run 'make setup' first."; \
+		exit 1; \
+	fi
 
 # Clean up Python cache files
 clean:

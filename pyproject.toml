@@ -17,30 +17,32 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = [
-    "black>=24.0.0",
+    "ruff>=0.8.0",
     "isort>=5.13.0",
     "autoflake>=2.3.0",
 ]
 
-[tool.black]
+[tool.ruff]
+target-version = "py313"
 line-length = 88
-target-version = ['py311']
-include = '\.pyi?$'
-extend-exclude = '''
-/(
-  # directories
-  \.eggs
-  | \.git
-  | \.hg
-  | \.mypy_cache
-  | \.tox
-  | \.venv
-  | venv
-  | build
-  | dist
-  | __pycache__
-)/
-'''
+exclude = [
+    ".git",
+    ".venv",
+    "venv",
+    "__pycache__",
+    "build",
+    "dist",
+]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "W", "B", "C4", "UP", "PL", "RUF"]
+ignore = ["E501", "B008", "C901"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"
 
 [tool.isort]
 profile = "black"
@@ -49,10 +51,7 @@ line_length = 88
 known_first_party = ["application", "core", "infrastructure"]
 sections = ["FUTURE", "STDLIB", "THIRDPARTY", "FIRSTPARTY", "LOCALFOLDER"]
 skip = ["venv", "__pycache__", ".git", ".idea"]
-
-[tool.autoflake]
-remove-all-unused-imports = true
-remove-unused-variables = true
-remove-duplicate-keys = true
-expand-star-imports = false
-ignore-init-module-imports = false
+force_sort_within_sections = true
+force_grid_wrap = 0
+use_parentheses = true
+ensure_newline_before_comments = true

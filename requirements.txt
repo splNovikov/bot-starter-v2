@@ -7,6 +7,6 @@ loguru==0.7.2
 aiohttp==3.10.5
 
 # Code formatting and quality tools
-black>=24.0.0
+ruff>=0.8.0
 isort>=5.13.0
 autoflake>=2.3.0

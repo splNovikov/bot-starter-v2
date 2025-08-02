@@ -1,9 +1,10 @@
-# 🤖 Modern Telegram Bot Starter
+# 🤖 Modern Telegram Bot Starter v2
 
-[![Python](https://img.shields.io/badge/Python-3.11+-blue.svg)](https://python.org)
-[![aiogram](https://img.shields.io/badge/aiogram-3.13+-green.svg)](https://aiogram.dev)
+[![Python](https://img.shields.io/badge/Python-3.13+-blue.svg)](https://python.org)
+[![aiogram](https://img.shields.io/badge/aiogram-3.12+-green.svg)](https://aiogram.dev)
 [![Localization](https://img.shields.io/badge/Localization-✅-brightgreen.svg)](locales/)
 [![Architecture](https://img.shields.io/badge/Architecture-Clean-brightgreen.svg)](#architecture)
+[![Code Quality](https://img.shields.io/badge/Code%20Quality-Ruff%20%7C%20isort%20%7C%20autoflake-brightgreen.svg)](#code-quality--formatting)
 
 A production-ready Telegram bot starter template built with **aiogram v3.x**, featuring clean architecture, comprehensive localization, and type-safe handler system.
 
@@ -14,19 +15,28 @@ A production-ready Telegram bot starter template built with **aiogram v3.x**, fe
 - **🔧 Type-Safe Handlers** - Registry-based system with rich metadata
 - **⚡ Auto-Registration** - Decorators handle all the boilerplate
 - **📊 Built-in Analytics** - Performance monitoring and statistics
+- **🎨 Modern Code Quality** - Ruff, isort, and autoflake for formatting
+- **🐍 Python 3.13 Ready** - Optimized for the latest Python version
 
 ## 🚀 Quick Start
+
+### Prerequisites
+
+- **Python 3.13+** (recommended) or Python 3.11+
+- **Git** for cloning the repository
+- **Telegram Bot Token** from [@BotFather](https://t.me/BotFather)
 
 ### Installation
 
 ```bash
+# Clone the repository
 git clone https://github.com/yourusername/bot-starter-v2.git
 cd bot-starter-v2
 
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+# Setup development environment (automated)
+make setup
 
-pip install -r requirements.txt
+# Create environment file
 cp .env.example .env
 # Edit .env with your BOT_TOKEN
 ```
@@ -34,7 +44,8 @@ cp .env.example .env
 ### Run the Bot
 
 ```bash
-python main.py
+# Start the bot
+make run
 ```
 
 **Try these commands:**
@@ -43,6 +54,26 @@ python main.py
 - `/language` - Change language interactively
 - `/greet` (or `/hi`, `/hello`) - Friendly greeting
 
+## 🛠️ Development Commands
+
+The project includes a comprehensive Makefile for common development tasks:
+
+```bash
+# Setup and installation
+make setup              # Complete development environment setup
+make install-dev        # Install development dependencies
+
+# Code formatting and quality
+make format             # Format all Python files
+make check-format       # Check formatting without changes
+make clean-imports      # Remove unused imports only
+
+# Running and maintenance
+make run                # Run the bot
+make clean              # Clean up Python cache files
+make help               # Show all available commands
+```
+
 ## 🏗️ Architecture
 
 ```
@@ -50,13 +81,24 @@ bot-starter-v2/
 ├── 🔧 core/                    # Framework Layer (Reusable)
 │   ├── handlers/               # Registry system & decorators
 │   ├── middleware/             # Infrastructure components
-│   └── utils/                  # Core utilities
-├── 🎯 business/                # Business Layer (Application-specific)
+│   ├── protocols/              # Type-safe interfaces
+│   ├── sequence/               # Conversation flow management
+│   ├── services/               # Core services (localization)
+│   └── utils/                  # Core utilities (logging)
+├── 🎯 application/             # Business Layer (Application-specific)
 │   ├── handlers/               # Message handling logic
-│   └── services/               # Domain services
+│   │   ├── command_start/      # Start command implementation
+│   │   ├── command_locale/     # Language switching
+│   │   └── sequence_user_info/ # User info collection flow
+│   └── registry_init.py        # Handler registration
+├── 🏗️ infrastructure/          # Infrastructure Layer
+│   ├── sequence/               # Sequence management
+│   └── ui/                     # UI components
 ├── 🌍 locales/                 # Translation files
 │   ├── en.json, es.json, ru.json
-└── docs/                       # Documentation
+├── 📄 config.py                # Configuration management
+├── 🚀 main.py                  # Application entry point
+└── 🛠️ setup_dev.py            # Development environment setup
 ```
 
 **Core Principles:**
@@ -64,6 +106,7 @@ bot-starter-v2/
 - **Single Responsibility**: Each class has one purpose
 - **Localization-First**: All user text uses translation system
 - **Type Safety**: Protocol-based interfaces with runtime validation
+- **Sequence Management**: Structured conversation flows
 
 ## 🌍 Localization
 
@@ -77,105 +120,210 @@ The bot automatically detects user language and provides content in:
 2. Telegram user locale
 3. Default language fallback
 
-## 📚 Documentation
+### Adding New Languages
 
-### 🎯 Business Layer Development
-- **[Business Overview](business/docs/README.md)** - Application architecture and patterns
-- **[Handler Development](business/docs/handlers.md)** - Creating commands and message processors
-- **[Service Development](business/docs/services.md)** - Building business logic services
-- **[Implementation Examples](business/docs/examples.md)** - Real-world patterns and examples
-
-### 🔧 Core Framework
-- **[Core Overview](core/docs/README.md)** - Framework architecture and principles
-- **[Handler System](core/docs/handlers.md)** - Registry, decorators, and type system
-- **[Middleware](core/docs/middleware.md)** - Request processing pipeline
-- **[Utilities](core/docs/utils.md)** - Logging and helper functions
-
-### 📖 General Documentation
-- **[Localization Guide](docs/localization.md)** - Complete multi-language support guide
-- **[Contributing Guide](docs/contributing.md)** - Development guidelines and standards
+1. Create a new JSON file in `locales/` (e.g., `fr.json`)
+2. Add the language code to `SUPPORTED_LANGUAGES` in your `.env`
+3. Translate all keys from `en.json`
 
 ## 🔧 Code Quality & Formatting
 
-This project uses **autoflake** and **isort** for import management and code quality. Black is temporarily disabled due to compatibility issues (see [BLACK_COMPATIBILITY.md](BLACK_COMPATIBILITY.md)).
+This project uses modern Python code quality tools:
 
-### 🚀 Quick Setup
+- **Ruff** - Fast Python linter and formatter
+- **isort** - Import sorting and organization
+- **autoflake** - Remove unused imports and variables
+
+### Automated Setup
+
+The development environment is automatically configured with:
 
 ```bash
-# Automated setup (recommended)
-python setup_dev.py
-
-# Manual setup
-pip install -r requirements.txt
+make setup
 ```
 
-### Quick Format
-```bash
-# Using the formatting script (recommended)
-python format_code.py
+This command:
+- Creates a virtual environment
+- Installs all dependencies
+- Verifies tool installation
+- Provides helpful error messages if issues occur
 
-# Using Makefile (if you have make installed)
+### Manual Formatting Workflow
+
+```bash
+# Format all code (recommended)
 make format
 
-# Or run formatters individually
-autoflake --remove-all-unused-imports --remove-unused-variables --in-place --recursive .
-isort .
-```
-
-### Check Formatting (without changes)
-```bash
-# Using Makefile
+# Check formatting without changes
 make check-format
 
-# Or run individually
-autoflake --remove-all-unused-imports --remove-unused-variables --check .
-isort --check-only --diff .
-```
-
-### Remove Unused Imports Only
-```bash
-# Using Makefile
+# Remove unused imports only
 make clean-imports
-
-# Or run directly
-autoflake --remove-all-unused-imports --remove-unused-variables --in-place --recursive .
 ```
 
 ### IDE Integration
-- **VS Code**: Install "isort" and "autoflake" extensions
-- **PyCharm**: Enable isort and autoflake in Settings → Tools → External Tools
-- **Vim/Neovim**: Use `isort` and `autoflake` with your preferred plugin
 
-### Manual Workflow
-Since pre-commit hooks are not used, follow this manual workflow:
+**VS Code:**
+```json
+{
+    "python.defaultInterpreterPath": "./venv/bin/python",
+    "python.formatting.provider": "ruff",
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+        "source.organizeImports": true
+    }
+}
+```
 
-1. **Before committing**: Run `make format` to clean up your code
-2. **For unused imports only**: Run `make clean-imports`
-3. **To check formatting**: Run `make check-format`
-
-This ensures your code is properly formatted before committing.
+**PyCharm:**
+- Enable Ruff in Settings → Tools → External Tools
+- Configure isort and autoflake as external tools
 
 ## 🔧 Configuration
+
+Create a `.env` file in the project root:
+
+```bash
+# Required
+BOT_TOKEN=your_telegram_bot_token_here
+
+# Optional (with defaults)
+DEFAULT_LANGUAGE=en
+SUPPORTED_LANGUAGES=en,es,ru
+LOG_LEVEL=INFO
+API_BASE_URL=https://api.example.com
+API_TIMEOUT=30
+```
+
+### Environment Variables
 
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `BOT_TOKEN` | - | **Required** - Your Telegram bot token |
-| `API_BASE_URL` | `https://api.example.com` | Base URL for questionnaire API |
-| `API_TIMEOUT` | `30` | API request timeout in seconds |
 | `DEFAULT_LANGUAGE` | `en` | Default language for new users |
 | `SUPPORTED_LANGUAGES` | `en,es,ru` | Comma-separated language codes |
 | `LOG_LEVEL` | `INFO` | Logging level (DEBUG, INFO, WARNING) |
+| `API_BASE_URL` | `https://api.example.com` | Base URL for external APIs |
+| `API_TIMEOUT` | `30` | API request timeout in seconds |
+
+## 🚀 Deployment
+
+### Local Development
+
+```bash
+# Setup environment
+make setup
+
+# Create .env file
+echo "BOT_TOKEN=your_token_here" > .env
+
+# Run the bot
+make run
+```
+
+### Production Deployment
+
+1. **Environment Setup:**
+   ```bash
+   python3 -m venv venv
+   source venv/bin/activate
+   python3 -m pip install -r requirements.txt
+   ```
+
+2. **Configuration:**
+   ```bash
+   cp .env.example .env
+   # Edit .env with production values
+   ```
+
+3. **Run:**
+   ```bash
+   python3 main.py
+   ```
+
+### Docker Deployment
+
+```dockerfile
+FROM python:3.13-slim
+
+WORKDIR /app
+COPY requirements.txt .
+RUN pip install -r requirements.txt
+
+COPY . .
+CMD ["python", "main.py"]
+```
+
+## 🐛 Troubleshooting
+
+### Common Issues
+
+**1. "pip: command not found"**
+```bash
+# Use python3 -m pip instead
+python3 -m pip install -r requirements.txt
+```
+
+**2. "externally-managed-environment"**
+```bash
+# Use virtual environment
+make setup
+```
+
+**3. Import errors in virtual environment**
+```bash
+# Recreate virtual environment
+rm -rf venv
+make setup
+```
+
+**4. Formatting tools not found**
+```bash
+# Reinstall development dependencies
+make install-dev
+```
+
+### Getting Help
+
+- Check the [Issues](https://github.com/yourusername/bot-starter-v2/issues) page
+- Review the [Architecture Documentation](#architecture)
+- Ensure your Python version is 3.11+ (3.13+ recommended)
 
 ## 🤝 Contributing
 
-We welcome contributions! Please see our [Contributing Guide](docs/contributing.md) for development guidelines, architecture patterns, and submission process.
+We welcome contributions! Please follow these guidelines:
 
-**Quick Start:**
+### Development Setup
+
+```bash
+# Fork and clone
+git clone https://github.com/yourusername/bot-starter-v2.git
+cd bot-starter-v2
+
+# Setup development environment
+make setup
+
+# Create feature branch
+git checkout -b feature/amazing-feature
+```
+
+### Code Standards
+
+- Follow the existing architecture patterns
+- Use type hints throughout
+- Add comprehensive docstrings
+- Ensure all code is properly formatted
+- Write tests for new features
+
+### Submission Process
+
 1. Fork the repository
 2. Create feature branch: `git checkout -b feature/amazing-feature`
-3. Follow the [architecture patterns](business/docs/README.md)
-4. Add comprehensive documentation
-5. Submit a pull request
+3. Make your changes and format code: `make format`
+4. Test your changes: `make check-format`
+5. Commit: `git commit -m "Add amazing feature"`
+6. Push: `git push origin feature/amazing-feature`
+7. Submit a pull request
 
 ## 📄 License
 
@@ -185,10 +333,11 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 - **[aiogram](https://aiogram.dev)** - Async Telegram Bot framework
 - **[loguru](https://loguru.readthedocs.io)** - Elegant logging
+- **[Ruff](https://github.com/astral-sh/ruff)** - Fast Python linter
 - **Community** - Thanks to all contributors!
 
 ---
 
 **Ready to build something amazing?** 🚀
 
-Start with the [Handler Development Guide](business/docs/handlers.md) and explore the [examples](business/docs/examples.md) to see what's possible!
+Start with the [Quick Start](#-quick-start) guide and explore the [Architecture](#-architecture) to understand the patterns!
