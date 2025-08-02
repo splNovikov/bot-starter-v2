@@ -1,9 +1,10 @@
-from aiogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
+from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message
 
-from core.utils.logger import get_logger
 from core.services.localization import get_localization_service, t
+from core.utils.logger import get_logger
 
 logger = get_logger()
+
 
 async def handle_locale(message: Message) -> None:
     try:
@@ -22,21 +23,27 @@ async def handle_locale(message: Message) -> None:
 
         for lang_code, lang_name in supported_languages.items():
             # Mark current language with a checkmark
-            button_text = f"✓ {lang_name}" if lang_code == current_language else lang_name
-            keyboard.inline_keyboard.append([
-                InlineKeyboardButton(
-                    text=button_text,
-                    callback_data=f"locale:{lang_code}"
-                )
-            ])
+            button_text = (
+                f"✓ {lang_name}" if lang_code == current_language else lang_name
+            )
+            keyboard.inline_keyboard.append(
+                [
+                    InlineKeyboardButton(
+                        text=button_text, callback_data=f"locale:{lang_code}"
+                    )
+                ]
+            )
 
         # Send message with keyboard
-        current_lang_text = t("locale.current", user=message.from_user, language_name=current_language_name)
+        current_lang_text = t(
+            "locale.current",
+            user=message.from_user,
+            language_name=current_language_name,
+        )
         select_text = t("locale.select", user=message.from_user)
 
         await message.answer(
-            f"{current_lang_text}\n\n{select_text}",
-            reply_markup=keyboard
+            f"{current_lang_text}\n\n{select_text}", reply_markup=keyboard
         )
 
         logger.info(f"Locale selection menu sent to user {message.from_user.id}")

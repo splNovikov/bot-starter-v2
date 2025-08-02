@@ -4,4 +4,8 @@ python-dotenv==1.0.1
 loguru==0.7.2
 
 # HTTP client for API requests
-aiohttp==3.10.5 
+aiohttp==3.10.5
+
+# Code formatting
+black==24.1.1
+isort==5.13.2 

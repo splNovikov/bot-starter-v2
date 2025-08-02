@@ -5,9 +5,10 @@ Provides service implementations for the sequence framework including
 session management, sequence orchestration, and result handling.
 """
 
+from typing import Optional
+
 from .base_sequence_manager import BaseSequenceManager
 from .sequence_service import SequenceService
-from typing import Optional
 
 # Global sequence service instance
 _sequence_service: Optional[SequenceService] = None
@@ -16,7 +17,7 @@ _sequence_service: Optional[SequenceService] = None
 def get_sequence_service() -> Optional[SequenceService]:
     """
     Get the global sequence service instance.
-    
+
     Returns:
         SequenceService instance or None if not set
     """
@@ -26,7 +27,7 @@ def get_sequence_service() -> Optional[SequenceService]:
 def set_sequence_service(service: SequenceService) -> None:
     """
     Set the global sequence service instance.
-    
+
     Args:
         service: SequenceService instance to set
     """
@@ -35,8 +36,8 @@ def set_sequence_service(service: SequenceService) -> None:
 
 
 __all__ = [
-    'BaseSequenceManager',
-    'SequenceService',
-    'get_sequence_service',
-    'set_sequence_service'
-] 
+    "BaseSequenceManager",
+    "SequenceService",
+    "get_sequence_service",
+    "set_sequence_service",
+]

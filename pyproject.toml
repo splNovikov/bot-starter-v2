@@ -1,0 +1,50 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "bot-starter-v2"
+version = "1.0.0"
+description = "Modern Telegram Bot Starter with Clean Architecture"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "aiogram==3.12.0",
+    "python-dotenv==1.0.1",
+    "loguru==0.7.2",
+    "aiohttp==3.10.5",
+]
+
+[project.optional-dependencies]
+dev = [
+    "black==24.1.1",
+    "isort==5.13.2",
+]
+
+[tool.black]
+line-length = 88
+target-version = ['py311']
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+  # directories
+  \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | venv
+  | build
+  | dist
+  | __pycache__
+)/
+'''
+
+[tool.isort]
+profile = "black"
+multi_line_output = 3
+line_length = 88
+known_first_party = ["application", "core", "infrastructure"]
+sections = ["FUTURE", "STDLIB", "THIRDPARTY", "FIRSTPARTY", "LOCALFOLDER"]
+skip = ["venv", "__pycache__", ".git", ".idea"] 

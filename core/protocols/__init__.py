@@ -7,7 +7,4 @@ contracts and can be implemented by different layers.
 
 from .base import ApiClientProtocol, ApiResponse
 
-__all__ = [
-    'ApiClientProtocol',
-    'ApiResponse'
-] 
+__all__ = ["ApiClientProtocol", "ApiResponse"]

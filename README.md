@@ -95,6 +95,38 @@ The bot automatically detects user language and provides content in:
 - **[Localization Guide](docs/localization.md)** - Complete multi-language support guide
 - **[Contributing Guide](docs/contributing.md)** - Development guidelines and standards
 
+## 🔧 Code Formatting
+
+This project uses **Black** and **isort** for consistent code formatting.
+
+### Quick Format
+```bash
+# Using the formatting script (recommended)
+python format_code.py
+
+# Using Makefile (if you have make installed)
+make format
+
+# Or run formatters individually
+black .
+isort .
+```
+
+### Check Formatting (without changes)
+```bash
+# Using Makefile
+make check-format
+
+# Or run individually
+black --check .
+isort --check-only --diff .
+```
+
+### IDE Integration
+- **VS Code**: Install "Black Formatter" and "isort" extensions
+- **PyCharm**: Enable Black and isort in Settings → Tools → External Tools
+- **Vim/Neovim**: Use `black` and `isort` with your preferred plugin
+
 ## 🔧 Configuration
 
 | Variable | Default | Description |

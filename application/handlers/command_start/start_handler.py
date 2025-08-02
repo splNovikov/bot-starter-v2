@@ -7,6 +7,7 @@ from .start_lib import create_greeting_message, get_username
 
 logger = get_logger()
 
+
 async def handle_start(message: Message) -> None:
     try:
         greeting = create_greeting_message(message.from_user)

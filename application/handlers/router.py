@@ -1,8 +1,10 @@
 from aiogram import Router
 
+from .command_locale import locale_router
+
 # Commands
 from .command_start import start_router
-from .command_locale import locale_router
+
 # Sequences
 from .sequence_user_info import sequence_user_info_router
 

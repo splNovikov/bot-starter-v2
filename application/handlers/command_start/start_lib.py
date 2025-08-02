@@ -2,6 +2,7 @@ from aiogram.types import User
 
 from core.services.localization import t
 
+
 def get_username(user: User) -> str:
     return user.first_name or user.username or "Anonymous"
 

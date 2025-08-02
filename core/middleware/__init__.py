@@ -6,6 +6,4 @@ Provides reusable middleware components for the Telegram bot framework.
 
 from .logging_middleware import LoggingMiddleware
 
-__all__ = [
-    'LoggingMiddleware'
-] 
+__all__ = ["LoggingMiddleware"]

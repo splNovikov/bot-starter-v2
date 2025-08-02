@@ -5,6 +5,7 @@ from core.utils.logger import get_logger
 
 logger = get_logger()
 
+
 async def handle_locale_answer(callback: CallbackQuery) -> None:
     try:
         # Extract language code from callback data
@@ -19,31 +20,30 @@ async def handle_locale_answer(callback: CallbackQuery) -> None:
             error_message = t(
                 "locale.unsupported",
                 user=callback.from_user,
-                language_name=language_code
+                language_name=language_code,
             )
             await callback.answer(error_message, show_alert=True)
             return
 
         # Set user language
         success = localization_service.set_user_language(
-            callback.from_user.id,
-            language_code
+            callback.from_user.id, language_code
         )
 
         if success:
             # Get language name for confirmation message
             language_name = supported_languages[language_code]
             success_message = t(
-                "locale.changed",
-                user=callback.from_user,
-                language_name=language_name
+                "locale.changed", user=callback.from_user, language_name=language_name
             )
 
             # Update the message to show success
             await callback.message.edit_text(success_message)
             await callback.answer()
 
-            logger.info(f"Language changed to {language_code} for user {callback.from_user.id}")
+            logger.info(
+                f"Language changed to {language_code} for user {callback.from_user.id}"
+            )
         else:
             error_message = t("locale.error", user=callback.from_user)
             await callback.answer(error_message, show_alert=True)

@@ -7,8 +7,4 @@ and can be reused across different business domains.
 
 from .localization import LocalizationService, get_localization_service, t
 
-__all__ = [
-    'LocalizationService',
-    'get_localization_service', 
-    't'
-] 
+__all__ = ["LocalizationService", "get_localization_service", "t"]
