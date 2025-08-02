@@ -1,7 +1,7 @@
 """
 Localization middleware for automatic language detection and user preference management.
 
-This middleware automatically detects user language from Telegram locale and 
+This middleware automatically detects user language from Telegram locale and
 integrates with the LocalizationService for seamless localization support.
 
 See core/docs/middleware.md for comprehensive documentation on middleware development.

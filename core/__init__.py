@@ -3,7 +3,7 @@ Core framework package for the Telegram bot.
 
 This package contains reusable framework components:
 - Handler registry system
-- Type definitions and protocols  
+- Type definitions and protocols
 - Decorators for handler registration
 - Middleware infrastructure
 - Core utilities (logging)

@@ -3,9 +3,9 @@ Central registry system for managing bot handlers.
 Provides type-safe handler registration, metadata management, and introspection.
 """
 
-import time
 from collections import defaultdict
 from functools import wraps
+import time
 from typing import Any, Callable, Dict, List, Optional
 
 from aiogram import Router

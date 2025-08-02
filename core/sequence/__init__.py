@@ -5,7 +5,7 @@ Provides unified sequence infrastructure components for all interactive flows:
 questionnaires, quizzes, surveys, and single question+summary interactions.
 
 - Type definitions and protocols for sequences
-- Abstract base services for session management and sequence provision  
+- Abstract base services for session management and sequence provision
 - Core orchestration services
 - Unified decorator for sequence handler registration
 - FSM states for sequence interactions
@@ -16,7 +16,7 @@ Usage Example:
         sequence_handler,
         SequenceService
     )
-    
+
     @sequence_handler(
         "bio",
         questions=["name", "age", "location", "interests"],
@@ -60,10 +60,8 @@ from .services import (
 
 # FSM states
 from .states import SequenceStateManager, SequenceStates, get_sequence_states
-
-# Core types and enums
-from .types import HandlerCategory  # Re-exported for convenience
 from .types import (
+    HandlerCategory,
     QuestionType,
     SequenceAnswer,
     SequenceDefinition,
@@ -72,9 +70,6 @@ from .types import (
     SequenceSession,
     SequenceStatus,
 )
-
-# Adapters removed - unified sequence system only
-
 
 __version__ = "1.0.0"
 

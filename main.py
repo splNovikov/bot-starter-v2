@@ -8,8 +8,8 @@ logging and error recovery mechanisms for production deployment.
 
 # Standard library imports
 import asyncio
-import sys
 from contextlib import asynccontextmanager
+import sys
 
 # Third-party imports
 from aiogram import Bot, Dispatcher

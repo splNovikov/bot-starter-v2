@@ -5,9 +5,9 @@ Defines the fundamental types for the sequence abstraction that unifies
 all interactive flows under a single "sequence" concept with configuration-driven behavior.
 """
 
-import time
 from dataclasses import asdict, dataclass, field
 from enum import Enum
+import time
 from typing import Any, Dict, List, Optional, Union
 
 
