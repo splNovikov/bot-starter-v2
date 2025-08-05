@@ -57,6 +57,10 @@ from .services import (
     get_sequence_service,
     set_sequence_service,
 )
+from .services.sequence_initiation_service import (
+    SequenceInitiationService,
+    get_sequence_initiation_service,
+)
 
 # FSM states
 from .states import SequenceStateManager, SequenceStates, get_sequence_states
@@ -99,6 +103,8 @@ __all__ = [
     "SequenceService",
     "get_sequence_service",
     "set_sequence_service",
+    "SequenceInitiationService",
+    "get_sequence_initiation_service",
     # Decorators - primary interface
     "sequence_handler",
     "is_sequence_handler",
