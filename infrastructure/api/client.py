@@ -70,9 +70,9 @@ class HttpClient:
             async with session.request(method, url, **kwargs) as response:
                 status_code = response.status
 
-                if status_code == 200:
+                if 200 <= status_code < 300:
                     data = await response.json()
-                    logger.debug(f"Successful HTTP response from {url}")
+                    logger.debug(f"Successful HTTP response ({status_code}) from {url}")
                     return ApiResponse(success=True, data=data, status_code=status_code)
                 elif status_code == 404:
                     logger.info(f"Resource not found (404) from {url}")
