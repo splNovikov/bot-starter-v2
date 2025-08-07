@@ -6,8 +6,8 @@ from core.services.localization import t
 
 def get_username(user: User, user_data: UserData = None) -> str:
     """Get user's display name from user_data if available, otherwise fallback to Telegram user fields."""
-    if user_data and user_data.display_name:
-        return user_data.display_name
+    if user_data and user_data.name:
+        return user_data.name
     return user.first_name or user.username or "Anonymous"
 
 
