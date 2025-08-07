@@ -10,7 +10,6 @@ from typing import Any, Optional, Tuple
 
 from aiogram.types import InlineKeyboardMarkup, Message, User
 
-from core.protocols.base import ApiClientProtocol
 from core.services.localization import t
 from core.utils.logger import get_logger
 
@@ -40,7 +39,6 @@ class SequenceService(SequenceServiceProtocol):
         sequence_provider: SequenceProviderProtocol,
         question_renderer: Optional[SequenceQuestionRendererProtocol] = None,
         result_handler: Optional[SequenceResultHandlerProtocol] = None,
-        api_client: Optional[ApiClientProtocol] = None,
     ):
         """
         Initialize sequence service with dependency injection.
@@ -50,13 +48,11 @@ class SequenceService(SequenceServiceProtocol):
             sequence_provider: Sequence provision implementation
             question_renderer: Optional question rendering implementation
             result_handler: Optional result handling implementation
-            api_client: Optional API client for external requests
         """
         self._session_manager = session_manager
         self._sequence_provider = sequence_provider
         self._question_renderer = question_renderer
         self._result_handler = result_handler
-        self._api_client = api_client
 
     def start_sequence(self, user_id: int, sequence_name: str) -> str:
         """
