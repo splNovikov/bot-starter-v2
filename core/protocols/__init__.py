@@ -5,6 +5,6 @@ Contains framework-level protocol definitions that define architectural
 contracts and can be implemented by different layers.
 """
 
-from .base import ApiClientProtocol, ApiResponse
+from .base import ApiResponse
 
-__all__ = ["ApiClientProtocol", "ApiResponse"]
+__all__ = ["ApiResponse"]
