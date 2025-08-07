@@ -1,10 +1,3 @@
-"""
-Sequence decorator for the core framework.
-
-Provides a unified decorator for registering sequence-related handlers
-with behavior configuration instead of separate handler types.
-"""
-
 from functools import wraps
 from typing import Callable, List, Optional
 
@@ -41,83 +34,6 @@ def sequence_handler(
     immediate_feedback: bool = False,  # Show feedback after each question
     **kwargs,
 ) -> Callable:
-    """
-    Universal decorator for registering sequence command handlers.
-
-    This decorator handles all sequence types through configuration flags
-    rather than separate decorator types, following the principle that
-    "everything is a sequence except standalone messages".
-
-    Args:
-        command_name: Command name (without /)
-        sequence_name: Internal sequence identifier (defaults to command_name)
-        questions: List of question identifiers this handler manages
-        description: Human-readable description
-        category: Handler category
-        usage: Usage example
-        examples: List of usage examples
-        aliases: Alternative command names
-        enabled: Whether handler is enabled
-
-        # Behavior flags:
-        scored: Enable scoring and correct answers (quiz-like behavior)
-        anonymous: Anonymous responses (survey-like behavior)
-        show_progress: Show progress indicators
-        allow_restart: Allow restarting sequences
-        allow_skip: Allow skipping questions
-        randomize_questions: Randomize question order
-        generate_summary: Generate AI summary (for single question sequences)
-
-        # Scoring configuration (when scored=True):
-        time_limit: Time limit in minutes
-        passing_score: Minimum score to pass
-        show_correct_answers: Show correct answers after completion
-        immediate_feedback: Show feedback after each question
-
-        **kwargs: Additional metadata
-
-    Returns:
-        Decorated handler function
-
-    Examples:
-        # User questionnaire (bio collection, onboarding)
-        @sequence_handler(
-            "bio",
-            questions=["name", "age", "location", "interests"],
-            description="Collect user biography information",
-            show_progress=True,
-            allow_restart=True
-        )
-
-        # Scored quiz
-        @sequence_handler(
-            "trivia",
-            questions=["q1", "q2", "q3"],
-            description="General knowledge quiz",
-            scored=True,
-            show_correct_answers=True,
-            time_limit=10
-        )
-
-        # Anonymous survey
-        @sequence_handler(
-            "feedback",
-            questions=["satisfaction", "improvement", "recommendation"],
-            description="Customer feedback survey",
-            anonymous=True,
-            show_progress=True
-        )
-
-        # Single question with AI summary
-        @sequence_handler(
-            "example",
-            questions=["example_question"],
-            description="Example question with AI summary",
-            generate_summary=True,
-            show_progress=False
-        )
-    """
-
     def decorator(func: Callable) -> Callable:
         # Prepare sequence-specific metadata
         sequence_metadata = {
