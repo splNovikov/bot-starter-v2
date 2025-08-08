@@ -178,7 +178,6 @@ async def user_info_callback_handler(callback: CallbackQuery) -> None:
 
     except Exception as e:
         logger.error(
-            f"Unexpected error processing user info answer for user {callback.from_user.id}: {e}"
+            f"Unexpected error processing user info callback for user {callback.from_user.id}: {e}"
         )
         await callback.answer(t("errors.generic", user=callback.from_user))
-    # Callback handler completed
