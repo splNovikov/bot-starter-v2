@@ -8,7 +8,7 @@ using the framework protocols for maximum flexibility and reusability.
 import time
 from typing import Any, Optional, Tuple
 
-from aiogram.types import InlineKeyboardMarkup, Message, User
+from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message, User
 
 from core.services.localization import t
 from core.utils.logger import get_logger
@@ -43,8 +43,8 @@ class SequenceService(SequenceServiceProtocol):
         self,
         session_manager: SequenceManagerProtocol,
         sequence_provider: SequenceProviderProtocol,
-        question_renderer: Optional[SequenceQuestionRendererProtocol] = None,
-        result_handler: Optional[SequenceResultHandlerProtocol] = None,
+        question_renderer: SequenceQuestionRendererProtocol | None = None,
+        result_handler: SequenceResultHandlerProtocol | None = None,
     ):
         """
         Initialize sequence service with dependency injection.
@@ -526,8 +526,6 @@ class SequenceService(SequenceServiceProtocol):
         if question.question_text:
             question_text = question.question_text
         elif question.question_text_key:
-            from core.services import t
-
             question_text = t(question.question_text_key, user=user)
         else:
             question_text = f"Question: {question.key}"
@@ -547,10 +545,6 @@ class SequenceService(SequenceServiceProtocol):
             question.question_type in [QuestionType.SINGLE_CHOICE, QuestionType.BOOLEAN]
             and question.options
         ):
-            from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
-
-            from core.services import t
-
             keyboard_buttons = []
             for option in question.options:
                 # Get label text (either direct or from localization)
