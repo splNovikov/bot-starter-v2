@@ -1,3 +1,4 @@
+import asyncio
 from aiogram.types import Message
 
 from application.services import get_user_service
@@ -5,7 +6,11 @@ from core.sequence import get_sequence_initiation_service
 from core.services import t
 from core.utils import get_logger
 
-from .start_lib import create_greeting_message
+from .start_lib import (
+    create_greeting_message,
+    create_new_user_greeting,
+    create_readiness_message,
+)
 
 logger = get_logger()
 
@@ -16,8 +21,13 @@ async def handle_start(message: Message) -> None:
         if not user_service:
             logger.error("User service not available")
 
-            greeting = create_greeting_message(message.from_user)
-            await message.answer(greeting)
+            greeting = create_new_user_greeting(message.from_user)
+            await message.answer(greeting, parse_mode="HTML")
+
+            await asyncio.sleep(0.3)
+
+            readiness_message = create_readiness_message(message.from_user)
+            await message.answer(readiness_message, parse_mode="HTML")
             return
 
         # Try to fetch user from API
@@ -38,8 +48,16 @@ async def handle_start(message: Message) -> None:
             return
 
         # Run sequence for new users and users who haven't passed user_info sequence
-        greeting = create_greeting_message(message.from_user)
-        await message.answer(greeting)
+        greeting = create_new_user_greeting(message.from_user)
+        await message.answer(greeting, parse_mode="HTML")
+
+        await asyncio.sleep(0.3)
+
+        # Send readiness message
+        readiness_message = create_readiness_message(message.from_user)
+        await message.answer(readiness_message, parse_mode="HTML")
+
+        await asyncio.sleep(0.3)
 
         # Use sequence initiation service
         sequence_initiation_service = get_sequence_initiation_service()

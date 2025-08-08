@@ -4,7 +4,9 @@
   "_version": "1.0.0",
   
   "greetings": {
-    "hello": "¡Hola, {username}!"
+    "hello": "¡Hola, {username}!",
+    "new_user": "<b>¡Hola, soy tu mentor psicológico personal!</b>\n\nNo enseño ni predigo el destino — simplemente te ayudo a entenderte mejor y vivir cada día con consciencia ✨\n\nEsto no es <b>magia ni horóscopo</b> en el sentido tradicional — más bien una sintonización sutil con lo que puede ser importante específicamente hoy!",
+    "readiness": "<b>Antes de comenzar, te haré un par de preguntas para ayudarme a entender mejor tu tipo psicológico</b> ⤵️"
   },
   
   "locale": {
