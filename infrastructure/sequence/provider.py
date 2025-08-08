@@ -9,6 +9,7 @@ from typing import Dict, List, Optional, Tuple
 from aiogram.types import User
 
 from core.sequence.protocols import SequenceProviderProtocol
+from core.sequence.services.condition_evaluator import condition_evaluator
 from core.sequence.types import (
     QuestionType,
     SequenceDefinition,
@@ -155,9 +156,35 @@ class InMemorySequenceProvider(SequenceProviderProtocol):
         if session.current_step >= len(sequence.questions):
             return None
 
-        # Return the current question key (since we advance step after answering)
-        current_question = sequence.questions[session.current_step]
-        return current_question.key
+        # Find the next question that should be shown based on conditions
+        next_question_key = self._find_next_visible_question(session, sequence)
+        return next_question_key
+
+    def _find_next_visible_question(
+        self, session: SequenceSession, sequence: SequenceDefinition
+    ) -> Optional[str]:
+        """
+        Find the next question that should be shown based on conditions.
+
+        Args:
+            session: Current sequence session
+            sequence: Sequence definition
+
+        Returns:
+            Next question key or None if no more questions
+        """
+        # Start from current step and look for the next visible question
+        for i in range(session.current_step, len(sequence.questions)):
+            question = sequence.questions[i]
+
+            # Check if this question should be shown
+            if condition_evaluator.should_show_question(question, session):
+                # Check if this question has already been answered
+                if not session.has_answer_for_question(question.key):
+                    return question.key
+
+        # No more visible questions
+        return None
 
     def validate_answer(
         self, sequence_name: str, question_key: str, answer_value: str

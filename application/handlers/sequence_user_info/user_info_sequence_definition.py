@@ -8,6 +8,37 @@ from core.sequence.types import (
 
 def create_user_info_sequence() -> SequenceDefinition:
     questions = [
+        # Boolean question: Is your name Joe?
+        SequenceQuestion(
+            key="is_name_joe",
+            question_text_key="handlers.user_info.questions.is_name_joe.question",
+            question_type=QuestionType.BOOLEAN,
+            options=[
+                SequenceOption(
+                    value="true",
+                    label_key="handlers.user_info.questions.is_name_joe.options.yes",
+                    emoji="✅",
+                ),
+                SequenceOption(
+                    value="false",
+                    label_key="handlers.user_info.questions.is_name_joe.options.no",
+                    emoji="❌",
+                ),
+            ],
+            is_required=True,
+        ),
+        # Conditional question: What is your name? (only shown if not Joe)
+        SequenceQuestion(
+            key="actual_name",
+            question_text_key="handlers.user_info.questions.actual_name.question",
+            question_type=QuestionType.TEXT,
+            is_required=True,
+            show_if={
+                "condition": "equals",
+                "question": "is_name_joe",
+                "value": "false",
+            },
+        ),
         SequenceQuestion(
             key="eyes_color",
             question_text_key="handlers.user_info.questions.eyes_color.question",

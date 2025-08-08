@@ -12,7 +12,7 @@ SEQUENCE_SEPARATOR = ":"
 VALID_SEQUENCES = {"user_info"}  # Add more sequences as needed
 
 
-async def handle_start_ready(callback: CallbackQuery) -> None:
+async def start_callback_handler(callback: CallbackQuery) -> None:
     """
     Handle the start ready callback for initiating user sequences.
 

@@ -10,7 +10,7 @@ CALLBACK_SEPARATOR = ":"
 EXPECTED_PARTS_COUNT = 2
 
 
-async def handle_locale_answer(callback: CallbackQuery) -> None:
+async def locale_callback_handler(callback: CallbackQuery) -> None:
     """
     Handle locale selection callback for changing user language.
 

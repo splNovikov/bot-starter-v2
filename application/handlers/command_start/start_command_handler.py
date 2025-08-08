@@ -15,7 +15,7 @@ from .start_lib import (
 logger = get_logger()
 
 
-async def handle_start(message: Message) -> None:
+async def start_command_handler(message: Message) -> None:
     try:
         user_service = get_user_service()
         if not user_service:

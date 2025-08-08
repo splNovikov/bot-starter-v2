@@ -151,6 +151,18 @@ class SequenceSession:
         """
         return self.answers.get(question_key)
 
+    def has_answer_for_question(self, question_key: str) -> bool:
+        """
+        Check if the session has an answer for a specific question.
+
+        Args:
+            question_key: Question identifier
+
+        Returns:
+            True if answer exists, False otherwise
+        """
+        return question_key in self.answers
+
     def get_progress_percentage(self) -> float:
         """
         Get completion progress as percentage.

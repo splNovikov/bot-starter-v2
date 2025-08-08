@@ -68,7 +68,10 @@ class ButtonQuestionRenderer(SequenceQuestionRendererProtocol):
 
         # Generate keyboard for choice questions
         keyboard = None
-        if question.question_type == QuestionType.SINGLE_CHOICE and question.options:
+        if (
+            question.question_type in [QuestionType.SINGLE_CHOICE, QuestionType.BOOLEAN]
+            and question.options
+        ):
             keyboard = self._create_choice_keyboard(question, session, user)
 
         return question_text, keyboard

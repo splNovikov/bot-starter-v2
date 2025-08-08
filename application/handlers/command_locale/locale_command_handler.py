@@ -6,7 +6,7 @@ from core.utils.logger import get_logger
 logger = get_logger()
 
 
-async def handle_locale(message: Message) -> None:
+async def locale_command_handler(message: Message) -> None:
     try:
         # Get localization service
         localization_service = get_localization_service()

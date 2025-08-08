@@ -6,7 +6,7 @@ from core.utils.logger import get_logger
 logger = get_logger()
 
 
-async def handle_user_info(message: Message):
+async def user_info_command_handler(message: Message):
     sequence_initiation_service = get_sequence_initiation_service()
 
     (

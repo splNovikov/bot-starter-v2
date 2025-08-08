@@ -13,7 +13,7 @@ CALLBACK_PREFIX = "seq_answer"
 SEQUENCE_NAME = "user_info"
 
 
-async def handle_user_info_answer(callback: CallbackQuery) -> None:
+async def user_info_callback_handler(callback: CallbackQuery) -> None:
     """
     Handle user info sequence answer callback.
 
@@ -22,6 +22,9 @@ async def handle_user_info_answer(callback: CallbackQuery) -> None:
 
     Expected callback data format: "seq_answer:user_info:question_key:answer_value"
     """
+    logger.debug(
+        f"Processing callback data: {callback.data} for user {callback.from_user.id}"
+    )
     try:
         # Validate callback data
         if not callback.data:
@@ -66,8 +69,52 @@ async def handle_user_info_answer(callback: CallbackQuery) -> None:
             return
 
         # Process the answer
+        logger.debug(
+            f"Processing button answer '{answer_value}' for question '{question_key}' for user {callback.from_user.id}"
+        )
+
+        # Get the current session to validate the question key
+        session = sequence_service.get_session(callback.from_user.id)
+        if not session:
+            logger.error(f"No active session for user {callback.from_user.id}")
+            await callback.answer(
+                t("sequence.errors.no_active_session", user=callback.from_user)
+            )
+            return
+
+        # Get the sequence definition to validate the question
+        sequence_definition = (
+            sequence_service._sequence_provider.get_sequence_definition(
+                session.sequence_name
+            )
+        )
+        if not sequence_definition:
+            logger.error(f"Sequence definition not found for {session.sequence_name}")
+            await callback.answer(
+                t("sequence.errors.sequence_not_found", user=callback.from_user)
+            )
+            return
+
+        # Validate that the question key is valid for this sequence
+        question = sequence_definition.get_question_by_key(question_key)
+        if not question:
+            logger.error(f"Question '{question_key}' not found in sequence")
+            await callback.answer(
+                t("sequence.errors.question_not_found", user=callback.from_user)
+            )
+            return
+
+        # Log the current session state before processing
+        logger.debug(
+            f"Current session step: {session.current_step}, Current question: {question_key}"
+        )
+
+        # Process the answer using the specific question key from the callback
         success, error_message, next_question_key = sequence_service.process_answer(
-            callback.from_user.id, answer_value, callback.from_user
+            callback.from_user.id, answer_value, callback.from_user, question_key
+        )
+        logger.debug(
+            f"Button answer processed: success={success}, next_question={next_question_key}"
         )
 
         if not success:
@@ -84,7 +131,7 @@ async def handle_user_info_answer(callback: CallbackQuery) -> None:
 
         # Check if sequence is complete
         if sequence_service.is_sequence_complete(callback.from_user.id):
-            logger.info(f"Sequence completed for user {callback.from_user.id}")
+            logger.debug(f"Sequence completed for user {callback.from_user.id}")
 
             # Send completion message
             session = sequence_service.get_session(callback.from_user.id)
@@ -108,14 +155,17 @@ async def handle_user_info_answer(callback: CallbackQuery) -> None:
                     t("errors.completion_failed", user=callback.from_user)
                 )
         elif next_question_key:
-            # Send next question
+            # Edit message with next question
+            logger.debug(
+                f"Editing message with next question '{next_question_key}' for user {callback.from_user.id}"
+            )
             try:
-                await sequence_service.send_question(
+                await sequence_service.edit_question(
                     callback.message, next_question_key, callback.from_user
                 )
             except Exception as e:
                 logger.error(
-                    f"Failed to send next question for user {callback.from_user.id}: {e}"
+                    f"Failed to edit message with next question for user {callback.from_user.id}: {e}"
                 )
                 await callback.message.answer(
                     t("errors.next_question_failed", user=callback.from_user)
@@ -131,3 +181,4 @@ async def handle_user_info_answer(callback: CallbackQuery) -> None:
             f"Unexpected error processing user info answer for user {callback.from_user.id}: {e}"
         )
         await callback.answer(t("errors.generic", user=callback.from_user))
+    # Callback handler completed

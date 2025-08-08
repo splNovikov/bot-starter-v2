@@ -20,7 +20,13 @@ from ..protocols import (
     SequenceResultHandlerProtocol,
     SequenceServiceProtocol,
 )
-from ..types import SequenceAnswer, SequenceQuestion, SequenceSession, SequenceStatus
+from ..types import (
+    QuestionType,
+    SequenceAnswer,
+    SequenceQuestion,
+    SequenceSession,
+    SequenceStatus,
+)
 
 logger = get_logger()
 
@@ -109,7 +115,11 @@ class SequenceService(SequenceServiceProtocol):
         return self._session_manager.get_session(user_id)
 
     def process_answer(
-        self, user_id: int, answer_text: str, user: User
+        self,
+        user_id: int,
+        answer_text: str,
+        user: User,
+        question_key: Optional[str] = None,
     ) -> Tuple[bool, Optional[str], Optional[str]]:
         """
         Process user's answer to current question.
@@ -118,6 +128,7 @@ class SequenceService(SequenceServiceProtocol):
             user_id: User identifier
             answer_text: User's answer text
             user: User object
+            question_key: Optional specific question key to answer (for callbacks)
 
         Returns:
             Tuple of (success, error_message, next_question_key)
@@ -126,10 +137,22 @@ class SequenceService(SequenceServiceProtocol):
         if not session or session.status != SequenceStatus.ACTIVE:
             return False, "No active sequence session found", None
 
-        # Get current question
-        current_question = self._get_current_question(session)
-        if not current_question:
-            return False, "No current question found", None
+        # Get the question to answer
+        if question_key:
+            # Use the specific question key (for callbacks)
+            sequence_definition = self._sequence_provider.get_sequence_definition(
+                session.sequence_name
+            )
+            if not sequence_definition:
+                return False, "Sequence definition not found", None
+            current_question = sequence_definition.get_question_by_key(question_key)
+            if not current_question:
+                return False, f"Question '{question_key}' not found", None
+        else:
+            # Use current question based on session step
+            current_question = self._get_current_question(session)
+            if not current_question:
+                return False, "No current question found", None
 
         # Validate answer
         is_valid, error_message = self._sequence_provider.validate_answer(
@@ -171,7 +194,7 @@ class SequenceService(SequenceServiceProtocol):
         # Advance to next step
         self._session_manager.advance_step(user_id)
 
-        # Get next question key
+        # Get next question key (this will handle conditional logic)
         updated_session = self._session_manager.get_session(user_id)
         next_question_key = self._sequence_provider.get_next_question_key(
             updated_session, user
@@ -231,7 +254,7 @@ class SequenceService(SequenceServiceProtocol):
                 )
             else:
                 question_text, keyboard = await self._default_render_question(
-                    question, session, show_progress
+                    question, session, show_progress, user
                 )
 
             # Send question
@@ -246,6 +269,70 @@ class SequenceService(SequenceServiceProtocol):
         except Exception as e:
             logger.error(
                 f"Error sending question {question_key} to user {user.id}: {e}"
+            )
+            await message.answer(t("sequence.errors.send_question_failed", user=user))
+            return False
+
+    async def edit_question(
+        self,
+        message: Message,
+        question_key: str,
+        user: User,
+        show_progress: bool = True,
+    ) -> bool:
+        """
+        Edit existing message with new question (for callback queries).
+
+        Args:
+            message: Message object to edit
+            question_key: Question identifier
+            user: User object
+            show_progress: Whether to show progress indicator
+
+        Returns:
+            True if question was edited successfully
+        """
+        session = self._session_manager.get_session(user.id)
+        if not session:
+            await message.answer(t("sequence.errors.no_active_session", user=user))
+            return False
+
+        # Get question from sequence definition
+        sequence_definition = self._sequence_provider.get_sequence_definition(
+            session.sequence_name
+        )
+        if not sequence_definition:
+            await message.answer(t("sequence.errors.sequence_not_found", user=user))
+            return False
+
+        question = sequence_definition.get_question_by_key(question_key)
+        if not question:
+            await message.answer(t("sequence.errors.question_not_found", user=user))
+            return False
+
+        try:
+            # Use custom renderer if available
+            if self._question_renderer:
+                question_text, keyboard = await self._question_renderer.render_question(
+                    question, session, show_progress, user
+                )
+            else:
+                question_text, keyboard = await self._default_render_question(
+                    question, session, show_progress, user
+                )
+
+            # Edit the message
+            if keyboard:
+                await message.edit_text(question_text, reply_markup=keyboard)
+            else:
+                await message.edit_text(question_text)
+
+            logger.debug(f"Edited question {question_key} for user {user.id}")
+            return True
+
+        except Exception as e:
+            logger.error(
+                f"Error editing question {question_key} for user {user.id}: {e}"
             )
             await message.answer(t("sequence.errors.send_question_failed", user=user))
             return False
@@ -379,11 +466,22 @@ class SequenceService(SequenceServiceProtocol):
             )
 
     async def _default_render_question(
-        self, question: SequenceQuestion, session: SequenceSession, show_progress: bool
+        self,
+        question: SequenceQuestion,
+        session: SequenceSession,
+        show_progress: bool,
+        user: User,
     ) -> Tuple[str, Optional[InlineKeyboardMarkup]]:
         """Default question rendering."""
         # Build question text
-        question_text = question.question_text
+        if question.question_text:
+            question_text = question.question_text
+        elif question.question_text_key:
+            from core.services import t
+
+            question_text = t(question.question_text_key, user=user)
+        else:
+            question_text = f"Question: {question.key}"
 
         # Add progress indicator
         if show_progress and session.total_questions:
@@ -394,8 +492,37 @@ class SequenceService(SequenceServiceProtocol):
         if question.help_text:
             question_text += f"\n\n💡 {question.help_text}"
 
-        # TODO: Add keyboard generation for choice questions
+        # Generate keyboard for choice questions
         keyboard = None
+        if (
+            question.question_type in [QuestionType.SINGLE_CHOICE, QuestionType.BOOLEAN]
+            and question.options
+        ):
+            from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
+
+            from core.services import t
+
+            keyboard_buttons = []
+            for option in question.options:
+                # Get label text (either direct or from localization)
+                if option.label:
+                    label = option.label
+                elif option.label_key:
+                    label = t(option.label_key, user=user)
+                else:
+                    label = option.value
+
+                # Add emoji if available
+                if option.emoji:
+                    label = f"{option.emoji} {label}"
+
+                button = InlineKeyboardButton(
+                    text=label,
+                    callback_data=f"sequence_answer:{question.key}:{option.value}",
+                )
+                keyboard_buttons.append([button])
+
+            keyboard = InlineKeyboardMarkup(inline_keyboard=keyboard_buttons)
 
         return question_text, keyboard
 

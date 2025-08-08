@@ -29,6 +29,16 @@
       "welcome": "Let's get to know you better! Please answer a few questions about yourself.",
       "completion": "Thank you for sharing your information! Here's a summary of what you told us:",
       "questions": {
+        "is_name_joe": {
+          "question": "Is your name Joe?",
+          "options": {
+            "yes": "Yes",
+            "no": "No"
+          }
+        },
+        "actual_name": {
+          "question": "What is your name?"
+        },
         "eyes_color": {
           "question": "What color are your eyes?",
           "options": {
@@ -64,7 +74,8 @@
       "sequence_not_found": "❌ Sequence not found. Please try again.",
       "question_not_found": "❌ Question not found. Please try again.",
       "send_question_failed": "❌ Failed to send question. Please try again.",
-      "completion_failed": "❌ Failed to send completion message. Please try again."
+      "completion_failed": "❌ Failed to send completion message. Please try again.",
+      "next_question_failed": "❌ Failed to get the next question. Please try again."
     }
   },
   
@@ -78,6 +89,9 @@
     "sequence_initiation_failed": "❌ Failed to start the sequence. Please try again.",
     "answer_processing_failed": "❌ Failed to process your answer. Please try again.",
     "completion_failed": "❌ Failed to complete the sequence. Please try again.",
-    "next_question_failed": "❌ Failed to get the next question. Please try again."
+    "next_question_failed": "❌ Failed to get the next question. Please try again.",
+    "no_active_session": "❌ No active sequence session found. Please start a sequence first.",
+    "sequence_not_found": "❌ Sequence not found. Please try again.",
+    "question_not_found": "❌ Question not found. Please try again."
   }
 } 
