@@ -36,6 +36,7 @@ class ButtonQuestionRenderer(SequenceQuestionRendererProtocol):
         session: SequenceSession,
         show_progress: bool = True,
         user: Optional[User] = None,
+        visible_questions_count: Optional[int] = None,
     ) -> Tuple[str, Optional[InlineKeyboardMarkup]]:
         """
         Render question text and keyboard.
@@ -45,6 +46,7 @@ class ButtonQuestionRenderer(SequenceQuestionRendererProtocol):
             session: Current session for context
             show_progress: Whether to include progress indicator
             user: User object for localization context
+            visible_questions_count: Number of visible questions for progress calculation
 
         Returns:
             Tuple of (message_text, keyboard_markup)
@@ -58,8 +60,8 @@ class ButtonQuestionRenderer(SequenceQuestionRendererProtocol):
         )
 
         # Add progress indicator if requested
-        if show_progress and session.total_questions:
-            progress = f"[{session.current_step + 1}/{session.total_questions}] "
+        if show_progress and visible_questions_count is not None:
+            progress = f"[{session.current_step + 1}/{visible_questions_count}] "
             question_text = progress + question_text
 
         # Add help text if available

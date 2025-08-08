@@ -206,6 +206,21 @@ class SequenceProviderProtocol(Protocol):
         """
         ...
 
+    def should_show_question(
+        self, question: SequenceQuestion, session: SequenceSession
+    ) -> bool:
+        """
+        Check if a question should be shown based on conditions.
+
+        Args:
+            question: Question to check
+            session: Current session
+
+        Returns:
+            True if question should be shown, False otherwise
+        """
+        ...
+
 
 @runtime_checkable
 class SequenceServiceProtocol(Protocol):
@@ -357,6 +372,7 @@ class SequenceQuestionRendererProtocol(Protocol):
         session: SequenceSession,
         show_progress: bool = True,
         user: Optional[User] = None,
+        visible_questions_count: Optional[int] = None,
     ) -> Tuple[str, Optional[InlineKeyboardMarkup]]:
         """
         Render question text and keyboard.
@@ -366,6 +382,7 @@ class SequenceQuestionRendererProtocol(Protocol):
             session: Current session for context
             show_progress: Whether to include progress indicator
             user: User object for localization context
+            visible_questions_count: Number of visible questions for progress calculation
 
         Returns:
             Tuple of (message_text, keyboard_markup)

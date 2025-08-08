@@ -247,14 +247,19 @@ class SequenceService(SequenceServiceProtocol):
             return False
 
         try:
+            # Calculate visible questions count for progress
+            visible_questions_count = (
+                self.get_visible_questions_count(session) if show_progress else None
+            )
+
             # Use custom renderer if available
             if self._question_renderer:
                 question_text, keyboard = await self._question_renderer.render_question(
-                    question, session, show_progress, user
+                    question, session, show_progress, user, visible_questions_count
                 )
             else:
                 question_text, keyboard = await self._default_render_question(
-                    question, session, show_progress, user
+                    question, session, show_progress, user, visible_questions_count
                 )
 
             # Send question
@@ -311,14 +316,19 @@ class SequenceService(SequenceServiceProtocol):
             return False
 
         try:
+            # Calculate visible questions count for progress
+            visible_questions_count = (
+                self.get_visible_questions_count(session) if show_progress else None
+            )
+
             # Use custom renderer if available
             if self._question_renderer:
                 question_text, keyboard = await self._question_renderer.render_question(
-                    question, session, show_progress, user
+                    question, session, show_progress, user, visible_questions_count
                 )
             else:
                 question_text, keyboard = await self._default_render_question(
-                    question, session, show_progress, user
+                    question, session, show_progress, user, visible_questions_count
                 )
 
             # Edit the message
@@ -422,13 +432,51 @@ class SequenceService(SequenceServiceProtocol):
             user_id: User identifier
 
         Returns:
-            Tuple of (current_step, total_steps)
+            Tuple of (current_step, total_visible_steps)
         """
         session = self._session_manager.get_session(user_id)
         if not session:
             return 0, 0
 
-        return session.current_step, session.total_questions or 0
+        # Calculate visible questions count
+        visible_questions_count = self._get_visible_questions_count(session)
+        return session.current_step, visible_questions_count
+
+    def get_visible_questions_count(self, session: SequenceSession) -> int:
+        """
+        Get count of visible questions for the session.
+
+        Args:
+            session: Sequence session
+
+        Returns:
+            Number of visible questions
+        """
+        sequence_definition = self._sequence_provider.get_sequence_definition(
+            session.sequence_name
+        )
+        if not sequence_definition:
+            return 0
+
+        visible_count = 0
+        for question in sequence_definition.questions:
+            # Check if question should be shown based on current session state
+            if self._sequence_provider.should_show_question(question, session):
+                visible_count += 1
+
+        return visible_count
+
+    def _get_visible_questions_count(self, session: SequenceSession) -> int:
+        """
+        Get count of visible questions for the session (protected method for internal use).
+
+        Args:
+            session: Sequence session
+
+        Returns:
+            Number of visible questions
+        """
+        return self.get_visible_questions_count(session)
 
     # Private helper methods
 
@@ -471,6 +519,7 @@ class SequenceService(SequenceServiceProtocol):
         session: SequenceSession,
         show_progress: bool,
         user: User,
+        visible_questions_count: Optional[int] = None,
     ) -> Tuple[str, Optional[InlineKeyboardMarkup]]:
         """Default question rendering."""
         # Build question text
@@ -484,8 +533,8 @@ class SequenceService(SequenceServiceProtocol):
             question_text = f"Question: {question.key}"
 
         # Add progress indicator
-        if show_progress and session.total_questions:
-            progress = f"[{session.current_step + 1}/{session.total_questions}] "
+        if show_progress and visible_questions_count is not None:
+            progress = f"[{session.current_step + 1}/{visible_questions_count}] "
             question_text = progress + question_text
 
         # Add help text if available

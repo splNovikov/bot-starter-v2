@@ -222,3 +222,18 @@ class InMemorySequenceProvider(SequenceProviderProtocol):
             return False, "This question is required. Please provide an answer."
 
         return True, None
+
+    def should_show_question(
+        self, question: SequenceQuestion, session: SequenceSession
+    ) -> bool:
+        """
+        Check if a question should be shown based on conditions.
+
+        Args:
+            question: Question to check
+            session: Current session
+
+        Returns:
+            True if question should be shown, False otherwise
+        """
+        return condition_evaluator.should_show_question(question, session)
