@@ -14,14 +14,14 @@ def get_username(user: User, user_data: UserData = None) -> str:
 def create_greeting_message(user: User, user_data: UserData = None) -> str:
     """Create a generic greeting message."""
     username = get_username(user, user_data)
-    return t("greetings.hello", user=user, username=username)
+    return t("handlers.start.greetings.hello", user=user, username=username)
 
 
 def create_new_user_greeting(user: User) -> str:
     """Create a greeting message for new users."""
-    return t("greetings.new_user", user=user)
+    return t("handlers.start.greetings.new_user", user=user)
 
 
 def create_readiness_message(user: User) -> str:
     """Create a readiness message for new users."""
-    return t("greetings.readiness", user=user)
+    return t("handlers.start.greetings.readiness", user=user)

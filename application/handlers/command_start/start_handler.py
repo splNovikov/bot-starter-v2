@@ -1,8 +1,8 @@
 import asyncio
-from aiogram.types import Message
+
+from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message
 
 from application.services import get_user_service
-from core.sequence import get_sequence_initiation_service
 from core.services import t
 from core.utils import get_logger
 
@@ -23,11 +23,6 @@ async def handle_start(message: Message) -> None:
 
             greeting = create_new_user_greeting(message.from_user)
             await message.answer(greeting, parse_mode="HTML")
-
-            await asyncio.sleep(0.3)
-
-            readiness_message = create_readiness_message(message.from_user)
-            await message.answer(readiness_message, parse_mode="HTML")
             return
 
         # Try to fetch user from API
@@ -53,24 +48,25 @@ async def handle_start(message: Message) -> None:
 
         await asyncio.sleep(0.3)
 
-        # Send readiness message
+        # Send readiness message with keyboard
         readiness_message = create_readiness_message(message.from_user)
-        await message.answer(readiness_message, parse_mode="HTML")
-
-        await asyncio.sleep(0.3)
-
-        # Use sequence initiation service
-        sequence_initiation_service = get_sequence_initiation_service()
-
-        (
-            success,
-            error_message,
-        ) = await sequence_initiation_service.initiate_user_info_sequence(
-            message, message.from_user
+        # Create keyboard with "Да, готов!" button
+        keyboard = InlineKeyboardMarkup(
+            inline_keyboard=[
+                [
+                    InlineKeyboardButton(
+                        text=t(
+                            "handlers.start.greetings.ready_button",
+                            user=message.from_user,
+                        ),
+                        callback_data="start_ready:user_info",
+                    )
+                ]
+            ]
         )
-
-        if not success:
-            logger.error(f"Failed to start user_info sequence: {error_message}")
+        await message.answer(
+            readiness_message, parse_mode="HTML", reply_markup=keyboard
+        )
 
     except Exception as e:
         logger.error(f"Error in start handler: {e}")
