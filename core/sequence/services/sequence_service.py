@@ -601,7 +601,7 @@ class SequenceService(SequenceServiceProtocol):
                 answer_text.lower().strip() == question.correct_answer.lower().strip()
             )
 
-    async def c(
+    async def _default_render_question(
         self,
         question: SequenceQuestion,
         session: SequenceSession,
@@ -615,18 +615,8 @@ class SequenceService(SequenceServiceProtocol):
         if question.question_text:
             question_text = question.question_text
         elif question.question_text_key:
-            # Prepare localization parameters from Telegram User
-            localization_params = {}
-            if context and "user" in context:
-                user = context["user"]
-                if user.first_name:
-                    localization_params["first_name"] = user.first_name
-                if user.last_name:
-                    localization_params["last_name"] = user.last_name
-
-            question_text = translator.translate(
-                question.question_text_key, context, **localization_params
-            )
+            # Use translator with context - translator handles parameter extraction
+            question_text = translator.translate(question.question_text_key, context)
         else:
             question_text = f"Question: {question.key}"
 
