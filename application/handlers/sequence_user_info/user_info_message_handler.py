@@ -1,100 +1,68 @@
 from aiogram.types import Message
 
-from core.sequence import get_sequence_service
-from core.sequence.types import SequenceStatus
-from core.services import t
-from core.utils.logger import get_logger
+from core.sequence import create_translator, get_sequence_service
+from core.utils import get_logger
 
 logger = get_logger()
 
 
 async def user_info_message_handler(message: Message) -> None:
     """
-    Handle text input for user info sequence.
+    Handle text messages for user info sequence.
 
     Args:
-        message: The message containing text input
+        message: Message object
     """
-    logger.debug(
-        f"Text handler triggered for user {message.from_user.id} with text: '{message.text}'"
-    )
-
     try:
-        # Get sequence service
         sequence_service = get_sequence_service()
         if not sequence_service:
             logger.error("Sequence service not available")
-            await message.answer(
-                t("errors.service_unavailable", user=message.from_user)
-            )
             return
 
-        # Check if user has an active sequence session
+        # Get current session
         session = sequence_service.get_session(message.from_user.id)
-        if not session or session.status != SequenceStatus.ACTIVE:
-            # Not in an active sequence, ignore the message
+        if not session:
+            logger.warning(f"No active session for user {message.from_user.id}")
             return
 
-        # Process the text answer
-        logger.debug(
-            f"Processing text answer '{message.text}' for user {message.from_user.id}"
-        )
+        # Process the answer
         success, error_message, next_question_key = sequence_service.process_answer(
             message.from_user.id, message.text, message.from_user
         )
-        logger.debug(
-            f"Text answer processed: success={success}, next_question={next_question_key}"
-        )
 
         if not success:
-            logger.error(
-                f"Failed to process text answer for user {message.from_user.id}: {error_message}"
-            )
-            await message.answer(
-                t("errors.answer_processing_failed", user=message.from_user)
-            )
+            await message.answer(error_message, parse_mode="HTML")
             return
 
-        # Check if sequence is complete
+        # If sequence is complete, send completion message
         if sequence_service.is_sequence_complete(message.from_user.id):
-            logger.debug(f"Sequence completed for user {message.from_user.id}")
+            # Create translator and context using global factory
+            translator = create_translator(message.from_user)
+            context = {"user": message.from_user}
 
-            # Send completion message
-            try:
-                await sequence_service.send_completion_message(
-                    message, session, message.from_user
-                )
-            except Exception as e:
-                logger.error(
-                    f"Failed to send completion message for user {message.from_user.id}: {e}"
-                )
-                await message.answer(
-                    t("errors.completion_failed", user=message.from_user)
-                )
+            await sequence_service.send_completion_message(
+                message, session, translator, context
+            )
         elif next_question_key:
             # Send next question
-            logger.debug(
-                f"Sending next question '{next_question_key}' to user {message.from_user.id}"
-            )
             try:
+                # Create translator and context using global factory
+                translator = create_translator(message.from_user)
+                context = {"user": message.from_user}
+
                 await sequence_service.send_question(
-                    message, next_question_key, message.from_user
+                    message,
+                    next_question_key,
+                    translator,
+                    context,
+                    user_id=message.from_user.id,
                 )
             except Exception as e:
-                logger.error(
-                    f"Failed to send next question for user {message.from_user.id}: {e}"
-                )
+                logger.error(f"Failed to send next question: {e}")
                 await message.answer(
-                    t("errors.next_question_failed", user=message.from_user)
+                    "❌ Error sending next question. Please try again."
                 )
-        else:
-            logger.error(f"No next question available for user {message.from_user.id}")
-            await message.answer(
-                t("errors.next_question_failed", user=message.from_user)
-            )
 
     except Exception as e:
-        logger.error(
-            f"Unexpected error processing user info text for user {message.from_user.id}: {e}"
-        )
-        await message.answer(t("errors.generic", user=message.from_user))
+        logger.error(f"Error in user info message handler: {e}")
+        await message.answer("❌ An error occurred. Please try again.")

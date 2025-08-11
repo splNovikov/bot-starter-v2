@@ -6,11 +6,10 @@ using the framework protocols for maximum flexibility and reusability.
 """
 
 import time
-from typing import Any, Optional, Tuple
+from typing import Any, Mapping, Optional, Tuple
 
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message, User
 
-from core.services.localization import t
 from core.utils.logger import get_logger
 
 from ..protocols import (
@@ -19,6 +18,7 @@ from ..protocols import (
     SequenceQuestionRendererProtocol,
     SequenceResultHandlerProtocol,
     SequenceServiceProtocol,
+    TranslatorProtocol,
 )
 from ..types import (
     QuestionType,
@@ -197,7 +197,7 @@ class SequenceService(SequenceServiceProtocol):
         # Get next question key (this will handle conditional logic)
         updated_session = self._session_manager.get_session(user_id)
         next_question_key = self._sequence_provider.get_next_question_key(
-            updated_session, user
+            updated_session
         )
 
         # Check if sequence is complete
@@ -213,24 +213,33 @@ class SequenceService(SequenceServiceProtocol):
         self,
         message: Message,
         question_key: str,
-        user: User,
+        translator: TranslatorProtocol,
+        context: Optional[Mapping[str, Any]] = None,
         show_progress: bool = True,
+        user_id: Optional[int] = None,
     ) -> bool:
         """
-        Send question to user via Telegram.
+        Send question to user via platform.
 
         Args:
             message: Message object for reply
             question_key: Question identifier
-            user: User object
+            translator: Translation service
+            context: Optional context for localization
             show_progress: Whether to show progress indicator
+            user_id: Optional user ID (if not provided, uses message.from_user.id)
 
         Returns:
             True if question was sent successfully
         """
-        session = self._session_manager.get_session(user.id)
+        # Use provided user_id or fallback to message.from_user.id
+        target_user_id = user_id or message.from_user.id
+
+        session = self._session_manager.get_session(target_user_id)
         if not session:
-            await message.answer(t("sequence.errors.no_active_session", user=user))
+            await message.answer(
+                translator.translate("sequence.errors.no_active_session", context)
+            )
             return False
 
         # Get question from sequence definition
@@ -238,12 +247,16 @@ class SequenceService(SequenceServiceProtocol):
             session.sequence_name
         )
         if not sequence_definition:
-            await message.answer(t("sequence.errors.sequence_not_found", user=user))
+            await message.answer(
+                translator.translate("sequence.errors.sequence_not_found", context)
+            )
             return False
 
         question = sequence_definition.get_question_by_key(question_key)
         if not question:
-            await message.answer(t("sequence.errors.question_not_found", user=user))
+            await message.answer(
+                translator.translate("sequence.errors.question_not_found", context)
+            )
             return False
 
         try:
@@ -255,35 +268,58 @@ class SequenceService(SequenceServiceProtocol):
             # Use custom renderer if available
             if self._question_renderer:
                 question_text, keyboard = await self._question_renderer.render_question(
-                    question, session, show_progress, user, visible_questions_count
+                    question,
+                    session,
+                    translator,
+                    context,
+                    show_progress,
+                    visible_questions_count,
                 )
             else:
                 question_text, keyboard = await self._default_render_question(
-                    question, session, show_progress, user, visible_questions_count
+                    question,
+                    session,
+                    translator,
+                    context,
+                    show_progress,
+                    visible_questions_count,
                 )
 
             # Send question
-            if keyboard:
-                await message.answer(question_text, reply_markup=keyboard)
+            if self._question_renderer:
+                # Use renderer's platform-specific sending method
+                success = await self._question_renderer.send_question_message(
+                    message, question_text, keyboard, edit_existing=False
+                )
+                if not success:
+                    raise Exception("Failed to send question via renderer")
             else:
-                await message.answer(question_text)
+                # Fallback to default sending
+                if keyboard:
+                    await message.answer(question_text, reply_markup=keyboard)
+                else:
+                    await message.answer(question_text)
 
-            logger.debug(f"Sent question {question_key} to user {user.id}")
+            logger.debug(f"Sent question {question_key} to user {target_user_id}")
             return True
 
         except Exception as e:
             logger.error(
-                f"Error sending question {question_key} to user {user.id}: {e}"
+                f"Error sending question {question_key} to user {target_user_id}: {e}"
             )
-            await message.answer(t("sequence.errors.send_question_failed", user=user))
+            await message.answer(
+                translator.translate("sequence.errors.send_question_failed", context)
+            )
             return False
 
     async def edit_question(
         self,
         message: Message,
         question_key: str,
-        user: User,
+        translator: TranslatorProtocol,
+        context: Optional[Mapping[str, Any]] = None,
         show_progress: bool = True,
+        user_id: Optional[int] = None,
     ) -> bool:
         """
         Edit existing message with new question (for callback queries).
@@ -291,15 +327,22 @@ class SequenceService(SequenceServiceProtocol):
         Args:
             message: Message object to edit
             question_key: Question identifier
-            user: User object
+            translator: Translation service
+            context: Optional context for localization
             show_progress: Whether to show progress indicator
+            user_id: Optional user ID (if not provided, uses message.from_user.id)
 
         Returns:
             True if question was edited successfully
         """
-        session = self._session_manager.get_session(user.id)
+        # Use provided user_id or fallback to message.from_user.id
+        target_user_id = user_id or message.from_user.id
+
+        session = self._session_manager.get_session(target_user_id)
         if not session:
-            await message.answer(t("sequence.errors.no_active_session", user=user))
+            await message.answer(
+                translator.translate("sequence.errors.no_active_session", context)
+            )
             return False
 
         # Get question from sequence definition
@@ -307,12 +350,16 @@ class SequenceService(SequenceServiceProtocol):
             session.sequence_name
         )
         if not sequence_definition:
-            await message.answer(t("sequence.errors.sequence_not_found", user=user))
+            await message.answer(
+                translator.translate("sequence.errors.sequence_not_found", context)
+            )
             return False
 
         question = sequence_definition.get_question_by_key(question_key)
         if not question:
-            await message.answer(t("sequence.errors.question_not_found", user=user))
+            await message.answer(
+                translator.translate("sequence.errors.question_not_found", context)
+            )
             return False
 
         try:
@@ -324,31 +371,56 @@ class SequenceService(SequenceServiceProtocol):
             # Use custom renderer if available
             if self._question_renderer:
                 question_text, keyboard = await self._question_renderer.render_question(
-                    question, session, show_progress, user, visible_questions_count
+                    question,
+                    session,
+                    translator,
+                    context,
+                    show_progress,
+                    visible_questions_count,
                 )
             else:
                 question_text, keyboard = await self._default_render_question(
-                    question, session, show_progress, user, visible_questions_count
+                    question,
+                    session,
+                    translator,
+                    context,
+                    show_progress,
+                    visible_questions_count,
                 )
 
             # Edit the message
-            if keyboard:
-                await message.edit_text(question_text, reply_markup=keyboard)
+            if self._question_renderer:
+                # Use renderer's platform-specific sending method
+                success = await self._question_renderer.send_question_message(
+                    message, question_text, keyboard, edit_existing=True
+                )
+                if not success:
+                    raise Exception("Failed to edit question via renderer")
             else:
-                await message.edit_text(question_text)
+                # Fallback to default editing
+                if keyboard:
+                    await message.edit_text(question_text, reply_markup=keyboard)
+                else:
+                    await message.edit_text(question_text)
 
-            logger.debug(f"Edited question {question_key} for user {user.id}")
+            logger.debug(f"Edited question {question_key} for user {target_user_id}")
             return True
 
         except Exception as e:
             logger.error(
-                f"Error editing question {question_key} for user {user.id}: {e}"
+                f"Error editing question {question_key} for user {target_user_id}: {e}"
             )
-            await message.answer(t("sequence.errors.send_question_failed", user=user))
+            await message.answer(
+                translator.translate("sequence.errors.send_question_failed", context)
+            )
             return False
 
     async def send_completion_message(
-        self, message: Message, session: SequenceSession, user: User
+        self,
+        message: Message,
+        session: SequenceSession,
+        translator: TranslatorProtocol,
+        context: Optional[Mapping[str, Any]] = None,
     ) -> bool:
         """
         Send completion message and summary.
@@ -356,7 +428,8 @@ class SequenceService(SequenceServiceProtocol):
         Args:
             message: Message object for reply
             session: Completed session
-            user: User object
+            translator: Translation service
+            context: Optional context for localization
 
         Returns:
             True if message was sent successfully
@@ -370,37 +443,52 @@ class SequenceService(SequenceServiceProtocol):
             if self._question_renderer:
                 completion_text = (
                     await self._question_renderer.render_completion_message(
-                        session, sequence_definition, user
+                        session, sequence_definition, translator, context
                     )
                 )
             else:
                 completion_text = await self._default_render_completion(
-                    session, user, sequence_definition
+                    session, translator, context, sequence_definition
                 )
 
-            await message.answer(completion_text)
+            # Send completion message
+            if self._question_renderer:
+                # Use renderer's platform-specific sending method
+                success = await self._question_renderer.send_completion_message(
+                    message, completion_text
+                )
+                if not success:
+                    raise Exception("Failed to send completion message via renderer")
+            else:
+                # Fallback to default sending
+                await message.answer(completion_text)
 
             # Handle sequence completion with custom result handler
             if self._result_handler:
-                await self._result_handler.handle_sequence_completion(session, user)
+                await self._result_handler.handle_sequence_completion(
+                    session, message.from_user
+                )
 
             logger.info(
-                f"Sent completion message for sequence {session.sequence_name} to user {user.id}"
+                f"Sent completion message for sequence {session.sequence_name} to user {message.from_user.id}"
             )
             return True
 
         except Exception as e:
-            logger.error(f"Error sending completion message to user {user.id}: {e}")
-            await message.answer(t("sequence.errors.completion_failed", user=user))
+            logger.error(
+                f"Error sending completion message to user {message.from_user.id}: {e}"
+            )
+            await message.answer(
+                translator.translate("sequence.errors.completion_failed", context)
+            )
             return False
 
-    def get_current_question_key(self, user_id: int, user: User) -> Optional[str]:
+    def get_current_question_key(self, user_id: int) -> Optional[str]:
         """
         Get current question key for user's active session.
 
         Args:
             user_id: User identifier
-            user: User object
 
         Returns:
             Current question key or None
@@ -409,7 +497,7 @@ class SequenceService(SequenceServiceProtocol):
         if not session or session.status != SequenceStatus.ACTIVE:
             return None
 
-        return self._sequence_provider.get_next_question_key(session, user)
+        return self._sequence_provider.get_next_question_key(session)
 
     def is_sequence_complete(self, user_id: int) -> bool:
         """
@@ -513,12 +601,13 @@ class SequenceService(SequenceServiceProtocol):
                 answer_text.lower().strip() == question.correct_answer.lower().strip()
             )
 
-    async def _default_render_question(
+    async def c(
         self,
         question: SequenceQuestion,
         session: SequenceSession,
-        show_progress: bool,
-        user: User,
+        translator: TranslatorProtocol,
+        context: Optional[Mapping[str, Any]] = None,
+        show_progress: bool = True,
         visible_questions_count: Optional[int] = None,
     ) -> Tuple[str, Optional[InlineKeyboardMarkup]]:
         """Default question rendering."""
@@ -526,7 +615,18 @@ class SequenceService(SequenceServiceProtocol):
         if question.question_text:
             question_text = question.question_text
         elif question.question_text_key:
-            question_text = t(question.question_text_key, user=user)
+            # Prepare localization parameters from Telegram User
+            localization_params = {}
+            if context and "user" in context:
+                user = context["user"]
+                if user.first_name:
+                    localization_params["first_name"] = user.first_name
+                if user.last_name:
+                    localization_params["last_name"] = user.last_name
+
+            question_text = translator.translate(
+                question.question_text_key, context, **localization_params
+            )
         else:
             question_text = f"Question: {question.key}"
 
@@ -551,7 +651,7 @@ class SequenceService(SequenceServiceProtocol):
                 if option.label:
                     label = option.label
                 elif option.label_key:
-                    label = t(option.label_key, user=user)
+                    label = translator.translate(option.label_key, context)
                 else:
                     label = option.value
 
@@ -572,14 +672,15 @@ class SequenceService(SequenceServiceProtocol):
     async def _default_render_completion(
         self,
         session: SequenceSession,
-        user: User,
+        translator: TranslatorProtocol,
+        context: Optional[Mapping[str, Any]] = None,
         sequence_definition: Optional[Any] = None,
     ) -> str:
         """Default completion message rendering."""
         sequence_name = session.sequence_name.replace("_", " ").title()
 
-        base_message = t(
-            "sequence.completion.generic", user=user, sequence_type=sequence_name
+        base_message = translator.translate(
+            "sequence.completion.generic", context, sequence_type=sequence_name
         )
 
         # Add scoring information for scored sequences

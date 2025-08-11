@@ -10,6 +10,12 @@ from .decorators import (
     sequence_handler,
 )
 
+# Factories
+from .factories import (
+    create_translator,
+    set_translator_factory,
+)
+
 # Protocol interfaces
 from .protocols import (
     SequenceManagerProtocol,
@@ -74,6 +80,9 @@ __all__ = [
     "set_sequence_service",
     "SequenceInitiationService",
     "get_sequence_initiation_service",
+    # Factories
+    "create_translator",
+    "set_translator_factory",
     # Decorators - primary interface
     "sequence_handler",
     "is_sequence_handler",

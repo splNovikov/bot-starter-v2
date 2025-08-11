@@ -5,18 +5,17 @@ Provides rendering of sequence questions with inline keyboard buttons
 for choice-based questions and custom completion messages.
 """
 
-from typing import Optional, Tuple
+from typing import Any, Mapping, Optional, Tuple
 
-from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, User
+from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
-from core.sequence.protocols import SequenceQuestionRendererProtocol
+from core.sequence.protocols import SequenceQuestionRendererProtocol, TranslatorProtocol
 from core.sequence.types import (
     QuestionType,
     SequenceDefinition,
     SequenceQuestion,
     SequenceSession,
 )
-from core.services.localization import t
 from core.utils.logger import get_logger
 
 logger = get_logger()
@@ -34,8 +33,9 @@ class ButtonQuestionRenderer(SequenceQuestionRendererProtocol):
         self,
         question: SequenceQuestion,
         session: SequenceSession,
+        translator: TranslatorProtocol,
+        context: Optional[Mapping[str, Any]] = None,
         show_progress: bool = True,
-        user: Optional[User] = None,
         visible_questions_count: Optional[int] = None,
     ) -> Tuple[str, Optional[InlineKeyboardMarkup]]:
         """
@@ -44,8 +44,9 @@ class ButtonQuestionRenderer(SequenceQuestionRendererProtocol):
         Args:
             question: SequenceQuestion to render
             session: Current session for context
+            translator: Translation service
+            context: Optional context for localization
             show_progress: Whether to include progress indicator
-            user: User object for localization context
             visible_questions_count: Number of visible questions for progress calculation
 
         Returns:
@@ -53,10 +54,9 @@ class ButtonQuestionRenderer(SequenceQuestionRendererProtocol):
         """
         # Build question text using localization
         question_text = self._get_localized_text(
-            question.question_text_key,
-            question.question_text,
-            "Question text not found",
-            user,
+            question.question_text_key or "question.text",
+            translator,
+            context,
         )
 
         # Add progress indicator if requested
@@ -74,7 +74,9 @@ class ButtonQuestionRenderer(SequenceQuestionRendererProtocol):
             question.question_type in [QuestionType.SINGLE_CHOICE, QuestionType.BOOLEAN]
             and question.options
         ):
-            keyboard = self._create_choice_keyboard(question, session, user)
+            keyboard = self._create_choice_keyboard(
+                question, session, translator, context
+            )
 
         return question_text, keyboard
 
@@ -82,7 +84,8 @@ class ButtonQuestionRenderer(SequenceQuestionRendererProtocol):
         self,
         session: SequenceSession,
         sequence_definition: SequenceDefinition,
-        user: Optional[User] = None,
+        translator: TranslatorProtocol,
+        context: Optional[Mapping[str, Any]] = None,
     ) -> str:
         """
         Render sequence completion message.
@@ -90,35 +93,87 @@ class ButtonQuestionRenderer(SequenceQuestionRendererProtocol):
         Args:
             session: Completed session
             sequence_definition: Sequence definition
-            user: User object for localization context
+            translator: Translation service
+            context: Optional context for localization
 
         Returns:
             Formatted completion message
         """
         # Get the completion message template using localization
         completion_template = self._get_localized_text(
-            sequence_definition.completion_message_key,
-            sequence_definition.completion_message,
-            "Sequence completed!",
-            user,
+            sequence_definition.completion_message_key or "sequence.completion",
+            translator,
+            context,
         )
 
         # For single question sequences, replace placeholders
         if sequence_definition.is_single_question():
-            return self._render_single_question_completion(
-                session, completion_template, user
-            )
+            return self._render_single_question_completion(completion_template)
 
         # For multi-question sequences, generate summary
         return self._render_multi_question_completion(
-            session, sequence_definition, completion_template, user
+            session, sequence_definition, completion_template, translator, context
         )
+
+    async def send_question_message(
+        self, message, question_text: str, keyboard=None, edit_existing: bool = False
+    ) -> bool:
+        """
+        Send or edit a question message with proper Telegram formatting.
+
+        Args:
+            message: Telegram message object
+            question_text: Text of the question
+            keyboard: Optional keyboard markup
+            edit_existing: Whether to edit existing message or send new one
+
+        Returns:
+            True if message was sent/edited successfully
+        """
+        try:
+            if edit_existing:
+                if keyboard:
+                    await message.edit_text(
+                        question_text, reply_markup=keyboard, parse_mode="HTML"
+                    )
+                else:
+                    await message.edit_text(question_text, parse_mode="HTML")
+            else:
+                if keyboard:
+                    await message.answer(
+                        question_text, reply_markup=keyboard, parse_mode="HTML"
+                    )
+                else:
+                    await message.answer(question_text, parse_mode="HTML")
+            return True
+        except Exception as e:
+            logger.error(f"Error sending/editing question message: {e}")
+            return False
+
+    async def send_completion_message(self, message, completion_text: str) -> bool:
+        """
+        Send completion message with proper Telegram formatting.
+
+        Args:
+            message: Telegram message object
+            completion_text: Completion message text
+
+        Returns:
+            True if message was sent successfully
+        """
+        try:
+            await message.answer(completion_text, parse_mode="HTML")
+            return True
+        except Exception as e:
+            logger.error(f"Error sending completion message: {e}")
+            return False
 
     def _create_choice_keyboard(
         self,
         question: SequenceQuestion,
         session: SequenceSession,
-        user: Optional[User] = None,
+        translator: TranslatorProtocol,
+        context: Optional[Mapping[str, Any]] = None,
     ) -> InlineKeyboardMarkup:
         """
         Create inline keyboard for choice questions.
@@ -126,7 +181,8 @@ class ButtonQuestionRenderer(SequenceQuestionRendererProtocol):
         Args:
             question: Question with options
             session: Current session
-            user: User object for localization context
+            translator: Translation service
+            context: Optional context for localization
 
         Returns:
             InlineKeyboardMarkup with choice buttons
@@ -136,7 +192,7 @@ class ButtonQuestionRenderer(SequenceQuestionRendererProtocol):
         for option in question.options:
             # Create button text with emoji if available, using localization
             button_text = self._get_localized_text(
-                option.label_key, option.label, option.value.title(), user
+                option.label_key or f"option.{option.value}", translator, context
             )
 
             if option.emoji:
@@ -161,35 +217,28 @@ class ButtonQuestionRenderer(SequenceQuestionRendererProtocol):
         return InlineKeyboardMarkup(inline_keyboard=keyboard_buttons)
 
     def _render_single_question_completion(
-        self, session: SequenceSession, template: str, user: Optional[User] = None
+        self,
+        template: str,
     ) -> str:
         """
         Render completion message for single-question sequences.
 
         Args:
-            session: Completed session
             template: Completion message template
-            user: User object for localization context
 
         Returns:
             Formatted completion message
         """
-        # Get the answer value
-        # pnovikov: I commented the unused code
-        # answer = list(session.answers.values())[0]
-        # answer_value = answer.answer_value
-
-        # Replace placeholders in template
-        message = template
-
-        return message
+        # For single-question sequences, just return the template
+        return template
 
     def _render_multi_question_completion(
         self,
         session: SequenceSession,
         sequence_definition: SequenceDefinition,
         template: str,
-        user: Optional[User] = None,
+        translator: TranslatorProtocol,
+        context: Optional[Mapping[str, Any]] = None,
     ) -> str:
         """
         Render completion message for multi-question sequences.
@@ -198,7 +247,8 @@ class ButtonQuestionRenderer(SequenceQuestionRendererProtocol):
             session: Completed session
             sequence_definition: Sequence definition
             template: Completion message template
-            user: User object for localization context
+            translator: Translation service
+            context: Optional context for localization
 
         Returns:
             Formatted completion message
@@ -212,17 +262,23 @@ class ButtonQuestionRenderer(SequenceQuestionRendererProtocol):
             if answer:
                 # Get display value for the answer
                 display_value = self._get_display_value(
-                    question, answer.answer_value, user
+                    question, answer.answer_value, translator, context
                 )
                 question_text = question.question_text or self._get_localized_text(
-                    question.question_text_key, "", "Question", user
+                    question.question_text_key or f"question.{question.key}",
+                    translator,
+                    context,
                 )
                 message += f"• {question_text} {display_value}\n"
 
         return message
 
     def _get_display_value(
-        self, question: SequenceQuestion, answer_value: str, user: Optional[User] = None
+        self,
+        question: SequenceQuestion,
+        answer_value: str,
+        translator: TranslatorProtocol,
+        context: Optional[Mapping[str, Any]] = None,
     ) -> str:
         """
         Get display value for an answer.
@@ -230,7 +286,8 @@ class ButtonQuestionRenderer(SequenceQuestionRendererProtocol):
         Args:
             question: Question that was answered
             answer_value: Raw answer value
-            user: User object for localization context
+            translator: Translation service
+            context: Optional context for localization
 
         Returns:
             Display value with emoji if available
@@ -240,7 +297,9 @@ class ButtonQuestionRenderer(SequenceQuestionRendererProtocol):
             for option in question.options:
                 if option.value == answer_value:
                     display_text = self._get_localized_text(
-                        option.label_key, option.label, option.value.title(), user
+                        option.label_key or f"option.{option.value}",
+                        translator,
+                        context,
                     )
                     if option.emoji:
                         display_text = f"{option.emoji} {display_text}"
@@ -251,30 +310,23 @@ class ButtonQuestionRenderer(SequenceQuestionRendererProtocol):
 
     def _get_localized_text(
         self,
-        key: Optional[str],
-        fallback: Optional[str],
-        default: str,
-        user: Optional[User] = None,
+        key: str,
+        translator: TranslatorProtocol,
+        context: Optional[Mapping[str, Any]] = None,
     ) -> str:
         """
-        Get localized text using key, fallback, or default.
+        Get localized text using translator.
 
         Args:
-            key: Localization key
-            fallback: Fallback text if key is not available
-            default: Default text if neither key nor fallback is available
-            user: User object for localization context
+            key: Translation key
+            translator: Translation service
+            context: Optional context for localization
 
         Returns:
             Localized text
         """
-        if key and user:
-            try:
-                return t(key, user=user)
-            except:
-                pass
-
-        if fallback:
-            return fallback
-
-        return default
+        try:
+            return translator.translate(key, context)
+        except Exception as e:
+            logger.error(f"Failed to translate key '{key}': {e}")
+            return f"Error: {key}"

@@ -30,7 +30,7 @@
       "completion": "¡Gracias por compartir tu información! Aquí tienes un resumen de lo que nos dijiste:",
       "questions": {
         "is_name_joe": {
-          "question": "¿Tu nombre es Joe?",
+          "question": "<b>Empecemos con tu nombre, te llamas {first_name} {last_name}, ¿verdad?</b>",
           "options": {
             "yes": "Sí",
             "no": "No"

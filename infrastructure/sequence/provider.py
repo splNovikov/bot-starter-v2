@@ -6,8 +6,6 @@ Provides concrete sequence definitions for user info sequences.
 
 from typing import Dict, List, Optional, Tuple
 
-from aiogram.types import User
-
 from core.sequence.protocols import SequenceProviderProtocol
 from core.sequence.services.condition_evaluator import condition_evaluator
 from core.sequence.types import (
@@ -135,15 +133,12 @@ class InMemorySequenceProvider(SequenceProviderProtocol):
 
         return sequence.questions[step]
 
-    def get_next_question_key(
-        self, session: SequenceSession, user: User
-    ) -> Optional[str]:
+    def get_next_question_key(self, session: SequenceSession) -> Optional[str]:
         """
         Get next question key based on session state.
 
         Args:
             session: Current sequence session
-            user: User object for personalization
 
         Returns:
             Next question key or None if sequence is complete

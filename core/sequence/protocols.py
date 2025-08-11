@@ -5,11 +5,41 @@ Defines the contracts for sequence framework components following
 domain-driven design and dependency inversion principles.
 """
 
-from typing import Any, Dict, List, Optional, Protocol, Tuple, runtime_checkable
+from typing import (
+    Any,
+    Dict,
+    List,
+    Mapping,
+    Optional,
+    Protocol,
+    Tuple,
+    runtime_checkable,
+)
 
 from aiogram.types import InlineKeyboardMarkup, Message, User
 
 from .types import SequenceAnswer, SequenceDefinition, SequenceQuestion, SequenceSession
+
+
+@runtime_checkable
+class TranslatorProtocol(Protocol):
+    """Protocol for translation services."""
+
+    def translate(
+        self, key: str, context: Optional[Mapping[str, Any]] = None, **kwargs
+    ) -> str:
+        """
+        Translate a message key with context.
+
+        Args:
+            key: Translation key
+            context: Optional context mapping for interpolation
+            **kwargs: Additional parameters for interpolation
+
+        Returns:
+            Translated and formatted message
+        """
+        ...
 
 
 @runtime_checkable
@@ -145,15 +175,12 @@ class SequenceProviderProtocol(Protocol):
         """
         ...
 
-    def get_next_question_key(
-        self, session: SequenceSession, user: User
-    ) -> Optional[str]:
+    def get_next_question_key(self, session: SequenceSession) -> Optional[str]:
         """
         Get next question key based on session state and conditional logic.
 
         Args:
             session: Current sequence session
-            user: User object for personalization
 
         Returns:
             Next question key or None if sequence is complete
@@ -271,25 +298,58 @@ class SequenceServiceProtocol(Protocol):
         self,
         message: Message,
         question_key: str,
-        user: User,
+        translator: TranslatorProtocol,
+        context: Optional[Mapping[str, Any]] = None,
         show_progress: bool = True,
+        user_id: Optional[int] = None,
     ) -> bool:
         """
-        Send question to user via Telegram.
+        Send question to user via platform.
 
         Args:
             message: Message object for reply
             question_key: Question identifier
-            user: User object
+            translator: Translation service
+            context: Optional context for localization
             show_progress: Whether to show progress indicator
+            user_id: Optional user ID (if not provided, uses message.from_user.id)
 
         Returns:
             True if question was sent successfully
         """
         ...
 
+    async def edit_question(
+        self,
+        message: Message,
+        question_key: str,
+        translator: TranslatorProtocol,
+        context: Optional[Mapping[str, Any]] = None,
+        show_progress: bool = True,
+        user_id: Optional[int] = None,
+    ) -> bool:
+        """
+        Edit existing message with new question (for callback queries).
+
+        Args:
+            message: Message object to edit
+            question_key: Question identifier
+            translator: Translation service
+            context: Optional context for localization
+            show_progress: Whether to show progress indicator
+            user_id: Optional user ID (if not provided, uses message.from_user.id)
+
+        Returns:
+            True if question was edited successfully
+        """
+        ...
+
     async def send_completion_message(
-        self, message: Message, session: SequenceSession, user: User
+        self,
+        message: Message,
+        session: SequenceSession,
+        translator: TranslatorProtocol,
+        context: Optional[Mapping[str, Any]] = None,
     ) -> bool:
         """
         Send completion message and summary.
@@ -297,20 +357,20 @@ class SequenceServiceProtocol(Protocol):
         Args:
             message: Message object for reply
             session: Completed session
-            user: User object
+            translator: Translation service
+            context: Optional context for localization
 
         Returns:
             True if message was sent successfully
         """
         ...
 
-    def get_current_question_key(self, user_id: int, user: User) -> Optional[str]:
+    def get_current_question_key(self, user_id: int) -> Optional[str]:
         """
         Get current question key for user's active session.
 
         Args:
             user_id: User identifier
-            user: User object
 
         Returns:
             Current question key or None
@@ -370,8 +430,9 @@ class SequenceQuestionRendererProtocol(Protocol):
         self,
         question: SequenceQuestion,
         session: SequenceSession,
+        translator: TranslatorProtocol,
+        context: Optional[Mapping[str, Any]] = None,
         show_progress: bool = True,
-        user: Optional[User] = None,
         visible_questions_count: Optional[int] = None,
     ) -> Tuple[str, Optional[InlineKeyboardMarkup]]:
         """
@@ -380,8 +441,9 @@ class SequenceQuestionRendererProtocol(Protocol):
         Args:
             question: SequenceQuestion to render
             session: Current session for context
+            translator: Translation service
+            context: Optional context for localization
             show_progress: Whether to include progress indicator
-            user: User object for localization context
             visible_questions_count: Number of visible questions for progress calculation
 
         Returns:
@@ -393,7 +455,8 @@ class SequenceQuestionRendererProtocol(Protocol):
         self,
         session: SequenceSession,
         sequence_definition: SequenceDefinition,
-        user: Optional[User] = None,
+        translator: TranslatorProtocol,
+        context: Optional[Mapping[str, Any]] = None,
     ) -> str:
         """
         Render sequence completion message.
@@ -401,15 +464,55 @@ class SequenceQuestionRendererProtocol(Protocol):
         Args:
             session: Completed session
             sequence_definition: Sequence definition
-            user: User object for localization context
+            translator: Translation service
+            context: Optional context for localization
 
         Returns:
             Formatted completion message
         """
         ...
 
+    async def send_question_message(
+        self,
+        message: Message,
+        question_text: str,
+        keyboard: Optional[InlineKeyboardMarkup] = None,
+        edit_existing: bool = False,
+    ) -> bool:
+        """
+        Send or edit a question message with platform-specific formatting.
+
+        Args:
+            message: Platform message object
+            question_text: Text of the question
+            keyboard: Optional keyboard markup
+            edit_existing: Whether to edit existing message or send new one
+
+        Returns:
+            True if message was sent/edited successfully
+        """
+        ...
+
+    async def send_completion_message(
+        self,
+        message: Message,
+        completion_text: str,
+    ) -> bool:
+        """
+        Send completion message with platform-specific formatting.
+
+        Args:
+            message: Platform message object
+            completion_text: Completion message text
+
+        Returns:
+            True if message was sent successfully
+        """
+        ...
+
 
 __all__ = [
+    "TranslatorProtocol",
     "SequenceManagerProtocol",
     "SequenceProviderProtocol",
     "SequenceServiceProtocol",

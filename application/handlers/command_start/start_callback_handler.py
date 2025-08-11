@@ -1,6 +1,6 @@
 from aiogram.types import CallbackQuery
 
-from core.sequence import get_sequence_initiation_service
+from core.sequence import create_translator, get_sequence_initiation_service
 from core.services import t
 from core.utils import get_logger
 
@@ -56,27 +56,12 @@ async def start_callback_handler(callback: CallbackQuery) -> None:
             )
             # Continue execution even if keyboard removal fails
 
-        # Add a small visual confirmation to the message
-        try:
-            current_text = callback.message.text
-            confirmation_text = t(
-                "handlers.start.greetings.ready_confirmation", user=callback.from_user
-            )
-            updated_text = current_text + f"\n\n{confirmation_text}"
-            await callback.message.edit_text(updated_text, parse_mode="HTML")
-        except Exception as e:
-            logger.warning(
-                f"Failed to update message for user {callback.from_user.id}: {e}"
-            )
-            # Continue execution even if message update fails
-
-        # Answer the callback to remove loading state
-        await callback.answer(
-            t("handlers.start.greetings.sequence_starting", user=callback.from_user)
-        )
-
         # Get sequence initiation service
         sequence_initiation_service = get_sequence_initiation_service()
+
+        # Create translator and context (infrastructure responsibility)
+        translator = create_translator(callback.from_user)
+        context = {"user": callback.from_user, "user_id": callback.from_user.id}
 
         if not sequence_initiation_service:
             logger.error("Sequence initiation service not available")
@@ -90,23 +75,17 @@ async def start_callback_handler(callback: CallbackQuery) -> None:
             success,
             error_message,
         ) = await sequence_initiation_service.initiate_user_info_sequence(
-            callback.message, callback.from_user
+            callback.message, translator, context
         )
 
         if not success:
+            await callback.message.answer(error_message, parse_mode="HTML")
             logger.error(
                 f"Failed to start {sequence_name} sequence for user {callback.from_user.id}: {error_message}"
-            )
-            await callback.message.answer(
-                t("errors.sequence_initiation_failed", user=callback.from_user)
-            )
-        else:
-            logger.info(
-                f"Successfully initiated {sequence_name} sequence for user {callback.from_user.id}"
             )
 
     except Exception as e:
         logger.error(
-            f"Unexpected error in start ready handler for user {callback.from_user.id}: {e}"
+            f"Error in start callback handler for user {callback.from_user.id}: {e}"
         )
-        await callback.answer(t("errors.generic", user=callback.from_user))
+        await callback.answer(t("errors.general_error", user=callback.from_user))
