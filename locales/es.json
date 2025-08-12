@@ -29,7 +29,7 @@
       "welcome": "¡Conozcámonos mejor! Por favor responde algunas preguntas sobre ti.",
       "completion": "¡Gracias por compartir tu información! Aquí tienes un resumen de lo que nos dijiste:",
       "questions": {
-        "is_name_joe": {
+        "confirm_user_name": {
           "question": "<b>Empecemos con tu nombre, te llamas {first_name} {last_name}, ¿verdad?</b>",
           "options": {
             "yes": "Sí",

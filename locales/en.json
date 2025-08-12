@@ -29,7 +29,7 @@
       "welcome": "Let's get to know you better! Please answer a few questions about yourself.",
       "completion": "Thank you for sharing your information! Here's a summary of what you told us:",
       "questions": {
-        "is_name_joe": {
+        "confirm_user_name": {
           "question": "<b>Let's start with your name, you're called {first_name} {last_name}, right?</b>",
           "options": {
             "yes": "Yes",

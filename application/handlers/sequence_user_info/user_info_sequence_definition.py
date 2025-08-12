@@ -8,26 +8,26 @@ from core.sequence.types import (
 
 def create_user_info_sequence() -> SequenceDefinition:
     questions = [
-        # Boolean question: Is your name Joe?
+        # Boolean question: Confirm user's name
         SequenceQuestion(
-            key="is_name_joe",
-            question_text_key="handlers.user_info.questions.is_name_joe.question",
+            key="confirm_user_name",
+            question_text_key="handlers.user_info.questions.confirm_user_name.question",
             question_type=QuestionType.BOOLEAN,
             options=[
                 SequenceOption(
                     value="true",
-                    label_key="handlers.user_info.questions.is_name_joe.options.yes",
+                    label_key="handlers.user_info.questions.confirm_user_name.options.yes",
                     emoji="✅",
                 ),
                 SequenceOption(
                     value="false",
-                    label_key="handlers.user_info.questions.is_name_joe.options.no",
+                    label_key="handlers.user_info.questions.confirm_user_name.options.no",
                     emoji="❌",
                 ),
             ],
             is_required=True,
         ),
-        # Conditional question: What is your name? (only shown if not Joe)
+        # Conditional question: What is your name? (only shown if name confirmation is false)
         SequenceQuestion(
             key="actual_name",
             question_text_key="handlers.user_info.questions.actual_name.question",
@@ -35,7 +35,7 @@ def create_user_info_sequence() -> SequenceDefinition:
             is_required=True,
             show_if={
                 "condition": "equals",
-                "question": "is_name_joe",
+                "question": "confirm_user_name",
                 "value": "false",
             },
         ),
