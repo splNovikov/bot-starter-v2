@@ -1,13 +1,10 @@
 """
-Localization middleware for automatic language detection and user preference management.
+Localization middleware for aiogram.
 
-This middleware automatically detects user language from Telegram locale and
-integrates with the LocalizationService for seamless localization support.
-
-See core/docs/middleware.md for comprehensive documentation on middleware development.
+Provides automatic language detection and localization context injection.
 """
 
-from typing import Any, Awaitable, Callable, Dict
+from typing import Any, Callable, Dict
 
 from aiogram import BaseMiddleware
 from aiogram.types import CallbackQuery, Message, TelegramObject, User
@@ -20,41 +17,39 @@ logger = get_logger()
 
 class LocalizationMiddleware(BaseMiddleware):
     """
-    Middleware for automatic language detection and user preference management.
+    Middleware for automatic language detection and localization.
 
-    Features:
-    - Automatic language detection from Telegram user locale
-    - User language preference caching
-    - Context injection for easy access to localization service
-    - Logging of language detection events
+    Injects user language preference and localization service into handler data.
     """
 
     def __init__(self):
         """Initialize localization middleware."""
+        super().__init__()
         self.localization_service = get_localization_service()
         logger.info("Localization middleware initialized")
 
     async def __call__(
         self,
-        handler: Callable[[TelegramObject, Dict[str, Any]], Awaitable[Any]],
+        handler: Callable[[TelegramObject, Dict[str, Any]], Any],
         event: TelegramObject,
         data: Dict[str, Any],
     ) -> Any:
         """
-        Process incoming update and inject localization context.
+        Process event with localization context.
 
         Args:
-            handler: Next handler in the chain
-            event: Telegram update event (Message, CallbackQuery, etc.)
-            data: Context data dictionary
+            handler: Next handler in chain
+            event: Telegram event
+            data: Handler data
 
         Returns:
-            Result from the next handler
+            Handler result
         """
+        # Extract user from event
         user = self._extract_user(event)
 
         if user:
-            # Detect and cache user language
+            # Detect user language
             user_language = self.localization_service.get_user_language(user)
 
             # Inject localization context into handler data
@@ -62,12 +57,6 @@ class LocalizationMiddleware(BaseMiddleware):
             data["localization_service"] = self.localization_service
             data["t"] = lambda key, **params: self.localization_service.t(
                 key, user=user, **params
-            )
-
-            # Log language detection (debug level to avoid spam)
-            logger.debug(
-                f"Language detected for user {user.id} "
-                f"({user.first_name or user.username or 'Unknown'}): {user_language}"
             )
         else:
             # No user context available, provide fallback localization
@@ -161,7 +150,7 @@ _user_language_manager: UserLanguageManager | None = None
 
 
 def get_user_language_manager() -> UserLanguageManager:
-    """Get the global user language manager instance."""
+    """Get global user language manager instance."""
     global _user_language_manager
     if _user_language_manager is None:
         _user_language_manager = UserLanguageManager()

@@ -30,7 +30,7 @@
       "completion": "Спасибо, что поделились информацией! Вот краткое резюме того, что вы нам рассказали:",
       "questions": {
         "confirm_user_name": {
-          "question": "<b>Начнём с имени, тебя зовут {first_name} {last_name}, верно?</b>",
+          "question": "<b>Начнём с имени, тебя зовут {presumably_user_name}, верно?</b>",
           "options": {
             "yes": "Да",
             "no": "Нет"

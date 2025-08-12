@@ -8,6 +8,7 @@ from typing import Any, Mapping, Optional
 
 from aiogram.types import User
 
+from application.services import get_user_service
 from core.sequence.protocols import TranslatorProtocol
 from core.services import t
 from core.utils.logger import get_logger
@@ -55,12 +56,13 @@ class ContextAwareTranslator(TranslatorProtocol):
         if context:
             if "user" in context:
                 user = context["user"]
-                if user.first_name:
-                    params["first_name"] = user.first_name
-                if user.last_name:
-                    params["last_name"] = user.last_name
-                if user.username:
-                    params["username"] = user.username
+                user_service = get_user_service()
+                if user_service:
+                    params["presumably_user_name"] = user_service.get_user_display_name(
+                        user
+                    )
+                else:
+                    params["presumably_user_name"] = "Anonymous"
 
             # Add other context parameters
             for k, v in context.items():

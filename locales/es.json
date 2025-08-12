@@ -7,8 +7,8 @@
     "start": {
       "greetings": {
         "hello": "¡Hola, {username}!",
-        "new_user": "<b>¡Hola, soy tu mentor psicológico personal!</b>\n\nNo enseño ni predigo el destino — simplemente te ayudo a entenderte mejor y vivir cada día con consciencia ✨\n\nEsto no es <b>magia ni horóscopo</b> en el sentido tradicional — más bien una sintonización sutil con lo que puede ser importante específicamente hoy!",
-        "readiness": "<b>Antes de comenzar, te haré un par de preguntas para ayudarme a entender mejor tu tipo psicológico</b> ⤵️",
+        "new_user": "<b>¡Hola, soy tu mentor psicológico personal!</b>\n\nNo enseño ni predigo el destino — simplemente te ayudo a entenderte mejor y vivir cada día con conciencia ✨\n\nEsto no es <b>magia ni horóscopo</b> en el sentido tradicional — más bien una sintonización sutil a lo que podría ser importante específicamente hoy!",
+        "readiness": "<b>Antes de comenzar, te haré un par de preguntas, esto me ayudará a entender mejor tu psicotipo</b> ⤵️",
         "ready_button": "¡Sí, estoy listo!",
         "ready_confirmation": "✅ ¡Listo! Comenzando...",
         "sequence_starting": "✅ Comenzando..."
@@ -19,35 +19,35 @@
       "current": "Idioma actual: {language_name}",
       "select": "Selecciona tu idioma preferido:",
       "changed": "¡Idioma cambiado a {language_name}!",
-      "error": "Error al cambiar el idioma. Por favor inténtalo de nuevo.",
+      "error": "No se pudo cambiar el idioma. Por favor, inténtalo de nuevo.",
       "unsupported": "El idioma '{language_name}' no está soportado."
     },
     
     "user_info": {
       "title": "Información del Usuario",
       "description": "Cuéntanos sobre ti",
-      "welcome": "¡Conozcámonos mejor! Por favor responde algunas preguntas sobre ti.",
-      "completion": "¡Gracias por compartir tu información! Aquí tienes un resumen de lo que nos dijiste:",
+      "welcome": "¡Conozcámonos mejor! Por favor, responde algunas preguntas sobre ti.",
+      "completion": "¡Gracias por compartir información! Aquí tienes un breve resumen de lo que nos contaste:",
       "questions": {
         "confirm_user_name": {
-          "question": "<b>Empecemos con tu nombre, te llamas {first_name} {last_name}, ¿verdad?</b>",
+          "question": "<b>Empecemos con tu nombre, te llamas {presumably_user_name}, ¿verdad?</b>",
           "options": {
             "yes": "Sí",
             "no": "No"
           }
         },
         "actual_name": {
-          "question": "¿Cuál es tu nombre?"
+          "question": "¿Cómo te llamas?"
         },
         "eyes_color": {
           "question": "¿De qué color son tus ojos?",
           "options": {
-            "brown": "Marrón",
-            "blue": "Azul",
-            "green": "Verde",
+            "brown": "Marrones",
+            "blue": "Azules",
+            "green": "Verdes",
             "hazel": "Avellana",
-            "gray": "Gris",
-            "other": "Otro"
+            "gray": "Grises",
+            "other": "Otros"
           }
         },
         "marital_status": {
@@ -70,25 +70,25 @@
     },
     "answer_recorded": "✅ ¡Respuesta registrada!",
     "errors": {
-      "no_active_session": "❌ No se encontró una sesión de secuencia activa. Por favor inicia una secuencia primero.",
-      "sequence_not_found": "❌ Secuencia no encontrada. Por favor inténtalo de nuevo.",
-      "question_not_found": "❌ Pregunta no encontrada. Por favor inténtalo de nuevo.",
-      "send_question_failed": "❌ Error al enviar la pregunta. Por favor inténtalo de nuevo.",
-      "completion_failed": "❌ Error al enviar el mensaje de finalización. Por favor inténtalo de nuevo.",
-      "next_question_failed": "❌ Error al obtener la siguiente pregunta. Por favor inténtalo de nuevo."
+      "no_active_session": "❌ No se encontró sesión activa de secuencia. Por favor, inicia la secuencia desde el principio.",
+      "sequence_not_found": "❌ Secuencia no encontrada. Por favor, inténtalo de nuevo.",
+      "question_not_found": "❌ Pregunta no encontrada. Por favor, inténtalo de nuevo.",
+      "send_question_failed": "❌ No se pudo enviar la pregunta. Por favor, inténtalo de nuevo.",
+      "completion_failed": "❌ No se pudo enviar el mensaje de finalización. Por favor, inténtalo de nuevo.",
+      "next_question_failed": "❌ No se pudo obtener la siguiente pregunta. Por favor, inténtalo de nuevo."
     }
   },
   
   "errors": {
-    "generic": "Lo siento, algo salió mal. Por favor inténtalo de nuevo.",
-    "invalid_callback": "❌ Datos de callback inválidos. Por favor inténtalo de nuevo.",
-    "invalid_sequence": "❌ Secuencia inválida. Por favor inténtalo de nuevo.",
-    "invalid_language": "❌ Código de idioma inválido. Por favor inténtalo de nuevo.",
-    "invalid_answer": "❌ Respuesta inválida. Por favor inténtalo de nuevo.",
-    "service_unavailable": "❌ El servicio no está disponible temporalmente. Por favor inténtalo más tarde.",
-    "sequence_initiation_failed": "❌ Error al iniciar la secuencia. Por favor inténtalo de nuevo.",
-    "answer_processing_failed": "❌ Error al procesar tu respuesta. Por favor inténtalo de nuevo.",
-    "completion_failed": "❌ Error al completar la secuencia. Por favor inténtalo de nuevo.",
-    "next_question_failed": "❌ Error al obtener la siguiente pregunta. Por favor inténtalo de nuevo."
+    "generic": "Lo siento, algo salió mal. Por favor, inténtalo de nuevo.",
+    "invalid_callback": "❌ Datos de callback inválidos. Por favor, inténtalo de nuevo.",
+    "invalid_sequence": "❌ Secuencia inválida. Por favor, inténtalo de nuevo.",
+    "invalid_language": "❌ Código de idioma inválido. Por favor, inténtalo de nuevo.",
+    "invalid_answer": "❌ Respuesta inválida. Por favor, inténtalo de nuevo.",
+    "service_unavailable": "❌ Servicio temporalmente no disponible. Por favor, inténtalo más tarde.",
+    "sequence_initiation_failed": "❌ No se pudo iniciar la secuencia. Por favor, inténtalo de nuevo.",
+    "answer_processing_failed": "❌ No se pudo procesar tu respuesta. Por favor, inténtalo de nuevo.",
+    "completion_failed": "❌ No se pudo completar la secuencia. Por favor, inténtalo de nuevo.",
+    "next_question_failed": "❌ No se pudo obtener la siguiente pregunta. Por favor, inténtalo de nuevo."
   }
 } 

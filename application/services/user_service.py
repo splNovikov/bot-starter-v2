@@ -14,6 +14,38 @@ class UserService:
     def __init__(self, http_client: HttpClient):
         self._http_client = http_client
 
+    def get_user_name_parts(self, user: User) -> tuple[str, str]:
+        """
+        Extract user's first and last name from Telegram data.
+
+        Args:
+            user: Telegram User object
+
+        Returns:
+            Tuple of (first_name, last_name) where last_name defaults to empty string
+        """
+        return user.first_name, user.last_name or ""
+
+    def get_user_display_name(self, user: User) -> str:
+        """
+        Get user's display name (first_name + last_name or username).
+
+        Args:
+            user: Telegram User object
+
+        Returns:
+            Display name string
+        """
+        first_name, last_name = self.get_user_name_parts(user)
+        if first_name and last_name:
+            return f"{first_name} {last_name}"
+        elif first_name:
+            return first_name
+        elif user.username:
+            return f"@{user.username}"
+        else:
+            return "Anonymous"
+
     async def get_user(self, user: User) -> UserData | None:
         user_id = user.id
 
