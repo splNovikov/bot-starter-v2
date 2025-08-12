@@ -95,14 +95,7 @@ class LoggingMiddleware(BaseMiddleware):
         # Simple username extraction without dependencies
         username = "Unknown"
         if user:
-            if user.first_name and user.last_name:
-                username = f"{user.first_name} {user.last_name}"
-            elif user.first_name:
-                username = user.first_name
-            elif user.username:
-                username = f"@{user.username}"
-            else:
-                username = "Anonymous"
+            username = f"@{user.username}"
 
         return {
             "user_id": user.id if user else None,

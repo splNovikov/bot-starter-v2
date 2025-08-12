@@ -5,23 +5,18 @@ from application.types.user import UserData
 from core.services.localization import t
 
 
-def get_username(user: User, user_data: UserData = None) -> str:
-    """Get user's display name from user_data if available, otherwise fallback to Telegram user fields."""
-    if user_data and user_data.name:
-        return user_data.name
-
-    user_service = get_user_service()
-    if user_service:
-        return user_service.get_user_display_name(user)
+def get_username(user_data: UserData = None) -> str:
+    if user_data and user_data.preferred_name:
+        return user_data.preferred_name
 
     # Fallback to direct access if user service is not available
-    return user.first_name or user.username or "Anonymous"
+    return "Anonymous"
 
 
-def create_greeting_message(user: User, user_data: UserData = None) -> str:
+def create_greeting_message(user_data: UserData = None) -> str:
     """Create a generic greeting message."""
-    username = get_username(user, user_data)
-    return t("handlers.start.greetings.hello", user=user, username=username)
+    preferred_name = get_username(user_data)
+    return t("handlers.start.greetings.hello", preferred_name=preferred_name)
 
 
 def create_new_user_greeting(user: User) -> str:

@@ -13,23 +13,23 @@ class UserData:
 
     # pnovikov: this is how we call user in chat. His preferable name
     @property
-    def name(self) -> Optional[str]:
-        return self.metadata.get("name") if self.metadata else None
+    def preferred_name(self) -> Optional[str]:
+        return self.metadata.get("preferred_name") if self.metadata else None
 
     # pnovikov: telegram's username. @novikovpa
     @property
-    def username(self) -> Optional[str]:
-        return self.metadata.get("username") if self.metadata else None
+    def tg_username(self) -> Optional[str]:
+        return self.metadata.get("tg_username") if self.metadata else None
 
     # pnovikov: if user provides his first_name in telegram bio
     @property
-    def first_name(self) -> Optional[str]:
-        return self.metadata.get("first_name") if self.metadata else None
+    def tg_first_name(self) -> Optional[str]:
+        return self.metadata.get("tg_first_name") if self.metadata else None
 
     # pnovikov: if user provides his last_name in telegram bio
     @property
-    def last_name(self) -> Optional[str]:
-        return self.metadata.get("last_name") if self.metadata else None
+    def tg_last_name(self) -> Optional[str]:
+        return self.metadata.get("tg_last_name") if self.metadata else None
 
     @property
     def gender(self) -> Optional[str]:

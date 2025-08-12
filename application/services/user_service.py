@@ -78,9 +78,9 @@ class UserService:
                 "platformId": str(user_id),
                 "platformType": "telegram",
                 "metadata": {
-                    "first_name": user.first_name,
-                    "username": user.username,
-                    "last_name": user.last_name,
+                    "tg_first_name": user.first_name,
+                    "tg_username": user.username,
+                    "tg_last_name": user.last_name,
                 },
             }
 
@@ -115,9 +115,9 @@ class UserService:
         # If metadata is None, create default metadata from Telegram user
         if metadata is None:
             metadata = {
-                "first_name": user.first_name,
-                "username": user.username,
-                "last_name": user.last_name,
+                "tg_first_name": user.first_name,
+                "tg_username": user.username,
+                "tg_last_name": user.last_name,
             }
 
         return UserData(

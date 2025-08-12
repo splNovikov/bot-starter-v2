@@ -6,7 +6,7 @@
   "handlers": {
     "start": {
       "greetings": {
-        "hello": "Hello, {username}!",
+        "hello": "Hello, {preferred_name}!",
         "new_user": "<b>Hello, I'm your personal psychological mentor!</b>\n\nI don't teach or predict fate — I simply help you better understand yourself and live each day mindfully ✨\n\nThis isn't <b>magic or horoscope</b> in the usual sense — rather a subtle tuning to what might be important specifically today!",
         "readiness": "<b>Before we start, I'll ask you a couple of questions, this will help me better understand your psychotype</b> ⤵️",
         "ready_button": "Yes, I'm ready!",

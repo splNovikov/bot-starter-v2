@@ -38,7 +38,7 @@ async def start_command_handler(message: Message) -> None:
             # User exists - show personalized greeting
             logger.info(f"Existing user {message.from_user.id} found in API")
 
-            greeting = create_greeting_message(message.from_user, user_data)
+            greeting = create_greeting_message(user_data)
             await message.answer(greeting)
             return
 
@@ -50,7 +50,6 @@ async def start_command_handler(message: Message) -> None:
 
         # Send readiness message with keyboard
         readiness_message = create_readiness_message(message.from_user)
-        # Create keyboard with "Да, готов!" button
         keyboard = InlineKeyboardMarkup(
             inline_keyboard=[
                 [
