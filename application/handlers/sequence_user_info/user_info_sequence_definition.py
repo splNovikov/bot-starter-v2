@@ -29,8 +29,8 @@ def create_user_info_sequence() -> SequenceDefinition:
         ),
         # Conditional question: What is your name? (only shown if name confirmation is false)
         SequenceQuestion(
-            key="actual_name",
-            question_text_key="handlers.user_info.questions.actual_name.question",
+            key="preferred_name",
+            question_text_key="handlers.user_info.questions.preferred_name.question",
             question_type=QuestionType.TEXT,
             is_required=True,
             show_if={

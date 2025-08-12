@@ -36,7 +36,7 @@
             "no": "Нет"
           }
         },
-        "actual_name": {
+        "preferred_name": {
           "question": "Как вас зовут?"
         },
         "eyes_color": {

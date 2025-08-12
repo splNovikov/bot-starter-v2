@@ -36,7 +36,7 @@
             "no": "No"
           }
         },
-        "actual_name": {
+        "preferred_name": {
           "question": "What's your name?"
         },
         "eyes_color": {
