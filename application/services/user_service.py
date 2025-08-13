@@ -100,7 +100,9 @@ class UserService:
             logger.error(f"Error creating user {user_id}: {e}")
             return None
 
-    async def update_user(self, user: User, metadata_updates: dict[str, Any]) -> UserData | None:
+    async def update_user(
+        self, user: User, metadata_updates: dict[str, Any]
+    ) -> UserData | None:
         """
         Update user metadata in the API.
 
@@ -141,7 +143,9 @@ class UserService:
         endpoint = f"users/platform?platformId={user_id}&platformType=telegram"
         return await self._http_client.get(endpoint)
 
-    async def _update_user_in_api(self, user_id: int, payload: dict[str, Any]) -> ApiResponse:
+    async def _update_user_in_api(
+        self, user_id: int, payload: dict[str, Any]
+    ) -> ApiResponse:
         endpoint = f"users/platform?platformId={user_id}&platformType=telegram"
         return await self._http_client.patch(endpoint, json=payload)
 

@@ -1,6 +1,5 @@
 from aiogram.types import User
 
-from application.services import get_user_service
 from application.types.user import UserData
 from core.services.localization import t
 
