@@ -2,6 +2,7 @@ from aiogram.types import CallbackQuery
 
 from core.sequence import create_translator, get_sequence_service
 from core.utils import get_logger
+from application.services import get_user_service
 
 logger = get_logger()
 
@@ -108,6 +109,35 @@ async def user_info_callback_handler(callback: CallbackQuery) -> None:
             )
             await callback.answer("Answer processing failed")
             return
+
+        # Handle confirm_user_name question logic - save "John_Doe" when user confirms their name
+        if question_key == "confirm_user_name" and answer_value.lower() == "true":
+            logger.info(f"User {callback.from_user.id} confirmed their name, saving 'John_Doe' as preferred_name")
+            
+            user_service = get_user_service()
+            logger.debug(f"User service retrieved: {user_service is not None}")
+            
+            if user_service:
+                try:
+                    # Update user metadata with preferred_name
+                    logger.debug(f"Attempting to update user {callback.from_user.id} with preferred_name: John_Doe")
+                    updated_user = await user_service.update_user(
+                        callback.from_user, 
+                        {"preferred_name": "John_Doe"}
+                    )
+                    
+                    if updated_user:
+                        logger.info(f"Successfully saved preferred_name 'John_Doe' for user {callback.from_user.id}")
+                        logger.debug(f"Updated user data: {updated_user}")
+                    else:
+                        logger.error(f"Failed to save preferred_name for user {callback.from_user.id} - update_user returned None")
+                except Exception as e:
+                    logger.error(f"Error saving preferred_name for user {callback.from_user.id}: {e}")
+                    logger.exception("Full exception details:")
+            else:
+                logger.error("User service not available for saving preferred_name")
+        else:
+            logger.debug(f"Not confirm_user_name=true. Question: {question_key}, Answer: {answer_value}")
 
         # Answer the callback to remove loading state
         await callback.answer("✅ Answer recorded!")

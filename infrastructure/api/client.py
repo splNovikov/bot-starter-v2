@@ -112,6 +112,10 @@ class HttpClient:
         """Make PUT request."""
         return await self.request("PUT", endpoint, **kwargs)
 
+    async def patch(self, endpoint: str, **kwargs) -> ApiResponse:
+        """Make PATCH request."""
+        return await self.request("PATCH", endpoint, **kwargs)
+
     async def delete(self, endpoint: str, **kwargs) -> ApiResponse:
         """Make DELETE request."""
         return await self.request("DELETE", endpoint, **kwargs)

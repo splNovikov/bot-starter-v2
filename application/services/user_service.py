@@ -78,9 +78,9 @@ class UserService:
                 "platformId": str(user_id),
                 "platformType": "telegram",
                 "metadata": {
-                    "tg_first_name": user.first_name,
-                    "tg_username": user.username,
-                    "tg_last_name": user.last_name,
+                    "tg_first_name": user.first_name or "",
+                    "tg_username": user.username or "",
+                    "tg_last_name": user.last_name or "",
                 },
             }
 
@@ -100,9 +100,50 @@ class UserService:
             logger.error(f"Error creating user {user_id}: {e}")
             return None
 
+    async def update_user(self, user: User, metadata_updates: dict[str, Any]) -> UserData | None:
+        """
+        Update user metadata in the API.
+
+        Args:
+            user: Telegram User object
+            metadata_updates: Dictionary of metadata fields to update
+
+        Returns:
+            Updated UserData object or None if update failed
+        """
+        user_id = user.id
+
+        try:
+            logger.info(f"Updating user {user_id} metadata in API")
+
+            # Prepare payload according to UpdateUserDto structure
+            payload = {
+                "metadata": metadata_updates,
+            }
+
+            response = await self._update_user_in_api(user_id, payload)
+
+            if response.success and response.data:
+                # Parse updated user data from API response
+                updated_user_data = self._parse_user_data(response.data, user)
+
+                logger.info(f"Successfully updated user {user_id} metadata in API")
+                return updated_user_data
+            else:
+                logger.error(f"Failed to update user {user_id}: {response.error}")
+                return None
+
+        except Exception as e:
+            logger.error(f"Error updating user {user_id}: {e}")
+            return None
+
     async def _fetch_user_from_api(self, user_id: int) -> ApiResponse:
         endpoint = f"users/platform?platformId={user_id}&platformType=telegram"
         return await self._http_client.get(endpoint)
+
+    async def _update_user_in_api(self, user_id: int, payload: dict[str, Any]) -> ApiResponse:
+        endpoint = f"users/platform?platformId={user_id}&platformType=telegram"
+        return await self._http_client.patch(endpoint, json=payload)
 
     def _parse_user_data(self, api_data: dict[str, Any], user: User) -> UserData:
         # Extract basic fields from API response
@@ -115,9 +156,9 @@ class UserService:
         # If metadata is None, create default metadata from Telegram user
         if metadata is None:
             metadata = {
-                "tg_first_name": user.first_name,
-                "tg_username": user.username,
-                "tg_last_name": user.last_name,
+                "tg_first_name": user.first_name or "",
+                "tg_username": user.username or "",
+                "tg_last_name": user.last_name or "",
             }
 
         return UserData(
