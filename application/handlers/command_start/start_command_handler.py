@@ -2,7 +2,7 @@ import asyncio
 
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message
 
-from application.services import get_user_service
+from application.services.user_utils import ensure_user_exists
 from core.services import t
 from core.utils import get_logger
 
@@ -17,22 +17,15 @@ logger = get_logger()
 
 async def start_command_handler(message: Message) -> None:
     try:
-        user_service = get_user_service()
-        if not user_service:
-            logger.error("User service not available")
+        # Ensure user exists in the system, creating if necessary
+        user_data = await ensure_user_exists(message.from_user)
 
+        if not user_data:
+            # User service unavailable or creation failed - show generic greeting
+            logger.error(f"Failed to ensure user {message.from_user.id} exists")
             greeting = create_new_user_greeting(message.from_user)
             await message.answer(greeting, parse_mode="HTML")
             return
-
-        # Try to fetch user from API
-        user_data = await user_service.get_user(message.from_user)
-
-        if not user_data:
-            # User not found - try to create user in database
-            logger.info(f"User {message.from_user.id} not found - attempting to create")
-
-            await user_service.create_user(message.from_user)
 
         if user_data and user_data.user_info_sequence_passed:
             # User exists - show personalized greeting
