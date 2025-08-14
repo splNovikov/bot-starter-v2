@@ -4,8 +4,9 @@ from aiogram.types import CallbackQuery, Message
 from core.sequence import sequence_handler
 from core.utils.logger import get_logger
 
-from .user_info_answer_handler import handle_user_info_answer
-from .user_info_handler import handle_user_info
+from .user_info_callback_handler import user_info_callback_handler
+from .user_info_command_handler import user_info_command_handler
+from .user_info_message_handler import user_info_message_handler
 
 logger = get_logger()
 
@@ -21,10 +22,15 @@ sequence_user_info_router = Router(name="sequence_user_info")
     allow_restart=True,
     generate_summary=True,
 )
-async def cmd_user_info(message: Message):
-    await handle_user_info(message)
+async def handle_user_info_command(message: Message):
+    await user_info_command_handler(message)
 
 
 @sequence_user_info_router.callback_query(F.data.startswith("seq_answer:user_info:"))
-async def user_info_callback(callback: CallbackQuery):
-    await handle_user_info_answer(callback)
+async def handle_user_info_callback(callback: CallbackQuery):
+    await user_info_callback_handler(callback)
+
+
+@sequence_user_info_router.message(F.text)
+async def handle_user_info_message(message: Message):
+    await user_info_message_handler(message)

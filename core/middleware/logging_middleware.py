@@ -6,7 +6,7 @@ Provides comprehensive request/response logging for debugging and monitoring.
 from typing import Any, Awaitable, Callable, Dict
 
 from aiogram import BaseMiddleware
-from aiogram.types import CallbackQuery, Message, TelegramObject
+from aiogram.types import CallbackQuery, InlineQuery, Message, TelegramObject
 
 from core.utils.logger import get_logger
 
@@ -92,8 +92,13 @@ class LoggingMiddleware(BaseMiddleware):
             user = event.from_user
             chat_id = None  # Inline queries don't have chat context
 
+        # Simple username extraction without dependencies
+        username = "Unknown"
+        if user:
+            username = f"@{user.username}"
+
         return {
             "user_id": user.id if user else None,
-            "username": user.first_name or user.username if user else "Unknown",
+            "username": username,
             "chat_id": chat_id,
         }

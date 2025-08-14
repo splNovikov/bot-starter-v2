@@ -23,7 +23,7 @@ from .handlers import (
     text_handler,
 )
 from .middleware import LoggingMiddleware
-from .protocols import ApiClientProtocol, ApiResponse
+from .protocols import ApiResponse
 
 # Export sequence framework (unified abstraction for all interactive flows)
 from .sequence import (
@@ -73,7 +73,6 @@ __all__ = [
     "get_localization_service",
     "t",
     # Protocols
-    "ApiClientProtocol",
     "ApiResponse",
     # Utilities
     "get_logger",

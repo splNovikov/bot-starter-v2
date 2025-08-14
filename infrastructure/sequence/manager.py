@@ -5,6 +5,8 @@ Extends BaseSequenceManager to provide in-memory session management
 for the sequence framework.
 """
 
+from typing import Optional
+
 from core.sequence.services.base_sequence_manager import BaseSequenceManager
 from core.sequence.types import SequenceAnswer, SequenceSession
 from core.utils.logger import get_logger
@@ -100,3 +102,35 @@ class InMemorySequenceManager(BaseSequenceManager):
         logger.info(
             f"Cleared sequence session {session.session_id} for user {session.user_id}"
         )
+
+    def get_session(self, user_id: int) -> Optional[SequenceSession]:
+        """
+        Get session for user.
+
+        Args:
+            user_id: User identifier
+
+        Returns:
+            SequenceSession object or None
+        """
+        session = self._sessions.get(user_id)
+        if session:
+            self._on_session_accessed(session)
+        return session
+
+    def clear_session(self, user_id: int) -> bool:
+        """
+        Clear session for user.
+
+        Args:
+            user_id: User identifier
+
+        Returns:
+            True if session was cleared, False if not found
+        """
+        session = self._sessions.get(user_id)
+        if session:
+            self._on_session_cleared(session)
+            del self._sessions[user_id]
+            return True
+        return False

@@ -6,7 +6,7 @@ business domains and are not specific to any particular feature.
 """
 
 from dataclasses import dataclass
-from typing import Optional, Protocol, runtime_checkable
+from typing import Optional
 
 
 @dataclass
@@ -17,20 +17,3 @@ class ApiResponse:
     data: Optional[dict] = None
     error: Optional[str] = None
     status_code: Optional[int] = None
-
-
-@runtime_checkable
-class ApiClientProtocol(Protocol):
-    """Generic protocol for API client implementations."""
-
-    async def submit_questionnaire_answer(
-        self, user_id: int, question_key: str, answer: str, session_id: str
-    ) -> ApiResponse:
-        """Submit questionnaire answer to external API."""
-        ...
-
-    async def complete_questionnaire(
-        self, user_id: int, session_id: str
-    ) -> ApiResponse:
-        """Mark questionnaire as completed in external API."""
-        ...

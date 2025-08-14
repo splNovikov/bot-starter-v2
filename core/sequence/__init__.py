@@ -1,34 +1,3 @@
-"""
-Core sequence framework package.
-
-Provides unified sequence infrastructure components for all interactive flows:
-questionnaires, quizzes, surveys, and single question+summary interactions.
-
-- Type definitions and protocols for sequences
-- Abstract base services for session management and sequence provision
-- Core orchestration services
-- Unified decorator for sequence handler registration
-- FSM states for sequence interactions
-
-Usage Example:
-    ```python
-    from core.sequence import (
-        sequence_handler,
-        SequenceService
-    )
-
-    @sequence_handler(
-        "bio",
-        questions=["name", "age", "location", "interests"],
-        description="Collect user biography information",
-        show_progress=True
-    )
-    async def cmd_bio(message: Message, state: FSMContext):
-        # Handler implementation using sequence framework
-        pass
-    ```
-"""
-
 # Decorators - the main interface for defining sequences
 from .decorators import (
     generates_summary,
@@ -39,6 +8,12 @@ from .decorators import (
     is_scored_sequence,
     is_sequence_handler,
     sequence_handler,
+)
+
+# Factories
+from .factories import (
+    create_translator,
+    set_translator_factory,
 )
 
 # Protocol interfaces
@@ -56,6 +31,10 @@ from .services import (
     SequenceService,
     get_sequence_service,
     set_sequence_service,
+)
+from .services.sequence_initiation_service import (
+    SequenceInitiationService,
+    get_sequence_initiation_service,
 )
 
 # FSM states
@@ -99,6 +78,11 @@ __all__ = [
     "SequenceService",
     "get_sequence_service",
     "set_sequence_service",
+    "SequenceInitiationService",
+    "get_sequence_initiation_service",
+    # Factories
+    "create_translator",
+    "set_translator_factory",
     # Decorators - primary interface
     "sequence_handler",
     "is_sequence_handler",
@@ -121,39 +105,6 @@ def create_simple_sequence_definition(
     description: str = None,
     **behavior_config,
 ) -> SequenceDefinition:
-    """
-    Create a simple sequence definition with text questions.
-
-    Args:
-        name: Sequence name
-        question_keys: List of question identifiers
-        title: Optional title
-        description: Optional description
-        **behavior_config: Behavior configuration flags (scored, anonymous, etc.)
-
-    Returns:
-        SequenceDefinition object
-
-    Example:
-        ```python
-        # Simple questionnaire
-        seq_def = create_simple_sequence_definition(
-            "user_bio",
-            ["name", "age", "location"],
-            title="User Biography",
-            description="Collect basic user information"
-        )
-
-        # Quiz with scoring
-        quiz_def = create_simple_sequence_definition(
-            "trivia",
-            ["q1", "q2", "q3"],
-            title="Trivia Quiz",
-            scored=True,
-            show_correct_answers=True
-        )
-        ```
-    """
     questions = []
     for key in question_keys:
         question = SequenceQuestion(

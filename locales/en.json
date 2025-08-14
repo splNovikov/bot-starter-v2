@@ -3,55 +3,92 @@
   "_language_code": "en",
   "_version": "1.0.0",
   
-  "greetings": {
-    "hello": "Hello, {username}!"
-  },
-  
-  "locale": {
-    "current": "Current language: {language_name}",
-    "select": "Select your preferred language:",
-    "changed": "Language changed to {language_name}!",
-    "error": "Failed to change language. Please try again.",
-    "unsupported": "Language '{language_name}' is not supported."
+  "handlers": {
+    "start": {
+      "greetings": {
+        "hello": "Hello, {preferred_name}!",
+        "new_user": "<b>Hello, I'm your personal psychological mentor!</b>\n\nI don't teach or predict fate — I simply help you better understand yourself and live each day mindfully ✨\n\nThis isn't <b>magic or horoscope</b> in the usual sense — rather a subtle tuning to what might be important specifically today!",
+        "readiness": "<b>Before we start, I'll ask you a couple of questions, this will help me better understand your psychotype</b> ⤵️",
+        "ready_button": "Yes, I'm ready!",
+        "ready_confirmation": "✅ Ready! Starting...",
+        "sequence_starting": "✅ Starting..."
+      }
+    },
+    
+    "locale": {
+      "current": "Current language: {language_name}",
+      "select": "Select your preferred language:",
+      "changed": "Language changed to {language_name}!",
+      "error": "Failed to change language. Please try again.",
+      "unsupported": "Language '{language_name}' is not supported."
+    },
+    
+    "user_info": {
+      "title": "User Information",
+      "description": "Tell us about yourself",
+      "welcome": "Let's get to know each other better! Please answer a few questions about yourself.",
+      "completion": "Thank you for sharing information! Here's a brief summary of what you told us:",
+      "questions": {
+        "confirm_user_name": {
+          "question": "<b>Let's start with your name, you're called {presumably_user_name}, right?</b>",
+          "options": {
+            "yes": "Yes",
+            "no": "No"
+          }
+        },
+        "preferred_name": {
+          "question": "What's your name?"
+        },
+        "eyes_color": {
+          "question": "What color are your eyes?",
+          "options": {
+            "brown": "Brown",
+            "blue": "Blue",
+            "green": "Green",
+            "hazel": "Hazel",
+            "gray": "Gray",
+            "other": "Other"
+          }
+        },
+        "marital_status": {
+          "question": "What's your marital status?",
+          "options": {
+            "single": "Single",
+            "married": "Married",
+            "divorced": "Divorced",
+            "widowed": "Widowed",
+            "prefer_not_to_say": "Prefer not to say"
+          }
+        }
+      }
+    }
   },
   
   "sequence": {
     "completion": {
       "generic": "✅ {sequence_type} completed successfully!"
     },
+    "answer_recorded": "✅ Answer recorded!",
     "errors": {
-      "no_active_session": "❌ No active sequence session found. Please start a sequence first.",
+      "no_active_session": "❌ No active sequence session found. Please start the sequence from the beginning.",
       "sequence_not_found": "❌ Sequence not found. Please try again.",
       "question_not_found": "❌ Question not found. Please try again.",
       "send_question_failed": "❌ Failed to send question. Please try again.",
-      "completion_failed": "❌ Failed to send completion message. Please try again."
-    },
-    "user_info": {
-      "title": "User Information",
-      "description": "Tell us about yourself",
-      "welcome": "Let's get to know you better! Please answer a few questions about yourself.",
-      "completion": "Thank you for sharing your information! Here's a summary of what you told us:",
-      "eyes_color": {
-        "question": "What color are your eyes?",
-        "brown": "Brown",
-        "blue": "Blue",
-        "green": "Green",
-        "hazel": "Hazel",
-        "gray": "Gray",
-        "other": "Other"
-      },
-      "marital_status": {
-        "question": "What is your marital status?",
-        "single": "Single",
-        "married": "Married",
-        "divorced": "Divorced",
-        "widowed": "Widowed",
-        "prefer_not_to_say": "Prefer not to say"
-      }
+      "completion_failed": "❌ Failed to send completion message. Please try again.",
+      "next_question_failed": "❌ Failed to get next question. Please try again."
     }
   },
   
   "errors": {
-    "generic": "Sorry, something went wrong. Please try again."
+    "generic": "Sorry, something went wrong. Please try again.",
+    "invalid_callback": "❌ Invalid callback data. Please try again.",
+    "invalid_sequence": "❌ Invalid sequence. Please try again.",
+    "invalid_language": "❌ Invalid language code. Please try again.",
+    "invalid_answer": "❌ Invalid answer. Please try again.",
+    "service_unavailable": "❌ Service temporarily unavailable. Please try later.",
+    "sequence_initiation_failed": "❌ Failed to start sequence. Please try again.",
+    "answer_processing_failed": "❌ Failed to process your answer. Please try again.",
+    "completion_failed": "❌ Failed to complete sequence. Please try again.",
+    "next_question_failed": "❌ Failed to get next question. Please try again."
   }
 } 

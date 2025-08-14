@@ -6,7 +6,7 @@ from core.utils.logger import get_logger
 logger = get_logger()
 
 
-async def handle_locale(message: Message) -> None:
+async def locale_command_handler(message: Message) -> None:
     try:
         # Get localization service
         localization_service = get_localization_service()
@@ -36,11 +36,11 @@ async def handle_locale(message: Message) -> None:
 
         # Send message with keyboard
         current_lang_text = t(
-            "locale.current",
+            "handlers.locale.current",
             user=message.from_user,
             language_name=current_language_name,
         )
-        select_text = t("locale.select", user=message.from_user)
+        select_text = t("handlers.locale.select", user=message.from_user)
 
         await message.answer(
             f"{current_lang_text}\n\n{select_text}", reply_markup=keyboard

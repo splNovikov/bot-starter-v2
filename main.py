@@ -19,15 +19,22 @@ from aiogram.fsm.storage.memory import MemoryStorage
 
 # Local application imports
 from application.handlers import initialize_registry, main_router, user_info_sequence
+from application.services import UserService, set_user_service
 from config import config
-from core.middleware.localization_middleware import LocalizationMiddleware
-from core.middleware.logging_middleware import LoggingMiddleware
+from core.middleware import LocalizationMiddleware, LoggingMiddleware
+from core.sequence import set_translator_factory
 from core.utils.logger import get_logger, setup_logger
-from infrastructure import initialize_sequences
+from infrastructure.api import close_http_client, get_http_client
+from infrastructure.sequence import ContextAwareTranslator, initialize_sequences
 
 # Setup logging
 setup_logger()
 logger = get_logger()
+
+
+def create_context_aware_translator(user):
+    """Factory function to create context-aware translator."""
+    return ContextAwareTranslator(user)
 
 
 @asynccontextmanager
@@ -40,6 +47,19 @@ async def lifespan_context():
     logger.info("🚀 Bot is starting up...")
 
     try:
+        # Initialize HTTP client
+        http_client = get_http_client()
+        logger.info("✅ HTTP client initialized")
+
+        # Initialize user service with HTTP client
+        user_service = UserService(http_client)
+        set_user_service(user_service)
+        logger.info("✅ User service initialized")
+
+        # Initialize translator factory
+        set_translator_factory(create_context_aware_translator)
+        logger.info("✅ Translator factory initialized")
+
         # Initialize sequence system
         initialize_sequences(sequence_definitions=[user_info_sequence])
         logger.info("✅ Sequence system initialized")
@@ -54,6 +74,14 @@ async def lifespan_context():
 
     finally:
         logger.info("🛑 Bot is shutting down...")
+
+        # Cleanup HTTP client
+        try:
+            await close_http_client()
+            logger.info("✅ HTTP client closed")
+        except Exception as e:
+            logger.error(f"❌ Error closing HTTP client: {e}")
+
         # Cleanup operations here
         logger.info("✅ Bot shutdown completed")
 
