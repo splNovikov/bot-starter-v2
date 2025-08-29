@@ -77,6 +77,14 @@ async def create_enhanced_context(user: User) -> dict:
     """
     context = {"user": user, "user_id": user.id}
 
+    # Always get Telegram display name for presumably_user_name
+    user_service = get_user_service()
+    if user_service:
+        telegram_display_name = user_service.get_user_display_name(user)
+        context["presumably_user_name"] = telegram_display_name  # Always Telegram name
+    else:
+        context["presumably_user_name"] = "Anonymous"
+
     try:
         # Get user data to extract preferred_name
         user_data = await ensure_user_exists(user)
@@ -84,29 +92,13 @@ async def create_enhanced_context(user: User) -> dict:
         if user_data and user_data.preferred_name:
             # Use saved preferred_name (consistent with database field)
             context["preferred_name"] = user_data.preferred_name
-            # Keep presumably_user_name for backwards compatibility
-            context["presumably_user_name"] = user_data.preferred_name
         else:
-            # Fallback to Telegram display name
-            user_service = get_user_service()
-            if user_service:
-                display_name = user_service.get_user_display_name(user)
-                context["preferred_name"] = display_name
-                context["presumably_user_name"] = display_name
-            else:
-                context["preferred_name"] = "Anonymous"
-                context["presumably_user_name"] = "Anonymous"
+            # Fallback to Telegram display name for preferred_name too
+            context["preferred_name"] = context["presumably_user_name"]
 
     except Exception as e:
         logger.warning(f"Could not get enhanced context for user {user.id}: {e}")
-        # Fallback to basic context with display name
-        user_service = get_user_service()
-        if user_service:
-            display_name = user_service.get_user_display_name(user)
-            context["preferred_name"] = display_name
-            context["presumably_user_name"] = display_name
-        else:
-            context["preferred_name"] = "Anonymous"
-            context["presumably_user_name"] = "Anonymous"
+        # Fallback: preferred_name = presumably_user_name (Telegram display name)
+        context["preferred_name"] = context["presumably_user_name"]
 
     return context

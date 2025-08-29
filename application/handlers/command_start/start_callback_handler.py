@@ -1,5 +1,6 @@
 from aiogram.types import CallbackQuery
 
+from application.services.user_utils import create_enhanced_context
 from core.sequence import create_translator, get_sequence_initiation_service
 from core.services import t
 from core.utils import get_logger
@@ -59,9 +60,9 @@ async def start_callback_handler(callback: CallbackQuery) -> None:
         # Get sequence initiation service
         sequence_initiation_service = get_sequence_initiation_service()
 
-        # Create translator and context (infrastructure responsibility)
+        # Create translator and enhanced context with preferred_name
         translator = create_translator(callback.from_user)
-        context = {"user": callback.from_user, "user_id": callback.from_user.id}
+        context = await create_enhanced_context(callback.from_user)
 
         if not sequence_initiation_service:
             logger.error("Sequence initiation service not available")

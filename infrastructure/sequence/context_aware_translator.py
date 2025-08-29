@@ -8,7 +8,6 @@ from typing import Any, Mapping, Optional
 
 from aiogram.types import User
 
-from application.services import get_user_service
 from core.sequence.protocols import TranslatorProtocol
 from core.services import t
 from core.utils.logger import get_logger
@@ -20,8 +19,9 @@ class ContextAwareTranslator(TranslatorProtocol):
     """
     Context-aware translator implementation.
 
-    Extracts parameters from any context data and provides
-    localized text with proper parameter substitution.
+    Uses pre-populated context data to provide localized text
+    with proper parameter substitution. Context should contain
+    all necessary parameters like preferred_name, presumably_user_name etc.
     """
 
     def __init__(self, user: User):
@@ -52,21 +52,12 @@ class ContextAwareTranslator(TranslatorProtocol):
         """
         params = {}
 
-        # Extract user information from context
+        # Extract parameters from context
         if context:
-            if "user" in context:
-                user = context["user"]
-                user_service = get_user_service()
-                if user_service:
-                    params["presumably_user_name"] = user_service.get_user_display_name(
-                        user
-                    )
-                else:
-                    params["presumably_user_name"] = "Anonymous"
-
-            # Add other context parameters
+            # Add all context parameters directly
+            # Note: enhanced context already contains preferred_name and presumably_user_name
             for k, v in context.items():
-                if k != "user":
+                if k != "user":  # Skip user object itself
                     params[k] = v
 
         # Add additional keyword arguments
