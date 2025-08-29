@@ -59,3 +59,54 @@ async def ensure_user_exists(user: User) -> UserData | None:
     except Exception as e:
         logger.error(f"Error ensuring user {user.id} exists: {e}")
         raise  # Re-raise for proper error handling in calling code
+
+
+async def create_enhanced_context(user: User) -> dict:
+    """
+    Create enhanced context with preferred_name from user data.
+
+    This function creates a context dictionary that includes both the basic
+    user information and the preferred_name from saved user data, ensuring
+    consistency between database fields and context parameters.
+
+    Args:
+        user: Telegram User object
+
+    Returns:
+        Dictionary with user context including preferred_name
+    """
+    context = {"user": user, "user_id": user.id}
+
+    try:
+        # Get user data to extract preferred_name
+        user_data = await ensure_user_exists(user)
+
+        if user_data and user_data.preferred_name:
+            # Use saved preferred_name (consistent with database field)
+            context["preferred_name"] = user_data.preferred_name
+            # Keep presumably_user_name for backwards compatibility
+            context["presumably_user_name"] = user_data.preferred_name
+        else:
+            # Fallback to Telegram display name
+            user_service = get_user_service()
+            if user_service:
+                display_name = user_service.get_user_display_name(user)
+                context["preferred_name"] = display_name
+                context["presumably_user_name"] = display_name
+            else:
+                context["preferred_name"] = "Anonymous"
+                context["presumably_user_name"] = "Anonymous"
+
+    except Exception as e:
+        logger.warning(f"Could not get enhanced context for user {user.id}: {e}")
+        # Fallback to basic context with display name
+        user_service = get_user_service()
+        if user_service:
+            display_name = user_service.get_user_display_name(user)
+            context["preferred_name"] = display_name
+            context["presumably_user_name"] = display_name
+        else:
+            context["preferred_name"] = "Anonymous"
+            context["presumably_user_name"] = "Anonymous"
+
+    return context

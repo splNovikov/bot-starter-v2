@@ -39,6 +39,13 @@
         "preferred_name": {
           "question": "What's your name?"
         },
+        "gender": {
+          "question": "<b>{preferred_name}, to provide you with more accurate guidance, could you tell me your gender?</b>",
+          "options": {
+            "male": "Male",
+            "female": "Female"
+          }
+        },
         "eyes_color": {
           "question": "What color are your eyes?",
           "options": {

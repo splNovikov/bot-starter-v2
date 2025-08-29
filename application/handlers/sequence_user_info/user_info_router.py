@@ -16,8 +16,8 @@ sequence_user_info_router = Router(name="sequence_user_info")
 @sequence_handler(
     "user_info",
     sequence_name="user_info",
-    questions=["eyes_color", "marital_status"],
-    description="Collect user information (eyes color, marital status)",
+    questions=["gender", "eyes_color", "marital_status"],
+    description="Collect user information (gender, eyes color, marital status)",
     show_progress=True,
     allow_restart=True,
     generate_summary=True,

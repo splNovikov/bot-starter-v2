@@ -1,8 +1,10 @@
 from aiogram.types import CallbackQuery
 
+from application.services.user_utils import create_enhanced_context
 from core.sequence import create_translator, get_sequence_service
 from core.utils import get_logger
 
+from .gender_handler import handle_gender_save
 from .preferred_name_handler import handle_confirm_user_name_save
 
 logger = get_logger()
@@ -114,9 +116,12 @@ async def user_info_callback_handler(callback: CallbackQuery) -> None:
         # Handle confirm_user_name question logic - save "John_Doe" when user confirms their name
         if question_key == "confirm_user_name" and answer_value.lower() == "true":
             await handle_confirm_user_name_save(callback.from_user)
+        # Handle gender question logic - save user's selected gender
+        elif question_key == "gender":
+            await handle_gender_save(callback.from_user, answer_value)
         else:
             logger.debug(
-                f"Not confirm_user_name=true. Question: {question_key}, Answer: {answer_value}"
+                f"Not a handled question. Question: {question_key}, Answer: {answer_value}"
             )
 
         # Answer the callback to remove loading state
@@ -126,9 +131,9 @@ async def user_info_callback_handler(callback: CallbackQuery) -> None:
         if sequence_service.is_sequence_complete(callback.from_user.id):
             logger.debug(f"Sequence completed for user {callback.from_user.id}")
 
-            # Create translator and context using global factory
+            # Create translator and enhanced context with preferred_name
             translator = create_translator(callback.from_user)
-            context = {"user": callback.from_user, "user_id": callback.from_user.id}
+            context = await create_enhanced_context(callback.from_user)
 
             # Send completion message
             try:
@@ -145,9 +150,9 @@ async def user_info_callback_handler(callback: CallbackQuery) -> None:
                 f"Editing message with next question '{next_question_key}' for user {callback.from_user.id}"
             )
             try:
-                # Create translator and context using global factory
+                # Create translator and enhanced context with preferred_name
                 translator = create_translator(callback.from_user)
-                context = {"user": callback.from_user, "user_id": callback.from_user.id}
+                context = await create_enhanced_context(callback.from_user)
 
                 await sequence_service.edit_question(
                     callback.message,

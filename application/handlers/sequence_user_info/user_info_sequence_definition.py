@@ -40,6 +40,24 @@ def create_user_info_sequence() -> SequenceDefinition:
             },
         ),
         SequenceQuestion(
+            key="gender",
+            question_text_key="handlers.user_info.questions.gender.question",
+            question_type=QuestionType.SINGLE_CHOICE,
+            options=[
+                SequenceOption(
+                    value="male",
+                    label_key="handlers.user_info.questions.gender.options.male",
+                    emoji="👨",
+                ),
+                SequenceOption(
+                    value="female",
+                    label_key="handlers.user_info.questions.gender.options.female",
+                    emoji="👩",
+                ),
+            ],
+            is_required=True,
+        ),
+        SequenceQuestion(
             key="eyes_color",
             question_text_key="handlers.user_info.questions.eyes_color.question",
             question_type=QuestionType.SINGLE_CHOICE,

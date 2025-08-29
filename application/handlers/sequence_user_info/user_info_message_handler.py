@@ -1,5 +1,6 @@
 from aiogram.types import Message
 
+from application.services.user_utils import create_enhanced_context
 from core.sequence import create_translator, get_sequence_service
 from core.utils import get_logger
 
@@ -52,9 +53,9 @@ async def user_info_message_handler(message: Message) -> None:
 
         # If sequence is complete, send completion message
         if sequence_service.is_sequence_complete(message.from_user.id):
-            # Create translator and context using global factory
+            # Create translator and enhanced context with preferred_name
             translator = create_translator(message.from_user)
-            context = {"user": message.from_user}
+            context = await create_enhanced_context(message.from_user)
 
             await sequence_service.send_completion_message(
                 message, session, translator, context
@@ -62,9 +63,9 @@ async def user_info_message_handler(message: Message) -> None:
         elif next_question_key:
             # Send next question
             try:
-                # Create translator and context using global factory
+                # Create translator and enhanced context with preferred_name
                 translator = create_translator(message.from_user)
-                context = {"user": message.from_user}
+                context = await create_enhanced_context(message.from_user)
 
                 await sequence_service.send_question(
                     message,

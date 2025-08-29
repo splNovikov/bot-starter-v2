@@ -39,6 +39,13 @@
         "preferred_name": {
           "question": "Как вас зовут?"
         },
+        "gender": {
+          "question": "<b>{preferred_name}, чтобы я мог точнее подбирать наставления, подскажи какой у тебя пол?</b>",
+          "options": {
+            "male": "Мужской",
+            "female": "Женский"
+          }
+        },
         "eyes_color": {
           "question": "Какого цвета у вас глаза?",
           "options": {

@@ -39,6 +39,13 @@
         "preferred_name": {
           "question": "¿Cómo te llamas?"
         },
+        "gender": {
+          "question": "<b>{preferred_name}, para poder brindarte una orientación más precisa, ¿podrías decirme tu género?</b>",
+          "options": {
+            "male": "Masculino",
+            "female": "Femenino"
+          }
+        },
         "eyes_color": {
           "question": "¿De qué color son tus ojos?",
           "options": {
