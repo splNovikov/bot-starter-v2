@@ -8,6 +8,7 @@ providing a clean interface that isolates core from application implementation d
 from typing import List, Protocol, runtime_checkable
 
 from aiogram import Router
+
 from core.di.container import DIContainer
 from core.sequence.types import SequenceDefinition
 
@@ -17,7 +18,7 @@ class ApplicationFacadeProtocol(Protocol):
     """
     Protocol for application layer facade.
 
-    Provides a unified interface for application initialization, 
+    Provides a unified interface for application initialization,
     dependency injection setup, and handler registration.
     This facade isolates core layer from application implementation details.
     """
@@ -64,7 +65,7 @@ class ApplicationFacadeProtocol(Protocol):
 
         Args:
             container: DI container with resolved services
-        
+
         This method handles legacy service registration that some parts
         of the application might still depend on.
         """

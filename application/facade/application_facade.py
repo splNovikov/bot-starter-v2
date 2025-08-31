@@ -8,16 +8,16 @@ all application layer components through a unified interface.
 from typing import List
 
 from aiogram import Router
-from core.di.container import DIContainer
-from core.facade.application_facade import ApplicationFacadeProtocol
-from core.protocols.services import UserServiceProtocol
-from core.sequence.types import SequenceDefinition
-from core.utils.logger import get_logger
 
 # Application layer imports
 from application.di_config import get_basic_container
 from application.handlers import initialize_registry, main_router, user_info_sequence
 from application.services import set_user_service
+from core.di.container import DIContainer
+from core.facade.application_facade import ApplicationFacadeProtocol
+from core.protocols.services import UserServiceProtocol
+from core.sequence.types import SequenceDefinition
+from core.utils.logger import get_logger
 
 logger = get_logger()
 
@@ -25,7 +25,7 @@ logger = get_logger()
 class ApplicationFacade(ApplicationFacadeProtocol):
     """
     Concrete implementation of application facade.
-    
+
     Orchestrates application layer initialization, dependency injection,
     and handler registration through a clean, unified interface.
     """
@@ -45,7 +45,7 @@ class ApplicationFacade(ApplicationFacadeProtocol):
         if self._container is None:
             self._container = get_basic_container()
             logger.info("✅ DI container created and configured")
-        
+
         return self._container
 
     def get_main_router(self) -> Router:
@@ -89,7 +89,7 @@ class ApplicationFacade(ApplicationFacadeProtocol):
 
         Args:
             container: DI container with resolved services
-        
+
         This method handles legacy service registration that some parts
         of the application might still depend on.
         """
