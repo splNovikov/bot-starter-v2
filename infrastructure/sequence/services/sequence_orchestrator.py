@@ -11,9 +11,7 @@ from typing import Any, Mapping, Optional, Tuple
 from aiogram.types import Message, User
 
 from core.di.protocols import Injectable
-from core.utils.logger import get_logger
-
-from ..protocols import (
+from core.sequence.protocols import (
     SequenceCompletionServiceProtocol,
     SequenceProgressServiceProtocol,
     SequenceProviderProtocol,
@@ -21,7 +19,13 @@ from ..protocols import (
     SequenceSessionServiceProtocol,
     TranslatorProtocol,
 )
-from ..types import SequenceAnswer, SequenceQuestion, SequenceSession, SequenceStatus
+from core.sequence.types import (
+    SequenceAnswer,
+    SequenceQuestion,
+    SequenceSession,
+    SequenceStatus,
+)
+from core.utils.logger import get_logger
 
 logger = get_logger()
 

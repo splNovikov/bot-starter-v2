@@ -10,10 +10,9 @@ import time
 from typing import Dict, Optional
 import uuid
 
+from core.sequence.protocols import SequenceManagerProtocol
+from core.sequence.types import SequenceAnswer, SequenceSession, SequenceStatus
 from core.utils.logger import get_logger
-
-from ..protocols import SequenceManagerProtocol
-from ..types import SequenceAnswer, SequenceSession, SequenceStatus
 
 logger = get_logger()
 

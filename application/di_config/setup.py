@@ -16,17 +16,25 @@ from core.sequence.protocols import (
     SequenceQuestionRendererProtocol,
     SequenceQuestionServiceProtocol,
     SequenceResultHandlerProtocol,
+    SequenceServiceProtocol,
     SequenceSessionServiceProtocol,
 )
-from core.sequence.services import (
+from core.services.localization import LocalizationService
+from core.utils.logger import get_logger
+from infrastructure.api.client import HttpClient
+from infrastructure.sequence import (
+    InMemorySequenceManager,
+    InMemorySequenceProvider,
+)
+from infrastructure.sequence.services import (
     SequenceCompletionService,
     SequenceOrchestrator,
     SequenceProgressService,
     SequenceQuestionService,
+    SequenceService,
     SequenceSessionService,
 )
-from core.utils.logger import get_logger
-from infrastructure.api.client import HttpClient
+from infrastructure.ui.button_question_renderer import ButtonQuestionRenderer
 
 logger = get_logger()
 
@@ -48,6 +56,17 @@ def setup_di_container() -> DIContainer:
     logger.info("Registering application services...")
     container.register_singleton(UserServiceProtocol, UserService)
 
+    # Core services
+    container.register_singleton(LocalizationService, LocalizationService)
+
+    # Infrastructure sequence components
+    logger.info("Registering sequence infrastructure...")
+    container.register_singleton(SequenceManagerProtocol, InMemorySequenceManager)
+    container.register_singleton(SequenceProviderProtocol, InMemorySequenceProvider)
+    container.register_singleton(
+        SequenceQuestionRendererProtocol, ButtonQuestionRenderer
+    )
+
     # Core sequence services
     logger.info("Registering sequence services...")
     container.register_singleton(SequenceSessionServiceProtocol, SequenceSessionService)
@@ -60,6 +79,9 @@ def setup_di_container() -> DIContainer:
     container.register_singleton(
         SequenceCompletionServiceProtocol, SequenceCompletionService
     )
+
+    # Main sequence service
+    container.register_singleton(SequenceServiceProtocol, SequenceService)
 
     # Main orchestration service
     container.register_singleton(SequenceOrchestrator, SequenceOrchestrator)

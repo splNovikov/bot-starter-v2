@@ -2,20 +2,21 @@
 Sequence initiation service.
 
 Provides reusable functionality for starting sequences across different commands.
+Uses dependency injection for proper Clean Architecture compliance.
 """
 
 from typing import Any, Mapping, Optional, Tuple
 
 from aiogram.types import Message
 
-from core.sequence import get_sequence_service
-from core.sequence.protocols import TranslatorProtocol
+from core.di.protocols import Injectable
+from core.sequence.protocols import SequenceServiceProtocol, TranslatorProtocol
 from core.utils.logger import get_logger
 
 logger = get_logger()
 
 
-class SequenceInitiationService:
+class SequenceInitiationService(Injectable):
     """
     Service for initiating sequences across different commands.
 
@@ -23,8 +24,17 @@ class SequenceInitiationService:
     the first question to the user.
     """
 
-    @staticmethod
+    def __init__(self, sequence_service: SequenceServiceProtocol):
+        """
+        Initialize with sequence service dependency.
+
+        Args:
+            sequence_service: Service for managing sequences
+        """
+        self._sequence_service = sequence_service
+
     async def initiate_sequence(
+        self,
         message: Message,
         sequence_name: str,
         translator: TranslatorProtocol,
@@ -46,11 +56,7 @@ class SequenceInitiationService:
         Returns:
             Tuple of (success, error_message)
         """
-        sequence_service = get_sequence_service()
-        if not sequence_service:
-            error_msg = "❌ Sequence service is not available. Please try again later."
-            logger.error("Sequence service not available during initiation")
-            return False, error_msg
+        sequence_service = self._sequence_service
 
         try:
             # Get user ID from context
@@ -112,8 +118,8 @@ class SequenceInitiationService:
             )
             return False, error_msg
 
-    @staticmethod
     async def initiate_user_info_sequence(
+        self,
         message: Message,
         translator: TranslatorProtocol,
         context: Mapping[str, Any],
@@ -129,7 +135,7 @@ class SequenceInitiationService:
         Returns:
             Tuple of (success, error_message)
         """
-        return await SequenceInitiationService.initiate_sequence(
+        return await self.initiate_sequence(
             message=message,
             sequence_name="user_info",
             translator=translator,
@@ -137,8 +143,8 @@ class SequenceInitiationService:
             send_welcome_message=False,  # No welcome message for user_info sequence
         )
 
-    @staticmethod
     async def initiate_sequence_with_welcome(
+        self,
         message: Message,
         sequence_name: str,
         translator: TranslatorProtocol,
@@ -158,7 +164,7 @@ class SequenceInitiationService:
         Returns:
             Tuple of (success, error_message)
         """
-        return await SequenceInitiationService.initiate_sequence(
+        return await self.initiate_sequence(
             message=message,
             sequence_name=sequence_name,
             translator=translator,

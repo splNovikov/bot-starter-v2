@@ -5,9 +5,7 @@ from typing import Any, Mapping, Optional, Tuple
 
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message, User
 
-from core.utils.logger import get_logger
-
-from ..protocols import (
+from core.sequence.protocols import (
     SequenceManagerProtocol,
     SequenceProviderProtocol,
     SequenceQuestionRendererProtocol,
@@ -15,13 +13,14 @@ from ..protocols import (
     SequenceServiceProtocol,
     TranslatorProtocol,
 )
-from ..types import (
+from core.sequence.types import (
     QuestionType,
     SequenceAnswer,
     SequenceQuestion,
     SequenceSession,
     SequenceStatus,
 )
+from core.utils.logger import get_logger
 
 logger = get_logger()
 
@@ -50,17 +49,22 @@ class SequenceService(SequenceServiceProtocol):
         if not sequence_definition:
             raise ValueError(f"Sequence '{sequence_name}' not found")
 
+        # Clear any existing session
         existing_session = self._session_manager.get_session(user_id)
         if existing_session:
             self._session_manager.clear_session(user_id)
+            logger.info(f"Cleared existing session for user {user_id}")
 
+        # Create new session
         session_id = self._session_manager.create_session(user_id, sequence_name)
 
+        # Set total questions for progress tracking
         session = self._session_manager.get_session(user_id)
         if session:
             session.total_questions = len(sequence_definition.questions)
             session.metadata["sequence_definition"] = sequence_definition.name
 
+            # For scored sequences, set max possible score
             if sequence_definition.scored:
                 session.max_possible_score = (
                     sequence_definition.get_total_possible_score()
@@ -85,7 +89,9 @@ class SequenceService(SequenceServiceProtocol):
         if not session or session.status != SequenceStatus.ACTIVE:
             return False, "No active sequence session found", None
 
+        # Get the question to answer
         if question_key:
+            # Use the specific question key (for callbacks)
             sequence_definition = self._sequence_provider.get_sequence_definition(
                 session.sequence_name
             )
@@ -95,23 +101,24 @@ class SequenceService(SequenceServiceProtocol):
             if not current_question:
                 return False, f"Question '{question_key}' not found", None
         else:
+            # Use current question based on session step
             current_question = self._get_current_question(session)
             if not current_question:
                 return False, "No current question found", None
 
-        is_valid, error_message = self._sequence_provider.validate_answer(
-            session.sequence_name, current_question.key, answer_text
-        )
-
+        # Validate answer
+        is_valid, error_message = self._validate_answer(current_question, answer_text)
         if not is_valid:
             return False, error_message, current_question.key
 
+        # Create answer object
         answer = SequenceAnswer(
             question_key=current_question.key,
             answer_value=answer_text,
             answered_at=time.time(),
         )
 
+        # For scored sequences, check correctness and calculate score
         sequence_definition = self._sequence_provider.get_sequence_definition(
             session.sequence_name
         )
@@ -128,17 +135,21 @@ class SequenceService(SequenceServiceProtocol):
             else:
                 answer.points_earned = 0
 
+        # Add answer to session
         success = self._session_manager.add_answer(user_id, answer)
         if not success:
             return False, "Failed to save answer", current_question.key
 
+        # Advance to next step
         self._session_manager.advance_step(user_id)
 
+        # Get next question key (this will handle conditional logic)
         updated_session = self._session_manager.get_session(user_id)
         next_question_key = self._sequence_provider.get_next_question_key(
             updated_session
         )
 
+        # Check if sequence is complete
         if not next_question_key:
             self._session_manager.complete_session(user_id)
             logger.info(
@@ -157,6 +168,7 @@ class SequenceService(SequenceServiceProtocol):
         user_id: Optional[int] = None,
     ) -> bool:
         """Send question to user via platform."""
+        # Use provided user_id or fallback to message.from_user.id
         target_user_id = user_id or message.from_user.id
 
         session = self._session_manager.get_session(target_user_id)
@@ -166,6 +178,7 @@ class SequenceService(SequenceServiceProtocol):
             )
             return False
 
+        # Get question from sequence definition
         sequence_definition = self._sequence_provider.get_sequence_definition(
             session.sequence_name
         )
@@ -183,46 +196,31 @@ class SequenceService(SequenceServiceProtocol):
             return False
 
         try:
-            visible_questions_count = (
-                self.get_visible_questions_count(session) if show_progress else None
+            question_text, keyboard = await self._render_question(
+                question, session, translator, context, show_progress
             )
 
+            # Send question
             if self._question_renderer:
-                question_text, keyboard = await self._question_renderer.render_question(
-                    question,
-                    session,
-                    translator,
-                    context,
-                    show_progress,
-                    visible_questions_count,
-                )
-            else:
-                question_text, keyboard = await self._default_render_question(
-                    question,
-                    session,
-                    translator,
-                    context,
-                    show_progress,
-                    visible_questions_count,
-                )
-
-            if self._question_renderer:
+                # Use renderer's platform-specific sending method
                 success = await self._question_renderer.send_question_message(
                     message, question_text, keyboard, edit_existing=False
                 )
                 if not success:
                     raise Exception("Failed to send question via renderer")
             else:
+                # Fallback to default sending
                 if keyboard:
                     await message.answer(question_text, reply_markup=keyboard)
                 else:
                     await message.answer(question_text)
 
+            logger.debug(f"Sent question {question.key} to user {message.from_user.id}")
             return True
 
         except Exception as e:
             logger.error(
-                f"Error sending question {question_key} to user {target_user_id}: {e}"
+                f"Error sending question {question.key} to user {message.from_user.id}: {e}"
             )
             await message.answer(
                 translator.translate("sequence.errors.send_question_failed", context)
@@ -239,6 +237,7 @@ class SequenceService(SequenceServiceProtocol):
         user_id: Optional[int] = None,
     ) -> bool:
         """Edit existing message with new question (for callback queries)."""
+        # Use provided user_id or fallback to message.from_user.id
         target_user_id = user_id or message.from_user.id
 
         session = self._session_manager.get_session(target_user_id)
@@ -248,6 +247,7 @@ class SequenceService(SequenceServiceProtocol):
             )
             return False
 
+        # Get question from sequence definition
         sequence_definition = self._sequence_provider.get_sequence_definition(
             session.sequence_name
         )
@@ -265,101 +265,36 @@ class SequenceService(SequenceServiceProtocol):
             return False
 
         try:
-            visible_questions_count = (
-                self.get_visible_questions_count(session) if show_progress else None
+            question_text, keyboard = await self._render_question(
+                question, session, translator, context, show_progress
             )
 
+            # Edit the message
             if self._question_renderer:
-                question_text, keyboard = await self._question_renderer.render_question(
-                    question,
-                    session,
-                    translator,
-                    context,
-                    show_progress,
-                    visible_questions_count,
-                )
-            else:
-                question_text, keyboard = await self._default_render_question(
-                    question,
-                    session,
-                    translator,
-                    context,
-                    show_progress,
-                    visible_questions_count,
-                )
-
-            if self._question_renderer:
+                # Use renderer's platform-specific sending method
                 success = await self._question_renderer.send_question_message(
                     message, question_text, keyboard, edit_existing=True
                 )
                 if not success:
                     raise Exception("Failed to edit question via renderer")
             else:
+                # Fallback to default editing
                 if keyboard:
                     await message.edit_text(question_text, reply_markup=keyboard)
                 else:
                     await message.edit_text(question_text)
 
+            logger.debug(
+                f"Edited question {question.key} for user {message.from_user.id}"
+            )
             return True
 
         except Exception as e:
             logger.error(
-                f"Error editing question {question_key} for user {target_user_id}: {e}"
+                f"Error editing question {question.key} for user {message.from_user.id}: {e}"
             )
             await message.answer(
                 translator.translate("sequence.errors.send_question_failed", context)
-            )
-            return False
-
-    async def send_completion_message(
-        self,
-        message: Message,
-        session: SequenceSession,
-        translator: TranslatorProtocol,
-        context: Optional[Mapping[str, Any]] = None,
-    ) -> bool:
-        """Send completion message and summary."""
-        try:
-            sequence_definition = self._sequence_provider.get_sequence_definition(
-                session.sequence_name
-            )
-
-            if self._question_renderer:
-                completion_text = (
-                    await self._question_renderer.render_completion_message(
-                        session, sequence_definition, translator, context
-                    )
-                )
-            else:
-                completion_text = await self._default_render_completion(
-                    session, translator, context, sequence_definition
-                )
-
-            if self._question_renderer:
-                success = await self._question_renderer.send_completion_message(
-                    message, completion_text
-                )
-                if not success:
-                    raise Exception("Failed to send completion message via renderer")
-            else:
-                await message.answer(completion_text)
-
-            if self._result_handler:
-                await self._result_handler.handle_sequence_completion(
-                    session, message.from_user
-                )
-
-            logger.info(
-                f"Sent completion message for sequence {session.sequence_name} to user {message.from_user.id}"
-            )
-            return True
-
-        except Exception as e:
-            logger.error(
-                f"Error sending completion message to user {message.from_user.id}: {e}"
-            )
-            await message.answer(
-                translator.translate("sequence.errors.completion_failed", context)
             )
             return False
 
@@ -387,22 +322,54 @@ class SequenceService(SequenceServiceProtocol):
 
     def get_visible_questions_count(self, session: SequenceSession) -> int:
         """Get count of visible questions for the session."""
-        sequence_definition = self._sequence_provider.get_sequence_definition(
-            session.sequence_name
-        )
-        if not sequence_definition:
-            return 0
+        return self._get_visible_questions_count(session)
 
-        visible_count = 0
-        for question in sequence_definition.questions:
-            if self._sequence_provider.should_show_question(question, session):
-                visible_count += 1
+    async def send_completion_message(
+        self,
+        message: Message,
+        session: SequenceSession,
+        translator: TranslatorProtocol,
+        context: Optional[Mapping[str, Any]] = None,
+    ) -> bool:
+        """Send completion message and summary."""
+        try:
+            completion_text = await self._render_completion_message(
+                session, translator, context
+            )
 
-        return visible_count
+            # Send completion message
+            if self._question_renderer:
+                # Use renderer's platform-specific sending method
+                success = await self._question_renderer.send_completion_message(
+                    message, completion_text
+                )
+                if not success:
+                    raise Exception("Failed to send completion message via renderer")
+            else:
+                # Fallback to default sending
+                await message.answer(completion_text)
 
-    def _get_visible_questions_count(self, session: SequenceSession) -> int:
-        """Get count of visible questions for the session (internal use)."""
-        return self.get_visible_questions_count(session)
+            # Handle sequence completion with custom result handler
+            if self._result_handler:
+                await self._result_handler.handle_sequence_completion(
+                    session, message.from_user
+                )
+
+            logger.info(
+                f"Sent completion message for sequence {session.sequence_name} to user {message.from_user.id}"
+            )
+            return True
+
+        except Exception as e:
+            logger.error(
+                f"Error sending completion message to user {message.from_user.id}: {e}"
+            )
+            await message.answer(
+                translator.translate("sequence.errors.completion_failed", context)
+            )
+            return False
+
+    # Private helper methods
 
     def _get_current_question(
         self, session: SequenceSession
@@ -418,6 +385,35 @@ class SequenceService(SequenceServiceProtocol):
             session.sequence_name, session.current_step
         )
 
+    def _get_visible_questions_count(self, session: SequenceSession) -> int:
+        """Get count of visible questions for the session."""
+        sequence_definition = self._sequence_provider.get_sequence_definition(
+            session.sequence_name
+        )
+        if not sequence_definition:
+            return 0
+
+        visible_count = 0
+        for question in sequence_definition.questions:
+            # Check if question should be shown based on current session state
+            if self._sequence_provider.should_show_question(question, session):
+                visible_count += 1
+
+        return visible_count
+
+    def _validate_answer(
+        self,
+        question: SequenceQuestion,
+        answer_text: str,
+    ) -> Tuple[bool, Optional[str]]:
+        """Validate user's answer to a question."""
+        # This is a simplified validation - can be extended based on question type
+        if not answer_text or not answer_text.strip():
+            return False, "Answer cannot be empty"
+
+        # Additional validation logic can be added here based on question type
+        return True, None
+
     def _check_correct_answer(
         self, question: SequenceQuestion, answer_text: str
     ) -> bool:
@@ -425,13 +421,43 @@ class SequenceService(SequenceServiceProtocol):
         if not question.correct_answer:
             return False
 
+        # Handle different answer types
         if isinstance(question.correct_answer, list):
+            # Multiple correct answers
             return answer_text.lower().strip() in [
                 a.lower().strip() for a in question.correct_answer
             ]
         else:
+            # Single correct answer
             return (
                 answer_text.lower().strip() == question.correct_answer.lower().strip()
+            )
+
+    async def _render_question(
+        self,
+        question: SequenceQuestion,
+        session: SequenceSession,
+        translator: TranslatorProtocol,
+        context: Optional[Mapping[str, Any]] = None,
+        show_progress: bool = True,
+    ) -> Tuple[str, Optional[InlineKeyboardMarkup]]:
+        """Render question text and keyboard."""
+        # Use custom renderer if available
+        if self._question_renderer:
+            visible_questions_count = (
+                self._get_visible_questions_count(session) if show_progress else None
+            )
+            return await self._question_renderer.render_question(
+                question,
+                session,
+                translator,
+                context,
+                show_progress,
+                visible_questions_count,
+            )
+        else:
+            return await self._default_render_question(
+                question, session, translator, context, show_progress
             )
 
     async def _default_render_question(
@@ -441,23 +467,28 @@ class SequenceService(SequenceServiceProtocol):
         translator: TranslatorProtocol,
         context: Optional[Mapping[str, Any]] = None,
         show_progress: bool = True,
-        visible_questions_count: Optional[int] = None,
     ) -> Tuple[str, Optional[InlineKeyboardMarkup]]:
-        """Default question rendering."""
+        """Default question rendering implementation."""
+        # Build question text
         if question.question_text:
             question_text = question.question_text
         elif question.question_text_key:
+            # Use translator with context - translator handles parameter extraction
             question_text = translator.translate(question.question_text_key, context)
         else:
             question_text = f"Question: {question.key}"
 
-        if show_progress and visible_questions_count is not None:
+        # Add progress indicator
+        if show_progress:
+            visible_questions_count = self._get_visible_questions_count(session)
             progress = f"[{session.current_step + 1}/{visible_questions_count}] "
             question_text = progress + question_text
 
+        # Add help text if available
         if question.help_text:
             question_text += f"\n\n💡 {question.help_text}"
 
+        # Generate keyboard for choice questions
         keyboard = None
         if (
             question.question_type in [QuestionType.SINGLE_CHOICE, QuestionType.BOOLEAN]
@@ -465,6 +496,7 @@ class SequenceService(SequenceServiceProtocol):
         ):
             keyboard_buttons = []
             for option in question.options:
+                # Get label text (either direct or from localization)
                 if option.label:
                     label = option.label
                 elif option.label_key:
@@ -472,6 +504,7 @@ class SequenceService(SequenceServiceProtocol):
                 else:
                     label = option.value
 
+                # Add emoji if available
                 if option.emoji:
                     label = f"{option.emoji} {label}"
 
@@ -485,6 +518,28 @@ class SequenceService(SequenceServiceProtocol):
 
         return question_text, keyboard
 
+    async def _render_completion_message(
+        self,
+        session: SequenceSession,
+        translator: TranslatorProtocol,
+        context: Optional[Mapping[str, Any]] = None,
+    ) -> str:
+        """Render completion message text."""
+        # Get sequence definition for additional context
+        sequence_definition = self._sequence_provider.get_sequence_definition(
+            session.sequence_name
+        )
+
+        # Use custom renderer if available
+        if self._question_renderer:
+            return await self._question_renderer.render_completion_message(
+                session, sequence_definition, translator, context
+            )
+        else:
+            return await self._default_render_completion(
+                session, translator, context, sequence_definition
+            )
+
     async def _default_render_completion(
         self,
         session: SequenceSession,
@@ -492,13 +547,14 @@ class SequenceService(SequenceServiceProtocol):
         context: Optional[Mapping[str, Any]] = None,
         sequence_definition: Optional[Any] = None,
     ) -> str:
-        """Default completion message rendering."""
+        """Default completion message rendering implementation."""
         sequence_name = session.sequence_name.replace("_", " ").title()
 
         base_message = translator.translate(
             "sequence.completion.generic", context, sequence_type=sequence_name
         )
 
+        # Add scoring information for scored sequences
         if (
             sequence_definition
             and sequence_definition.scored
@@ -508,11 +564,9 @@ class SequenceService(SequenceServiceProtocol):
                 f"\n\n🎯 Score: {session.total_score}/{session.max_possible_score or 0}"
             )
 
+            # Add percentage if possible
             if session.max_possible_score and session.max_possible_score > 0:
                 percentage = (session.total_score / session.max_possible_score) * 100
                 base_message += f" ({percentage:.1f}%)"
 
         return base_message
-
-
-__all__ = ["SequenceService"]

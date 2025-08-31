@@ -8,10 +8,12 @@ following the Single Responsibility Principle.
 from typing import Tuple
 
 from core.di.protocols import Injectable
+from core.sequence.protocols import (
+    SequenceProgressServiceProtocol,
+    SequenceProviderProtocol,
+)
+from core.sequence.types import SequenceSession
 from core.utils.logger import get_logger
-
-from ..protocols import SequenceProgressServiceProtocol, SequenceProviderProtocol
-from ..types import SequenceSession
 
 logger = get_logger()
 

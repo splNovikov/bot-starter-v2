@@ -8,14 +8,13 @@ following the Single Responsibility Principle.
 from typing import Optional
 
 from core.di.protocols import Injectable
-from core.utils.logger import get_logger
-
-from ..protocols import (
+from core.sequence.protocols import (
     SequenceManagerProtocol,
     SequenceProviderProtocol,
     SequenceSessionServiceProtocol,
 )
-from ..types import SequenceAnswer, SequenceSession
+from core.sequence.types import SequenceAnswer, SequenceSession
+from core.utils.logger import get_logger
 
 logger = get_logger()
 

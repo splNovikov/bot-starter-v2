@@ -34,7 +34,7 @@ class TestGlobalStateElimination:
 
     def test_sequence_initiation_service_no_global_instance(self):
         """Test that SequenceInitiationService no longer uses global instance."""
-        from core.sequence.services import sequence_initiation_service
+        from infrastructure.sequence.services import sequence_initiation_service
 
         # Global getter function should not exist
         assert not hasattr(

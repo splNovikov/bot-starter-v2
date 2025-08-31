@@ -10,15 +10,14 @@ from typing import Any, Mapping, Optional, Tuple
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message
 
 from core.di.protocols import Injectable
-from core.utils.logger import get_logger
-
-from ..protocols import (
+from core.sequence.protocols import (
     SequenceProviderProtocol,
     SequenceQuestionRendererProtocol,
     SequenceQuestionServiceProtocol,
     TranslatorProtocol,
 )
-from ..types import QuestionType, SequenceQuestion, SequenceSession
+from core.sequence.types import QuestionType, SequenceQuestion, SequenceSession
+from core.utils.logger import get_logger
 
 logger = get_logger()
 

@@ -1,61 +1,19 @@
 """
 Core sequence services package.
 
-Provides service implementations for the sequence framework including
-session management, sequence orchestration, and result handling.
+NOTE: This package is deprecated as part of Clean Architecture refactoring.
+All concrete implementations have been moved to infrastructure.sequence.services.
+
+This module is kept only as a placeholder. All services should be resolved
+through dependency injection using the DI container.
+
+Example usage:
+    from core.di.container import get_container
+    from core.sequence.protocols import SequenceServiceProtocol
+
+    container = get_container()
+    sequence_service = container.resolve(SequenceServiceProtocol)
 """
 
-from typing import Optional
-
-from .base_sequence_manager import BaseSequenceManager
-from .completion_service import SequenceCompletionService
-from .progress_service import SequenceProgressService
-from .question_service import SequenceQuestionService
-from .sequence_orchestrator import SequenceOrchestrator
-from .sequence_service import SequenceService
-from .session_service import SequenceSessionService
-
-# Global sequence service instance (legacy - will be replaced by DI)
-_sequence_service: Optional[SequenceService] = None
-
-
-def get_sequence_service() -> Optional[SequenceService]:
-    """
-    Get the global sequence service instance.
-
-    Returns:
-        SequenceService instance or None if not set
-
-    Note:
-        This function is deprecated. Use DI container to resolve services.
-    """
-    return _sequence_service
-
-
-def set_sequence_service(service: SequenceService) -> None:
-    """
-    Set the global sequence service instance.
-
-    Args:
-        service: SequenceService instance to set
-
-    Note:
-        This function is deprecated. Use DI container to register services.
-    """
-    global _sequence_service
-    _sequence_service = service
-
-
-__all__ = [
-    "BaseSequenceManager",
-    "SequenceService",
-    # Refactored services
-    "SequenceSessionService",
-    "SequenceQuestionService",
-    "SequenceProgressService",
-    "SequenceCompletionService",
-    "SequenceOrchestrator",
-    # Legacy global functions
-    "get_sequence_service",
-    "set_sequence_service",
-]
+# This module no longer exports any functions or services
+__all__ = []

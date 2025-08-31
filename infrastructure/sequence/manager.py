@@ -7,9 +7,10 @@ for the sequence framework.
 
 from typing import Optional
 
-from core.sequence.services.base_sequence_manager import BaseSequenceManager
 from core.sequence.types import SequenceAnswer, SequenceSession
 from core.utils.logger import get_logger
+
+from .services.base_sequence_manager import BaseSequenceManager
 
 logger = get_logger()
 

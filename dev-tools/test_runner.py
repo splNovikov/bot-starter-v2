@@ -210,7 +210,7 @@ def test_main_module_loading():
 @runner.test("Sequence services")
 def test_sequence_services():
     """Test that sequence services can be imported and instantiated."""
-    from core.sequence.services import (
+    from infrastructure.sequence.services import (
         SequenceCompletionService,
         SequenceOrchestrator,
         SequenceProgressService,
@@ -263,6 +263,90 @@ def test_architectural_refactoring():
     assert hasattr(facade, "cleanup_infrastructure")
     assert callable(facade.initialize_infrastructure)
     assert callable(facade.cleanup_infrastructure)
+
+
+@runner.test("Test layer structure")
+def test_layer_structure():
+    """Test that tests are properly organized by architectural layers."""
+    from pathlib import Path
+
+    tests_dir = Path(__file__).parent.parent / "tests"
+
+    # Check that layer directories exist
+    assert (tests_dir / "core").is_dir(), "tests/core directory should exist"
+    assert (tests_dir / "application").is_dir(), (
+        "tests/application directory should exist"
+    )
+    assert (tests_dir / "infrastructure").is_dir(), (
+        "tests/infrastructure directory should exist"
+    )
+    assert (tests_dir / "integration").is_dir(), (
+        "tests/integration directory should exist"
+    )
+    assert (tests_dir / "architecture").is_dir(), (
+        "tests/architecture directory should exist"
+    )
+
+    # Check specific test files are in correct layers
+    assert (tests_dir / "core" / "test_di_container.py").exists(), (
+        "DI container tests should be in core layer"
+    )
+    assert (tests_dir / "application" / "test_user_service.py").exists(), (
+        "User service tests should be in application layer"
+    )
+    assert (tests_dir / "infrastructure" / "test_sequence_services.py").exists(), (
+        "Sequence services tests should be in infrastructure layer"
+    )
+    assert (tests_dir / "integration" / "test_integration.py").exists(), (
+        "Integration tests should be in integration layer"
+    )
+    assert (
+        tests_dir / "architecture" / "test_clean_architecture_compliance.py"
+    ).exists(), "Architectural tests should be in architecture layer"
+
+
+@runner.test("Layer tests content structure")
+def test_layer_tests_content_structure():
+    """Test that test files contain expected content structure."""
+    from pathlib import Path
+
+    tests_dir = Path(__file__).parent.parent / "tests"
+
+    # Check core layer test has DI container classes
+    core_test = tests_dir / "core" / "test_di_container.py"
+    core_content = core_test.read_text()
+    assert "TestDIContainer" in core_content, (
+        "Core tests should contain TestDIContainer"
+    )
+    assert "DIContainer" in core_content, "Core tests should test DIContainer"
+
+    # Check application layer test has UserService classes
+    app_test = tests_dir / "application" / "test_user_service.py"
+    app_content = app_test.read_text()
+    assert "TestUserService" in app_content, (
+        "Application tests should contain TestUserService"
+    )
+    assert "UserService" in app_content, "Application tests should test UserService"
+
+    # Check infrastructure layer test has sequence service classes
+    infra_test = tests_dir / "infrastructure" / "test_sequence_services.py"
+    infra_content = infra_test.read_text()
+    assert "TestSequence" in infra_content, (
+        "Infrastructure tests should contain TestSequence classes"
+    )
+    assert "infrastructure.sequence" in infra_content, (
+        "Infrastructure tests should test sequence services from infrastructure layer"
+    )
+
+    # Check architecture test has compliance checks
+    arch_test = tests_dir / "architecture" / "test_clean_architecture_compliance.py"
+    arch_content = arch_test.read_text()
+    assert "CleanArchitectureValidator" in arch_content, (
+        "Architecture tests should contain CleanArchitectureValidator"
+    )
+    assert "layer_boundaries" in arch_content, (
+        "Architecture tests should check layer boundaries"
+    )
 
 
 def main():

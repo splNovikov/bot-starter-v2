@@ -1,7 +1,9 @@
 from aiogram.types import Message
 
 from application.services.user_utils import create_enhanced_context
-from core.sequence import create_translator, get_sequence_service
+from core.di.container import get_container
+from core.sequence import create_translator
+from core.sequence.protocols import SequenceServiceProtocol
 from core.utils import get_logger
 
 from .preferred_name_handler import handle_preferred_name_save
@@ -17,10 +19,8 @@ async def user_info_message_handler(message: Message) -> None:
         message: Message object
     """
     try:
-        sequence_service = get_sequence_service()
-        if not sequence_service:
-            logger.error("Sequence service not available")
-            return
+        container = get_container()
+        sequence_service = container.resolve(SequenceServiceProtocol)
 
         # Get current session
         session = sequence_service.get_session(message.from_user.id)

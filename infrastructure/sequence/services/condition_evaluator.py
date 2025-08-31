@@ -6,9 +6,8 @@ Evaluates conditional logic for showing/hiding questions based on previous answe
 
 from typing import Any, Dict
 
+from core.sequence.types import SequenceSession
 from core.utils.logger import get_logger
-
-from ..types import SequenceSession
 
 logger = get_logger()
 

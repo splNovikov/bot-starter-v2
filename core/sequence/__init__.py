@@ -25,15 +25,6 @@ from .protocols import (
     SequenceServiceProtocol,
 )
 
-# Services
-from .services import (
-    BaseSequenceManager,
-    SequenceService,
-    get_sequence_service,
-    set_sequence_service,
-)
-from .services.sequence_initiation_service import SequenceInitiationService
-
 # FSM states
 from .states import SequenceStateManager, SequenceStates, get_sequence_states
 from .types import (
@@ -46,6 +37,9 @@ from .types import (
     SequenceSession,
     SequenceStatus,
 )
+
+# Services module is deprecated - use dependency injection instead
+
 
 __version__ = "1.0.0"
 
@@ -70,12 +64,6 @@ __all__ = [
     "SequenceStates",
     "SequenceStateManager",
     "get_sequence_states",
-    # Services
-    "BaseSequenceManager",
-    "SequenceService",
-    "get_sequence_service",
-    "set_sequence_service",
-    "SequenceInitiationService",
     # Factories
     "create_translator",
     "set_translator_factory",

@@ -1,6 +1,7 @@
 from aiogram.types import CallbackQuery
 
-from core.services.localization import get_localization_service, t
+from core.di.container import get_container
+from core.services.localization import LocalizationService, t
 from core.utils.logger import get_logger
 
 logger = get_logger()
@@ -52,14 +53,8 @@ async def locale_callback_handler(callback: CallbackQuery) -> None:
             return
 
         # Get localization service
-        localization_service = get_localization_service()
-        if not localization_service:
-            logger.error("Localization service not available")
-            await callback.answer(
-                t("errors.service_unavailable", user=callback.from_user),
-                show_alert=True,
-            )
-            return
+        container = get_container()
+        localization_service = container.resolve(LocalizationService)
 
         # Check if language is supported
         supported_languages = localization_service.get_supported_languages()

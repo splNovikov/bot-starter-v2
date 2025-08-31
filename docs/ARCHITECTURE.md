@@ -17,13 +17,19 @@ bot-starter-v2/
 ├── 🏗️ core/                     # Core Layer - framework
 │   ├── di/                      # Dependency injection system
 │   ├── protocols/               # Interfaces and contracts
-│   ├── sequence/                # Sequence engine
+│   ├── sequence/                # Sequence engine (protocols only)
 │   ├── middleware/              # Middleware components
 │   └── utils/                   # Utilities
 ├── 🌐 infrastructure/           # Infrastructure Layer - external systems
 │   ├── api/                     # HTTP client
 │   ├── sequence/                # Sequence implementations
 │   └── ui/                      # UI components
+├── 🧪 tests/                    # Test Suite - organized by layers
+│   ├── core/                    # Core layer tests
+│   ├── application/             # Application layer tests
+│   ├── infrastructure/          # Infrastructure layer tests
+│   ├── integration/             # Integration tests
+│   └── architecture/            # Architectural compliance tests
 └── 📚 docs/                     # Documentation
     ├── architecture.puml        # PlantUML diagram
     └── ARCHITECTURE.md         # This file
@@ -86,6 +92,23 @@ bot-starter-v2/
 
 ## 🧪 Testing
 
+### Test Structure by Architectural Layers:
+
+```
+tests/
+├── 🏗️ core/                     # Core Layer Tests
+│   └── test_di_container.py     # DI system, protocols, utilities
+├── 🎯 application/              # Application Layer Tests  
+│   └── test_user_service.py     # Business services and handlers
+├── 🌐 infrastructure/           # Infrastructure Layer Tests
+│   └── test_sequence_services.py # External services and implementations
+├── 🔗 integration/              # Integration Tests
+│   └── test_integration.py      # Cross-layer interaction tests
+└── 🏛️ architecture/             # Architectural Tests
+    ├── test_clean_architecture_compliance.py  # Architecture compliance
+    └── test_architectural_refactoring.py     # Refactoring validation
+```
+
 ### Available Commands:
 ```bash
 make test             # Run all tests (simple runner)
@@ -97,7 +120,7 @@ make test-coverage    # Tests with coverage (requires pytest-cov)
 
 ### What is Tested:
 - ✅ Import correctness across all layers
-- ✅ DI container functionality
+- ✅ DI container functionality  
 - ✅ Protocol implementations
 - ✅ Clean Architecture compliance
 - ✅ Core module loading
@@ -106,6 +129,8 @@ make test-coverage    # Tests with coverage (requires pytest-cov)
 - ✅ Global state anti-pattern elimination
 - ✅ Service resolution patterns
 - ✅ Layer boundary enforcement
+- ✅ **Test layer structure organization**
+- ✅ **Proper test-to-layer mapping**
 
 ## 📊 Diagrams
 
@@ -170,6 +195,21 @@ make run
 
 ## 🏗️ Recent Architectural Improvements (2025)
 
+### **🧹 Deprecated Function Elimination (Latest)**
+- **Problem**: Deprecated global functions (`get_sequence_service`, `set_sequence_service`) still in use
+- **Solution**: Complete removal of deprecated functions and migration to pure DI pattern
+- **Impact**: Clean codebase with zero deprecated APIs, consistent dependency resolution
+
+### **🗂️ Test Layer Organization**
+- **Problem**: All tests in single root folder, violating layered architecture principles
+- **Solution**: Reorganized tests by architectural layers with clear separation of concerns
+- **Impact**: Better test maintainability, easier navigation, reflects architectural structure
+
+### **📋 Enhanced Architectural Testing**
+- **Problem**: Limited architectural compliance validation
+- **Solution**: Extended test suite with layer boundary checks, dependency direction validation
+- **Impact**: Automated prevention of architectural violations, comprehensive compliance monitoring
+
 ### **Global State Anti-Pattern Elimination**
 - **Problem**: Multiple services used global singleton instances, violating Dependency Inversion Principle
 - **Solution**: All services now resolved through DI container using protocol interfaces
@@ -228,6 +268,55 @@ app_facade = create_application_facade()
 # Infrastructure managed by facade
 app_facade.initialize_infrastructure()
 await app_facade.cleanup_infrastructure()
+```
+
+### **Test Organization by Architectural Layer**
+
+#### **Before (Flat Structure)**
+```
+tests/
+├── test_di_container.py          # Mixed layer tests
+├── test_user_service.py          
+├── test_sequence_services.py     
+├── test_integration.py           
+└── test_architectural_refactoring.py
+```
+
+#### **After (Clean Architecture Aligned)**
+```
+tests/
+├── core/                         # 🏗️ Tests core layer only
+│   └── test_di_container.py      # DI container, protocols
+├── application/                  # 🎯 Tests business logic
+│   └── test_user_service.py      # Services, handlers  
+├── infrastructure/               # 🌐 Tests external systems
+│   └── test_sequence_services.py # API clients, implementations
+├── integration/                  # 🔗 Tests layer interactions
+│   └── test_integration.py       # Cross-layer scenarios
+└── architecture/                 # 🏛️ Tests architectural rules
+    ├── test_clean_architecture_compliance.py
+    └── test_architectural_refactoring.py
+```
+
+### **Latest Architectural Validation**
+
+#### **Comprehensive Compliance Checking**
+```python
+# ✅ Layer boundary validation
+def check_layer_boundaries() -> Dict[str, List[str]]:
+    """Validate no layer imports from forbidden layers."""
+    
+# ✅ Core abstraction validation  
+def check_core_exports_only_abstractions() -> List[str]:
+    """Ensure core exports only protocols and interfaces."""
+    
+# ✅ Global state detection
+def check_no_global_state_in_core() -> List[str]:
+    """Verify core layer contains no mutable global state."""
+    
+# ✅ Dependency injection validation
+def check_dependency_injection_usage() -> List[str]:
+    """Ensure services use DI instead of global access."""
 ```
 
 ## 🛡️ Security & Best Practices

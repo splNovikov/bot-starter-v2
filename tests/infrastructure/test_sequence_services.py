@@ -16,11 +16,13 @@ import pytest
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
-from core.sequence.services.completion_service import SequenceCompletionService
-from core.sequence.services.progress_service import SequenceProgressService
-from core.sequence.services.question_service import SequenceQuestionService
-from core.sequence.services.session_service import SequenceSessionService
 from core.sequence.types import QuestionType
+from infrastructure.sequence.services.completion_service import (
+    SequenceCompletionService,
+)
+from infrastructure.sequence.services.progress_service import SequenceProgressService
+from infrastructure.sequence.services.question_service import SequenceQuestionService
+from infrastructure.sequence.services.session_service import SequenceSessionService
 
 
 class TestSequenceSessionService:

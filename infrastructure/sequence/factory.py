@@ -7,13 +7,13 @@ for the in-memory sequence implementation.
 
 from typing import List, Optional
 
-from core.sequence import SequenceService, set_sequence_service
 from core.sequence.types import SequenceDefinition
 from core.utils.logger import get_logger
 
 from ..ui.button_question_renderer import ButtonQuestionRenderer
 from .manager import InMemorySequenceManager
 from .provider import InMemorySequenceProvider
+from .services.sequence_service import SequenceService
 
 logger = get_logger()
 
@@ -44,9 +44,6 @@ def create_sequence_service(
         question_renderer=question_renderer,
     )
 
-    # Set as global service
-    set_sequence_service(sequence_service)
-
     logger.info("Sequence service created and configured successfully")
     return sequence_service
 
@@ -58,7 +55,7 @@ def initialize_sequences(
     Initialize the sequence system.
 
     This function should be called during application startup
-    to set up the sequence service and make it available globally.
+    to set up the sequence service.
 
     Args:
         sequence_definitions: List of sequence definitions to register

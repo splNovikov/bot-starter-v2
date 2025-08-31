@@ -221,10 +221,18 @@ class TestArchitecturalPrinciples:
 
     def test_single_responsibility_principle(self):
         """Test that services have single, well-defined responsibilities."""
-        from core.sequence.services.completion_service import SequenceCompletionService
-        from core.sequence.services.progress_service import SequenceProgressService
-        from core.sequence.services.question_service import SequenceQuestionService
-        from core.sequence.services.session_service import SequenceSessionService
+        from infrastructure.sequence.services.completion_service import (
+            SequenceCompletionService,
+        )
+        from infrastructure.sequence.services.progress_service import (
+            SequenceProgressService,
+        )
+        from infrastructure.sequence.services.question_service import (
+            SequenceQuestionService,
+        )
+        from infrastructure.sequence.services.session_service import (
+            SequenceSessionService,
+        )
 
         # Each service should have focused, non-overlapping responsibilities
         session_methods = [
@@ -305,8 +313,10 @@ class TestArchitecturalPrinciples:
         """Test that all services implement Injectable protocol."""
         from application.services.user_service import UserService
         from core.di.protocols import Injectable
-        from core.sequence.services.session_service import SequenceSessionService
         from infrastructure.api.client import HttpClient
+        from infrastructure.sequence.services.session_service import (
+            SequenceSessionService,
+        )
 
         # All services should implement Injectable
         assert issubclass(UserService, Injectable)

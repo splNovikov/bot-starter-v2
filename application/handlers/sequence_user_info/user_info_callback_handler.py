@@ -1,7 +1,9 @@
 from aiogram.types import CallbackQuery
 
 from application.services.user_utils import create_enhanced_context
-from core.sequence import create_translator, get_sequence_service
+from core.di.container import get_container
+from core.sequence import create_translator
+from core.sequence.protocols import SequenceServiceProtocol
 from core.utils import get_logger
 
 from .gender_handler import handle_gender_save
@@ -62,11 +64,8 @@ async def user_info_callback_handler(callback: CallbackQuery) -> None:
         )
 
         # Get sequence service
-        sequence_service = get_sequence_service()
-        if not sequence_service:
-            logger.error("Sequence service not available")
-            await callback.answer("Service unavailable")
-            return
+        container = get_container()
+        sequence_service = container.resolve(SequenceServiceProtocol)
 
         # Get current session
         session = sequence_service.get_session(callback.from_user.id)

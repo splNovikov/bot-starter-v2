@@ -25,15 +25,13 @@ from .handlers import (
 from .middleware import LoggingMiddleware
 from .protocols import ApiResponse
 
-# Export sequence framework (unified abstraction for all interactive flows)
-from .sequence import (
-    BaseSequenceManager,
+# Export sequence framework (protocols and types only - Clean Architecture)
+from .sequence import (  # Deprecated global functions (for backward compatibility only)
     SequenceAnswer,
     SequenceDefinition,
     SequenceManagerProtocol,
     SequenceProviderProtocol,
     SequenceQuestion,
-    SequenceService,
     SequenceServiceProtocol,
     SequenceSession,
     SequenceStateManager,
@@ -42,10 +40,8 @@ from .sequence import (
     create_simple_sequence_definition,
     get_behavior_type,
     get_sequence_metadata,
-    get_sequence_service,
     is_sequence_handler,
     sequence_handler,
-    set_sequence_service,
 )
 from .services import LocalizationService, get_localization_service, t
 from .utils import get_logger, setup_logger
@@ -90,11 +86,6 @@ __all__ = [
     # Sequence framework - States
     "SequenceStates",
     "SequenceStateManager",
-    # Sequence framework - Services
-    "BaseSequenceManager",
-    "SequenceService",
-    "get_sequence_service",
-    "set_sequence_service",
     # Sequence framework - Decorators
     "sequence_handler",
     # Sequence framework - Utilities

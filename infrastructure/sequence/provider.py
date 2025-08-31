@@ -7,7 +7,6 @@ Provides concrete sequence definitions for user info sequences.
 from typing import Dict, List, Optional, Tuple
 
 from core.sequence.protocols import SequenceProviderProtocol
-from core.sequence.services.condition_evaluator import condition_evaluator
 from core.sequence.types import (
     QuestionType,
     SequenceDefinition,
@@ -15,6 +14,8 @@ from core.sequence.types import (
     SequenceSession,
 )
 from core.utils.logger import get_logger
+
+from .services.condition_evaluator import condition_evaluator
 
 logger = get_logger()
 
