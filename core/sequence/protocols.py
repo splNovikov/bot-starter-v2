@@ -511,6 +511,64 @@ class SequenceQuestionRendererProtocol(Protocol):
         ...
 
 
+# Service protocols for refactored sequence services
+
+
+@runtime_checkable
+class SequenceSessionServiceProtocol(Protocol):
+    """Protocol for sequence session management."""
+
+    def start_session(self, user_id: int, sequence_name: str) -> str:
+        """Start a new sequence session."""
+        ...
+
+    def get_session(self, user_id: int) -> Optional[SequenceSession]:
+        """Get current session for user."""
+        ...
+
+
+@runtime_checkable
+class SequenceQuestionServiceProtocol(Protocol):
+    """Protocol for sequence question handling."""
+
+    async def send_question(
+        self,
+        message: Message,
+        question: "SequenceQuestion",
+        session: SequenceSession,
+        translator: TranslatorProtocol,
+        context: Optional[Mapping[str, Any]] = None,
+        show_progress: bool = True,
+        visible_questions_count: Optional[int] = None,
+    ) -> bool:
+        """Send question to user via platform."""
+        ...
+
+
+@runtime_checkable
+class SequenceProgressServiceProtocol(Protocol):
+    """Protocol for sequence progress tracking."""
+
+    def get_progress(self, session: SequenceSession) -> Tuple[int, int]:
+        """Get sequence progress for session."""
+        ...
+
+
+@runtime_checkable
+class SequenceCompletionServiceProtocol(Protocol):
+    """Protocol for sequence completion handling."""
+
+    async def send_completion_message(
+        self,
+        message: Message,
+        session: SequenceSession,
+        translator: TranslatorProtocol,
+        context: Optional[Mapping[str, Any]] = None,
+    ) -> bool:
+        """Send completion message and summary."""
+        ...
+
+
 __all__ = [
     "TranslatorProtocol",
     "SequenceManagerProtocol",
@@ -518,4 +576,9 @@ __all__ = [
     "SequenceServiceProtocol",
     "SequenceResultHandlerProtocol",
     "SequenceQuestionRendererProtocol",
+    # Refactored service protocols
+    "SequenceSessionServiceProtocol",
+    "SequenceQuestionServiceProtocol",
+    "SequenceProgressServiceProtocol",
+    "SequenceCompletionServiceProtocol",
 ]

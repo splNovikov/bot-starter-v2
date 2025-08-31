@@ -1,0 +1,131 @@
+@startuml Clean Architecture - Bot Starter v2
+
+!theme plain
+
+title Bot Starter v2 - Clean Architecture Flow
+
+' Define colors for different layers
+!define CORE_COLOR #E1F5FE
+!define APP_COLOR #F3E5F5  
+!define INFRA_COLOR #E8F5E8
+!define ENTRY_COLOR #FFF3E0
+
+package "Entry Point" <<Rectangle>> {
+    component [main.py\n🚀 Bot Entry Point] as Main ENTRY_COLOR
+}
+
+package "Core Layer (Framework)" <<Rectangle>> {
+    package "DI System" {
+        component [DIContainer\n📦 Dependency Injection] as DIContainer CORE_COLOR
+        component [DI Protocols\nInjectable, Disposable] as DIProtocols CORE_COLOR
+    }
+    
+    package "Service Protocols" {
+        component [Service Protocols\nHttpClientProtocol\nUserServiceProtocol] as ServiceProtocols CORE_COLOR
+        component [Entity Protocols\nUserEntity] as EntityProtocols CORE_COLOR
+    }
+    
+    package "Sequence Engine" {
+        component [Sequence Protocols\nSequenceManagerProtocol\nSequenceServiceProtocol] as SeqProtocols CORE_COLOR
+        component [Sequence Services\nSessionService\nQuestionService\nProgressService\nCompletionService\nSequenceOrchestrator] as SeqServices CORE_COLOR
+    }
+    
+    package "Infrastructure Components" {
+        component [Middleware\nLocalizationMiddleware\nLoggingMiddleware] as Middleware CORE_COLOR
+        component [Utils\nLogger\nBase Protocols] as Utils CORE_COLOR
+    }
+}
+
+package "Application Layer (Business Logic)" <<Rectangle>> {
+    package "DI Configuration" {
+        component [DI Setup\nget_basic_container()\nget_configured_container()] as DISetup APP_COLOR
+    }
+    
+    package "Bot Handlers" {
+        component [Command Handlers\n/start, /locale, /user_info] as BotHandlers APP_COLOR
+        component [Handler Registry\nRoute Management] as HandlerRegistry APP_COLOR
+    }
+    
+    package "Services" {
+        component [UserService\n👤 User Management\nAPI Integration] as AppUserService APP_COLOR
+    }
+    
+    package "Types" {
+        component [UserData\n📊 User Entity Implementation] as UserData APP_COLOR
+    }
+}
+
+package "Infrastructure Layer (External)" <<Rectangle>> {
+    package "API Integration" {
+        component [HttpClient\n🌐 HTTP Requests\nExternal API Calls] as HttpClient INFRA_COLOR
+    }
+    
+    package "Sequence Implementation" {
+        component [SequenceProvider\n📋 Sequence Definitions] as SeqProvider INFRA_COLOR
+        component [InMemorySequenceManager\n💾 Session Storage] as SeqManager INFRA_COLOR
+        component [SequenceQuestionRenderer\n🎨 UI Rendering] as SeqRenderer INFRA_COLOR
+        component [ContextAwareTranslator\n🌍 Localization] as ContextTranslator INFRA_COLOR
+    }
+    
+    package "UI Components" {
+        component [UI Components\n🖱️ Button Renderers\nQuestion Formatters] as UIComponents INFRA_COLOR
+    }
+}
+
+' Dependencies (following Clean Architecture principles)
+Main --> DISetup : configure
+Main --> ServiceProtocols : use
+Main --> BotHandlers : route
+
+DISetup --> DIContainer : setup
+DISetup --> ServiceProtocols : register
+DISetup --> AppUserService : register
+DISetup --> HttpClient : register
+DISetup --> SeqServices : register
+
+AppUserService --> ServiceProtocols : implement
+AppUserService --> DIProtocols : implement
+AppUserService --> EntityProtocols : use
+
+HttpClient --> ServiceProtocols : implement
+HttpClient --> DIProtocols : implement
+
+BotHandlers --> SeqProtocols : use
+BotHandlers --> Utils : use
+
+UserData --> EntityProtocols : implement
+
+SeqServices --> SeqProtocols : implement
+SeqServices --> DIProtocols : implement
+
+SeqProvider --> SeqProtocols : implement
+SeqManager --> SeqProtocols : implement
+SeqRenderer --> SeqProtocols : implement
+ContextTranslator --> ServiceProtocols : use
+
+note top of Main
+  🎯 **SOLID Principles Applied:**
+  ✅ Single Responsibility - Each service has one job
+  ✅ Open/Closed - Protocol-based design
+  ✅ Liskov Substitution - Implementations interchangeable  
+  ✅ Interface Segregation - Focused protocols
+  ✅ Dependency Inversion - Depend on abstractions
+end note
+
+note bottom of DIContainer
+  🏗️ **Clean Architecture Rules:**
+  • Core defines protocols & contracts
+  • Application implements business logic
+  • Infrastructure handles external systems
+  • Dependencies point inward only
+end note
+
+note right of SeqServices
+  🔄 **Sequence Engine Refactoring:**
+  • Specialized services replace monolithic design
+  • Orchestrator coordinates between services
+  • Each service follows SRP
+  • Improved testability and maintainability
+end note
+
+@enduml

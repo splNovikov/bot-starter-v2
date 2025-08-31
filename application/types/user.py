@@ -2,9 +2,11 @@ from dataclasses import dataclass
 from datetime import date
 from typing import Any, Dict, Optional
 
+from core.protocols.entities import UserEntity
+
 
 @dataclass
-class UserData:
+class UserData(UserEntity):
     id: int
     platform_id: str
     platform_type: str

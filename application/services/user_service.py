@@ -3,15 +3,16 @@ from typing import Any
 from aiogram.types import User
 
 from application.types import UserData
+from core.di.protocols import Injectable
 from core.protocols.base import ApiResponse
+from core.protocols.services import HttpClientProtocol, UserServiceProtocol
 from core.utils.logger import get_logger
-from infrastructure.api.client import HttpClient
 
 logger = get_logger()
 
 
-class UserService:
-    def __init__(self, http_client: HttpClient):
+class UserService(UserServiceProtocol, Injectable):
+    def __init__(self, http_client: HttpClientProtocol):
         self._http_client = http_client
 
     def get_user_name_parts(self, user: User) -> tuple[str, str]:

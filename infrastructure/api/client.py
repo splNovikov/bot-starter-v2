@@ -11,13 +11,15 @@ from typing import Optional
 import aiohttp
 
 from config import config
+from core.di.protocols import Disposable, Injectable
 from core.protocols.base import ApiResponse
+from core.protocols.services import HttpClientProtocol
 from core.utils.logger import get_logger
 
 logger = get_logger()
 
 
-class HttpClient:
+class HttpClient(HttpClientProtocol, Injectable, Disposable):
     """
     Generic HTTP client for external API communication.
 
@@ -48,6 +50,10 @@ class HttpClient:
         """Close the HTTP session."""
         if self._session and not self._session.closed:
             await self._session.close()
+
+    async def dispose(self):
+        """Dispose method for DI container cleanup."""
+        await self.close()
 
     async def request(self, method: str, endpoint: str, **kwargs) -> ApiResponse:
         """

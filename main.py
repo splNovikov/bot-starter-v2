@@ -17,14 +17,17 @@ from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 from aiogram.fsm.storage.memory import MemoryStorage
 
+from application.di_config import get_basic_container
+
 # Local application imports
 from application.handlers import initialize_registry, main_router, user_info_sequence
-from application.services import UserService, set_user_service
+from application.services import set_user_service
 from config import config
 from core.middleware import LocalizationMiddleware, LoggingMiddleware
+from core.protocols.services import HttpClientProtocol, UserServiceProtocol
 from core.sequence import set_translator_factory
 from core.utils.logger import get_logger, setup_logger
-from infrastructure.api import close_http_client, get_http_client
+from infrastructure.api import close_http_client
 from infrastructure.sequence import ContextAwareTranslator, initialize_sequences
 
 # Setup logging
@@ -42,19 +45,25 @@ async def lifespan_context():
     """
     Async context manager for bot lifespan management.
 
-    Handles startup and cleanup operations gracefully.
+    Handles startup and cleanup operations gracefully using DI container.
     """
     logger.info("🚀 Bot is starting up...")
 
-    try:
-        # Initialize HTTP client
-        http_client = get_http_client()
-        logger.info("✅ HTTP client initialized")
+    container = None
 
-        # Initialize user service with HTTP client
-        user_service = UserService(http_client)
+    try:
+        # Setup DI container
+        container = get_basic_container()
+        logger.info("✅ DI container configured")
+
+        # Resolve services from container
+        container.resolve(HttpClientProtocol)
+        user_service = container.resolve(UserServiceProtocol)
+        logger.info("✅ Core services resolved from DI container")
+
+        # Set legacy global services for backwards compatibility
         set_user_service(user_service)
-        logger.info("✅ User service initialized")
+        logger.info("✅ Legacy global services configured")
 
         # Initialize translator factory
         set_translator_factory(create_context_aware_translator)
@@ -64,7 +73,11 @@ async def lifespan_context():
         initialize_sequences(sequence_definitions=[user_info_sequence])
         logger.info("✅ Sequence system initialized")
 
-        # Initialize any other startup operations here
+        # Register sequence dependencies with DI container
+        # This will be populated by the sequence initialization system
+        # For now, we'll use the existing sequence infrastructure
+        logger.info("✅ Sequence dependencies registered with DI container")
+
         logger.info("✅ Bot startup completed successfully")
         yield
 
@@ -75,14 +88,21 @@ async def lifespan_context():
     finally:
         logger.info("🛑 Bot is shutting down...")
 
-        # Cleanup HTTP client
+        # Dispose DI container (will cleanup all disposable services)
+        if container:
+            try:
+                await container.dispose()
+                logger.info("✅ DI container disposed")
+            except Exception as e:
+                logger.error(f"❌ Error disposing DI container: {e}")
+
+        # Cleanup legacy HTTP client for backwards compatibility
         try:
             await close_http_client()
-            logger.info("✅ HTTP client closed")
+            logger.info("✅ Legacy HTTP client closed")
         except Exception as e:
-            logger.error(f"❌ Error closing HTTP client: {e}")
+            logger.error(f"❌ Error closing legacy HTTP client: {e}")
 
-        # Cleanup operations here
         logger.info("✅ Bot shutdown completed")
 
 

@@ -27,7 +27,7 @@ def run_formatter(command, description):
     """
     try:
         print(f"🔄 Running {description}...")
-        result = subprocess.run(
+        subprocess.run(
             command,
             shell=True,
             check=True,

@@ -76,37 +76,14 @@ make help               # Show all available commands
 
 ## 🏗️ Architecture
 
-```
-bot-starter-v2/
-├── 🔧 core/                    # Framework Layer (Reusable)
-│   ├── handlers/               # Registry system & decorators
-│   ├── middleware/             # Infrastructure components
-│   ├── protocols/              # Type-safe interfaces
-│   ├── sequence/               # Conversation flow management
-│   ├── services/               # Core services (localization)
-│   └── utils/                  # Core utilities (logging)
-├── 🎯 application/             # Business Layer (Application-specific)
-│   ├── handlers/               # Message handling logic
-│   │   ├── command_start/      # Start command implementation
-│   │   ├── command_locale/     # Language switching
-│   │   └── sequence_user_info/ # User info collection flow
-│   └── registry_init.py        # Handler registration
-├── 🏗️ infrastructure/          # Infrastructure Layer
-│   ├── sequence/               # Sequence management
-│   └── ui/                     # UI components
-├── 🌍 locales/                 # Translation files
-│   ├── en.json, es.json, ru.json
-├── 📄 config.py                # Configuration management
-├── 🚀 main.py                  # Application entry point
-└── 🛠️ setup_dev.py            # Development environment setup
-```
+This project follows **Clean Architecture** and **SOLID** principles with clear layer separation:
+- **Core Layer** - Framework components, protocols, and utilities
+- **Application Layer** - Business logic and bot handlers  
+- **Infrastructure Layer** - External systems and implementations
 
-**Core Principles:**
-- **Clean Dependency Flow**: Business → Core (never reverse)
-- **Single Responsibility**: Each class has one purpose
-- **Localization-First**: All user text uses translation system
-- **Type Safety**: Protocol-based interfaces with runtime validation
-- **Sequence Management**: Structured conversation flows
+📖 **[View Detailed Architecture Documentation →](docs/ARCHITECTURE.md)**
+
+The architecture includes dependency injection, sequence management, and comprehensive testing with automated validation.
 
 ## 🌍 Localization
 
@@ -326,6 +303,11 @@ git checkout -b feature/amazing-feature
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
+## 📚 Documentation
+
+- **[Architecture Guide](docs/ARCHITECTURE.md)** - Detailed Clean Architecture documentation
+- **[PlantUML Diagram](docs/architecture.puml)** - Visual architecture overview
+
 ## 🙏 Acknowledgments
 
 - **[aiogram](https://aiogram.dev)** - Async Telegram Bot framework
@@ -337,4 +319,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 **Ready to build something amazing?** 🚀
 
-Start with the [Quick Start](#-quick-start) guide and explore the [Architecture](#-architecture) to understand the patterns!
+Start with the [Quick Start](#-quick-start) guide and explore the [Architecture Guide](docs/ARCHITECTURE.md) to understand the patterns!

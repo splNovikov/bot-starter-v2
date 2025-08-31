@@ -29,7 +29,7 @@ def run_command(command, description, cwd=None):
     """
     try:
         print(f"🔄 {description}...")
-        result = subprocess.run(
+        subprocess.run(
             command,
             shell=True,
             check=True,
