@@ -1,9 +1,21 @@
 """
-Main bot entry point with enhanced error handling and configuration.
+Main bot entry point with Clean Architecture and enhanced error handling.
 
-This module initializes the Telegram bot with aiogram 3.x, sets up routers,
-middleware, and provides graceful shutdown handling. It includes comprehensive
-logging and error recovery mechanisms for production deployment.
+This module initializes the Telegram bot with aiogram 3.x following Clean Architecture
+principles using the Application Facade pattern. It provides clean separation between
+core infrastructure and application logic, making the application easily maintainable
+and testable.
+
+Architecture:
+- Core layer: Defines protocols and abstractions
+- Application layer: Business logic through ApplicationFacade
+- Infrastructure layer: External concerns (HTTP, sequence management)
+- Main: Orchestrates through facades, avoiding tight coupling
+
+Key benefits:
+- Application module can be completely replaced without changing main.py
+- Clean dependency flow: Main -> Application Facade -> Core protocols
+- All business logic isolated in application layer
 """
 
 # Standard library imports
@@ -17,14 +29,12 @@ from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 from aiogram.fsm.storage.memory import MemoryStorage
 
-from application.di_config import get_basic_container
-
-# Local application imports
-from application.handlers import initialize_registry, main_router, user_info_sequence
-from application.services import set_user_service
+# Clean Architecture imports - only core and application facade
+from application import create_application_facade
 from config import config
+from core.facade import ApplicationFacadeProtocol
 from core.middleware import LocalizationMiddleware, LoggingMiddleware
-from core.protocols.services import HttpClientProtocol, UserServiceProtocol
+from core.protocols.services import HttpClientProtocol
 from core.sequence import set_translator_factory
 from core.utils.logger import get_logger, setup_logger
 from infrastructure.api import close_http_client
@@ -45,41 +55,45 @@ async def lifespan_context():
     """
     Async context manager for bot lifespan management.
 
-    Handles startup and cleanup operations gracefully using DI container.
+    Handles startup and cleanup operations gracefully using application facade
+    following Clean Architecture principles.
     """
     logger.info("🚀 Bot is starting up...")
 
-    container = None
+    app_facade: ApplicationFacadeProtocol = None
 
     try:
-        # Setup DI container
-        container = get_basic_container()
-        logger.info("✅ DI container configured")
+        # Create application facade (Clean Architecture entry point)
+        app_facade = create_application_facade()
+        logger.info("✅ Application facade created")
 
-        # Resolve services from container
+        # Setup DI container through facade
+        container = app_facade.get_di_container()
+        logger.info("✅ DI container configured via facade")
+
+        # Resolve core services from container
         container.resolve(HttpClientProtocol)
-        user_service = container.resolve(UserServiceProtocol)
         logger.info("✅ Core services resolved from DI container")
 
-        # Set legacy global services for backwards compatibility
-        set_user_service(user_service)
-        logger.info("✅ Legacy global services configured")
+        # Setup legacy global services through facade
+        app_facade.setup_legacy_services(container)
+        logger.info("✅ Legacy global services configured via facade")
 
         # Initialize translator factory
         set_translator_factory(create_context_aware_translator)
         logger.info("✅ Translator factory initialized")
 
-        # Initialize sequence system
-        initialize_sequences(sequence_definitions=[user_info_sequence])
-        logger.info("✅ Sequence system initialized")
+        # Get sequence definitions through facade
+        sequence_definitions = app_facade.get_sequence_definitions()
+        initialize_sequences(sequence_definitions=sequence_definitions)
+        logger.info("✅ Sequence system initialized via facade")
 
-        # Register sequence dependencies with DI container
-        # This will be populated by the sequence initialization system
-        # For now, we'll use the existing sequence infrastructure
-        logger.info("✅ Sequence dependencies registered with DI container")
+        # Initialize handlers through facade
+        app_facade.initialize_handlers()
+        logger.info("✅ Application handlers initialized via facade")
 
         logger.info("✅ Bot startup completed successfully")
-        yield
+        yield app_facade
 
     except Exception as e:
         logger.error(f"❌ Error during bot startup: {e}")
@@ -88,13 +102,13 @@ async def lifespan_context():
     finally:
         logger.info("🛑 Bot is shutting down...")
 
-        # Dispose DI container (will cleanup all disposable services)
-        if container:
+        # Dispose application facade (handles all cleanup)
+        if app_facade:
             try:
-                await container.dispose()
-                logger.info("✅ DI container disposed")
+                await app_facade.dispose()
+                logger.info("✅ Application facade disposed")
             except Exception as e:
-                logger.error(f"❌ Error disposing DI container: {e}")
+                logger.error(f"❌ Error disposing application facade: {e}")
 
         # Cleanup legacy HTTP client for backwards compatibility
         try:
@@ -121,9 +135,12 @@ async def create_bot() -> Bot:
     )
 
 
-async def create_dispatcher() -> Dispatcher:
+async def create_dispatcher(app_facade: ApplicationFacadeProtocol) -> Dispatcher:
     """
     Create and configure dispatcher with routers and middleware.
+
+    Args:
+        app_facade: Application facade for accessing routers
 
     Returns:
         Configured Dispatcher instance
@@ -138,26 +155,24 @@ async def create_dispatcher() -> Dispatcher:
     dp.callback_query.middleware(LoggingMiddleware())
     dp.callback_query.middleware(LocalizationMiddleware())
 
-    # Initialize registry to connect decorated handlers with aiogram router
-    # This ensures @command decorators are properly registered for message handling
-    initialize_registry()
-
-    # Include main router (contains all registered handlers)
+    # Get main router through facade (Clean Architecture)
+    main_router = app_facade.get_main_router()
     dp.include_router(main_router)
 
-    logger.info("✅ Dispatcher configured with main router and middleware")
+    logger.info("✅ Dispatcher configured with main router and middleware via facade")
     return dp
 
 
 async def main():
     """
     Main bot execution function with comprehensive error handling.
+    Uses Clean Architecture with application facade pattern.
     """
     try:
-        async with lifespan_context():
-            # Create bot and dispatcher
+        async with lifespan_context() as app_facade:
+            # Create bot and dispatcher (Clean Architecture)
             bot = await create_bot()
-            dp = await create_dispatcher()
+            dp = await create_dispatcher(app_facade)
 
             # Verify bot token and get bot info
             try:
