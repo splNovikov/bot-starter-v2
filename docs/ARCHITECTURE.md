@@ -102,6 +102,10 @@ make test-coverage    # Tests with coverage (requires pytest-cov)
 - ✅ Clean Architecture compliance
 - ✅ Core module loading
 - ✅ Sequence services
+- ✅ Architectural refactoring compliance
+- ✅ Global state anti-pattern elimination
+- ✅ Service resolution patterns
+- ✅ Layer boundary enforcement
 
 ## 📊 Diagrams
 
@@ -163,6 +167,68 @@ make run
 - ✅ **Enhanced extensibility**: Protocol-based design eases new feature addition
 - ✅ **SOLID compliance**: SOLID and Clean Architecture strictly enforced
 - ✅ **Automated validation**: Architectural violations detected automatically
+
+## 🏗️ Recent Architectural Improvements (2025)
+
+### **Global State Anti-Pattern Elimination**
+- **Problem**: Multiple services used global singleton instances, violating Dependency Inversion Principle
+- **Solution**: All services now resolved through DI container using protocol interfaces
+- **Impact**: Improved testability, better resource management, cleaner dependencies
+
+### **Layer Boundary Enforcement**  
+- **Problem**: `main.py` directly imported infrastructure components, violating Clean Architecture
+- **Solution**: Infrastructure initialization moved to ApplicationFacade with proper abstraction layers
+- **Impact**: True layer separation, infrastructure concerns properly isolated
+
+### **Dependency Injection Consistency**
+- **Problem**: Mixed patterns of global service access and DI container usage
+- **Solution**: Standardized service resolution pattern: `container.resolve(ServiceProtocol)`
+- **Impact**: Consistent dependency management, easier testing and mocking
+
+### **Service Resolution Pattern Examples**
+
+#### **Before (Anti-Pattern)**
+```python
+# ❌ Global service access - violates DIP
+user_service = get_user_service()
+if not user_service:
+    logger.error("User service not available")
+    return None
+```
+
+#### **After (Clean Architecture)**
+```python
+# ✅ Proper dependency injection
+try:
+    container = get_container()
+    user_service = container.resolve(UserServiceProtocol)
+except Exception as e:
+    logger.error(f"Failed to resolve user service: {e}")
+    return None
+```
+
+### **Infrastructure Management Through Facade**
+
+#### **Before (Layer Violation)**
+```python
+# ❌ main.py directly importing infrastructure
+from infrastructure.api import close_http_client
+from infrastructure.sequence import initialize_sequences
+
+# Direct infrastructure calls in main
+initialize_sequences(sequence_definitions)
+await close_http_client()
+```
+
+#### **After (Clean Architecture)**
+```python
+# ✅ Infrastructure through ApplicationFacade
+app_facade = create_application_facade()
+
+# Infrastructure managed by facade
+app_facade.initialize_infrastructure()
+await app_facade.cleanup_infrastructure()
+```
 
 ## 🛡️ Security & Best Practices
 

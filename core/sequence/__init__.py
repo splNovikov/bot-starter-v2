@@ -32,10 +32,7 @@ from .services import (
     get_sequence_service,
     set_sequence_service,
 )
-from .services.sequence_initiation_service import (
-    SequenceInitiationService,
-    get_sequence_initiation_service,
-)
+from .services.sequence_initiation_service import SequenceInitiationService
 
 # FSM states
 from .states import SequenceStateManager, SequenceStates, get_sequence_states
@@ -79,7 +76,6 @@ __all__ = [
     "get_sequence_service",
     "set_sequence_service",
     "SequenceInitiationService",
-    "get_sequence_initiation_service",
     # Factories
     "create_translator",
     "set_translator_factory",

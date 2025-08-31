@@ -7,8 +7,9 @@ creation, and other common user-related operations across handlers.
 
 from aiogram.types import User
 
-from application.services import get_user_service
 from application.types import UserData
+from core.di.container import get_container
+from core.protocols.services import UserServiceProtocol
 from core.utils.logger import get_logger
 
 logger = get_logger()
@@ -32,10 +33,11 @@ async def ensure_user_exists(user: User) -> UserData | None:
     Raises:
         Exception: Propagates any unexpected exceptions for proper error handling
     """
-    user_service = get_user_service()
-
-    if not user_service:
-        logger.error("User service not available")
+    try:
+        container = get_container()
+        user_service = container.resolve(UserServiceProtocol)
+    except Exception as e:
+        logger.error(f"Failed to resolve user service: {e}")
         return None
 
     try:
@@ -78,11 +80,13 @@ async def create_enhanced_context(user: User) -> dict:
     context = {"user": user, "user_id": user.id}
 
     # Always get Telegram display name for presumably_user_name
-    user_service = get_user_service()
-    if user_service:
+    try:
+        container = get_container()
+        user_service = container.resolve(UserServiceProtocol)
         telegram_display_name = user_service.get_user_display_name(user)
         context["presumably_user_name"] = telegram_display_name  # Always Telegram name
-    else:
+    except Exception as e:
+        logger.error(f"Failed to resolve user service: {e}")
         context["presumably_user_name"] = "Anonymous"
 
     try:

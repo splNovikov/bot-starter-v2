@@ -1,7 +1,8 @@
 from aiogram.types import Message
 
 from application.services.user_utils import create_enhanced_context, ensure_user_exists
-from core.sequence import create_translator, get_sequence_initiation_service
+from core.di.container import get_container
+from core.sequence import SequenceInitiationService, create_translator
 from core.services import t
 from core.utils.logger import get_logger
 
@@ -20,7 +21,10 @@ async def user_info_command_handler(message: Message):
             await message.answer(error_message)
             return
 
-        sequence_initiation_service = get_sequence_initiation_service()
+        get_container()
+        sequence_initiation_service = (
+            SequenceInitiationService()
+        )  # Stateless service, can be instantiated
 
         # Create translator and enhanced context with preferred_name
         translator = create_translator(message.from_user)

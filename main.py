@@ -35,19 +35,11 @@ from config import config
 from core.facade import ApplicationFacadeProtocol
 from core.middleware import LocalizationMiddleware, LoggingMiddleware
 from core.protocols.services import HttpClientProtocol
-from core.sequence import set_translator_factory
 from core.utils.logger import get_logger, setup_logger
-from infrastructure.api import close_http_client
-from infrastructure.sequence import ContextAwareTranslator, initialize_sequences
 
 # Setup logging
 setup_logger()
 logger = get_logger()
-
-
-def create_context_aware_translator(user):
-    """Factory function to create context-aware translator."""
-    return ContextAwareTranslator(user)
 
 
 @asynccontextmanager
@@ -79,14 +71,9 @@ async def lifespan_context():
         app_facade.setup_legacy_services(container)
         logger.info("✅ Legacy global services configured via facade")
 
-        # Initialize translator factory
-        set_translator_factory(create_context_aware_translator)
-        logger.info("✅ Translator factory initialized")
-
-        # Get sequence definitions through facade
-        sequence_definitions = app_facade.get_sequence_definitions()
-        initialize_sequences(sequence_definitions=sequence_definitions)
-        logger.info("✅ Sequence system initialized via facade")
+        # Initialize infrastructure through facade
+        app_facade.initialize_infrastructure()
+        logger.info("✅ Infrastructure initialized via facade")
 
         # Initialize handlers through facade
         app_facade.initialize_handlers()
@@ -110,12 +97,13 @@ async def lifespan_context():
             except Exception as e:
                 logger.error(f"❌ Error disposing application facade: {e}")
 
-        # Cleanup legacy HTTP client for backwards compatibility
+        # Cleanup through facade
         try:
-            await close_http_client()
-            logger.info("✅ Legacy HTTP client closed")
+            if app_facade:
+                await app_facade.cleanup_infrastructure()
+                logger.info("✅ Infrastructure cleaned up successfully")
         except Exception as e:
-            logger.error(f"❌ Error closing legacy HTTP client: {e}")
+            logger.error(f"❌ Error cleaning up infrastructure: {e}")
 
         logger.info("✅ Bot shutdown completed")
 

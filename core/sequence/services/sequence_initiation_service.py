@@ -168,24 +168,6 @@ class SequenceInitiationService:
         )
 
 
-# Global instance for easy access
-_sequence_initiation_service: Optional[SequenceInitiationService] = None
-
-
-def get_sequence_initiation_service() -> SequenceInitiationService:
-    """
-    Get the global sequence initiation service instance.
-
-    Returns:
-        SequenceInitiationService instance
-    """
-    global _sequence_initiation_service
-    if _sequence_initiation_service is None:
-        _sequence_initiation_service = SequenceInitiationService()
-    return _sequence_initiation_service
-
-
 __all__ = [
     "SequenceInitiationService",
-    "get_sequence_initiation_service",
 ]

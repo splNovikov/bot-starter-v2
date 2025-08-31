@@ -21,7 +21,7 @@ help:
 format:
 	@echo "🎨 Formatting code..."
 	@if [ -d "venv" ]; then \
-		source venv/bin/activate && python3 format_code.py; \
+		source venv/bin/activate && python3 dev-tools/format_code.py; \
 	else \
 		echo "❌ Virtual environment not found. Run 'make setup' first."; \
 		exit 1; \
@@ -52,7 +52,7 @@ clean-imports:
 # Complete development environment setup
 setup:
 	@echo "🚀 Setting up complete development environment..."
-	python3 setup_dev.py
+	python3 dev-tools/setup_dev.py
 
 # Install development dependencies
 install-dev:
@@ -78,7 +78,7 @@ run:
 test:
 	@echo "🧪 Running all tests..."
 	@if [ -d "venv" ]; then \
-		source venv/bin/activate && python3 simple_test_runner.py; \
+		source venv/bin/activate && python3 dev-tools/test_runner.py; \
 	else \
 		echo "❌ Virtual environment not found. Run 'make setup' first."; \
 		exit 1; \
@@ -87,7 +87,7 @@ test:
 test-simple:
 	@echo "🧪 Running simple tests (no external dependencies)..."
 	@if [ -d "venv" ]; then \
-		source venv/bin/activate && python3 simple_test_runner.py; \
+		source venv/bin/activate && python3 dev-tools/test_runner.py; \
 	else \
 		echo "❌ Virtual environment not found. Run 'make setup' first."; \
 		exit 1; \
@@ -96,7 +96,7 @@ test-simple:
 test-unit:
 	@echo "🧪 Running unit tests (requires pytest)..."
 	@if [ -d "venv" ]; then \
-		source venv/bin/activate && python3 -m pytest tests/test_*.py -v --ignore=tests/test_integration.py 2>/dev/null || python3 simple_test_runner.py; \
+		source venv/bin/activate && python3 -m pytest tests/test_*.py -v --ignore=tests/test_integration.py 2>/dev/null || python3 dev-tools/test_runner.py; \
 	else \
 		echo "❌ Virtual environment not found. Run 'make setup' first."; \
 		exit 1; \

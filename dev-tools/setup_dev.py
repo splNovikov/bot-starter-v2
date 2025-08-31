@@ -35,7 +35,7 @@ def run_command(command, description, cwd=None):
             check=True,
             capture_output=True,
             text=True,
-            cwd=cwd or Path(__file__).parent,
+            cwd=cwd or Path(__file__).parent.parent,
         )
         print(f"✅ {description} completed successfully")
         return True
@@ -54,7 +54,7 @@ def create_virtual_environment():
     Returns:
         bool: True if successful, False otherwise
     """
-    venv_path = Path(__file__).parent / "venv"
+    venv_path = Path(__file__).parent.parent / "venv"
 
     if venv_path.exists():
         print("✅ Virtual environment already exists")

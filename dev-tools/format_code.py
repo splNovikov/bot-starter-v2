@@ -33,7 +33,7 @@ def run_formatter(command, description):
             check=True,
             capture_output=True,
             text=True,
-            cwd=Path(__file__).parent,
+            cwd=Path(__file__).parent.parent,
         )
         print(f"✅ {description} completed successfully")
         return True

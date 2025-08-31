@@ -1,7 +1,8 @@
 from aiogram.types import CallbackQuery
 
 from application.services.user_utils import create_enhanced_context
-from core.sequence import create_translator, get_sequence_initiation_service
+from core.di.container import get_container
+from core.sequence import SequenceInitiationService, create_translator
 from core.services import t
 from core.utils import get_logger
 
@@ -58,7 +59,10 @@ async def start_callback_handler(callback: CallbackQuery) -> None:
             # Continue execution even if keyboard removal fails
 
         # Get sequence initiation service
-        sequence_initiation_service = get_sequence_initiation_service()
+        get_container()
+        sequence_initiation_service = (
+            SequenceInitiationService()
+        )  # Stateless service, can be instantiated
 
         # Create translator and enhanced context with preferred_name
         translator = create_translator(callback.from_user)

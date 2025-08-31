@@ -173,18 +173,3 @@ class UserService(UserServiceProtocol, Injectable):
             is_active=is_active,
             metadata=metadata,
         )
-
-
-# Global user service instance
-_user_service: UserService | None = None
-
-
-def get_user_service() -> UserService | None:
-    """Get global user service instance."""
-    return _user_service
-
-
-def set_user_service(service: UserService):
-    """Set global user service instance."""
-    global _user_service
-    _user_service = service

@@ -7,7 +7,8 @@ during the user_info sequence.
 
 from aiogram.types import User
 
-from application.services import get_user_service
+from core.di.container import get_container
+from core.protocols.services import UserServiceProtocol
 from core.utils import get_logger
 
 logger = get_logger()
@@ -26,11 +27,12 @@ async def _save_preferred_name(user: User, preferred_name: str) -> bool:
     """
     logger.info(f"Saving preferred_name for user {user.id}: {preferred_name}")
 
-    user_service = get_user_service()
-    logger.debug(f"User service retrieved: {user_service is not None}")
-
-    if not user_service:
-        logger.error("User service not available for saving preferred_name")
+    try:
+        container = get_container()
+        user_service = container.resolve(UserServiceProtocol)
+        logger.debug(f"User service retrieved: {user_service is not None}")
+    except Exception as e:
+        logger.error(f"Failed to resolve user service: {e}")
         return False
 
     try:
@@ -84,9 +86,11 @@ async def handle_confirm_user_name_save(user: User) -> bool:
     Returns:
         True if save was successful, False otherwise
     """
-    user_service = get_user_service()
-    if not user_service:
-        logger.error("User service not available for saving preferred_name")
+    try:
+        container = get_container()
+        user_service = container.resolve(UserServiceProtocol)
+    except Exception as e:
+        logger.error(f"Failed to resolve user service: {e}")
         return False
 
     # Get user's actual display name from Telegram

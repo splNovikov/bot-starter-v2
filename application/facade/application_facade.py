@@ -12,10 +12,9 @@ from aiogram import Router
 # Application layer imports
 from application.di_config import get_basic_container
 from application.handlers import initialize_registry, main_router, user_info_sequence
-from application.services import set_user_service
 from core.di.container import DIContainer
 from core.facade.application_facade import ApplicationFacadeProtocol
-from core.protocols.services import UserServiceProtocol
+from core.sequence import set_translator_factory
 from core.sequence.types import SequenceDefinition
 from core.utils.logger import get_logger
 
@@ -94,12 +93,59 @@ class ApplicationFacade(ApplicationFacadeProtocol):
         of the application might still depend on.
         """
         try:
-            # Resolve and set legacy user service
-            user_service = container.resolve(UserServiceProtocol)
-            set_user_service(user_service)
-            logger.info("✅ Legacy global services configured")
+            # Legacy services setup no longer needed - services resolved from DI container
+            logger.info(
+                "✅ Legacy global services no longer needed - using DI container"
+            )
         except Exception as e:
             logger.error(f"❌ Failed to setup legacy services: {e}")
+            raise
+
+    def initialize_infrastructure(self) -> None:
+        """
+        Initialize infrastructure layer components.
+
+        This method sets up infrastructure dependencies like HTTP clients,
+        sequence systems, and external integrations through proper abstractions.
+        """
+        try:
+            # Import infrastructure components locally to avoid architectural violations
+            from infrastructure.sequence import (
+                ContextAwareTranslator,
+                initialize_sequences,
+            )
+
+            # Initialize translator factory
+            def create_context_aware_translator(user):
+                return ContextAwareTranslator(user)
+
+            set_translator_factory(create_context_aware_translator)
+            logger.info("✅ Translator factory initialized")
+
+            # Get sequence definitions and initialize sequences
+            sequence_definitions = self.get_sequence_definitions()
+            initialize_sequences(sequence_definitions=sequence_definitions)
+            logger.info("✅ Sequence system initialized")
+
+        except Exception as e:
+            logger.error(f"❌ Failed to initialize infrastructure: {e}")
+            raise
+
+    async def cleanup_infrastructure(self) -> None:
+        """
+        Clean up infrastructure resources.
+
+        This method properly disposes of infrastructure-level resources
+        like HTTP clients and external connections.
+        """
+        try:
+            # Import infrastructure cleanup locally to avoid architectural violations
+            from infrastructure.api import close_http_client
+
+            await close_http_client()
+            logger.info("✅ Infrastructure resources cleaned up")
+        except Exception as e:
+            logger.error(f"❌ Failed to cleanup infrastructure: {e}")
             raise
 
     async def dispose(self) -> None:

@@ -4,9 +4,14 @@ Simple test runner without external dependencies.
 Runs basic tests to verify the system functionality.
 """
 
+from pathlib import Path
 import sys
 import traceback
 from typing import Callable, List, Tuple
+
+# Add project root to Python path to allow imports from dev-tools/ subdirectory
+project_root = Path(__file__).parent.parent
+sys.path.insert(0, str(project_root))
 
 
 class SimpleTestRunner:
@@ -198,8 +203,8 @@ def test_main_module_loading():
     # Test that lifespan context exists
     assert hasattr(main, "lifespan_context")
 
-    # Test that main router exists
-    assert hasattr(main, "main_router")
+    # Test that main function exists (entry point)
+    assert hasattr(main, "main")
 
 
 @runner.test("Sequence services")
@@ -218,6 +223,46 @@ def test_sequence_services():
     assert SequenceProgressService is not None
     assert SequenceCompletionService is not None
     assert SequenceOrchestrator is not None
+
+
+@runner.test("Architectural refactoring")
+def test_architectural_refactoring():
+    """Test architectural refactoring changes."""
+    # Test 1: Global state elimination
+    from application.services import user_service
+
+    assert not hasattr(user_service, "get_user_service"), (
+        "get_user_service should be removed"
+    )
+    assert not hasattr(user_service, "set_user_service"), (
+        "set_user_service should be removed"
+    )
+
+    # Test 2: DI container functionality
+    from application.services.user_service import UserService
+    from core.di.container import DIContainer
+    from core.protocols.services import HttpClientProtocol, UserServiceProtocol
+    from infrastructure.api.client import HttpClient
+
+    container = DIContainer()
+    container.register_singleton(HttpClientProtocol, HttpClient)
+    container.register_singleton(UserServiceProtocol, UserService)
+
+    http_client = container.resolve(HttpClientProtocol)
+    user_service = container.resolve(UserServiceProtocol)
+
+    assert isinstance(http_client, HttpClient)
+    assert isinstance(user_service, UserService)
+
+    # Test 3: ApplicationFacade infrastructure methods
+    from application.facade.application_facade import ApplicationFacade
+
+    facade = ApplicationFacade()
+
+    assert hasattr(facade, "initialize_infrastructure")
+    assert hasattr(facade, "cleanup_infrastructure")
+    assert callable(facade.initialize_infrastructure)
+    assert callable(facade.cleanup_infrastructure)
 
 
 def main():

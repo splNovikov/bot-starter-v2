@@ -71,6 +71,24 @@ class ApplicationFacadeProtocol(Protocol):
         """
         ...
 
+    def initialize_infrastructure(self) -> None:
+        """
+        Initialize infrastructure layer components.
+
+        This method should be called to setup infrastructure dependencies
+        like HTTP clients, sequence systems, and external integrations.
+        """
+        ...
+
+    async def cleanup_infrastructure(self) -> None:
+        """
+        Clean up infrastructure resources.
+
+        This method should be called during application shutdown
+        to properly dispose of infrastructure-level resources.
+        """
+        ...
+
     async def dispose(self) -> None:
         """
         Clean up application resources.

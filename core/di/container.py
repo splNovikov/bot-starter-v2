@@ -200,7 +200,7 @@ class DIContainer:
         logger.info("DI container disposed")
 
 
-# Global container instance
+# Global container instance (deprecated - use ApplicationFacade for proper DI management)
 _container: Optional[DIContainer] = None
 
 
@@ -210,6 +210,11 @@ def get_container() -> DIContainer:
 
     Returns:
         DIContainer instance
+
+    Note:
+        This function is deprecated and violates dependency inversion principles.
+        Use ApplicationFacade.get_di_container() for proper DI management.
+        Kept temporarily for backward compatibility during refactoring.
     """
     global _container
     if _container is None:
@@ -223,6 +228,11 @@ def set_container(container: DIContainer) -> None:
 
     Args:
         container: DI container to set as global
+
+    Note:
+        This function is deprecated and violates dependency inversion principles.
+        Use ApplicationFacade.get_di_container() for proper DI management.
+        Kept temporarily for backward compatibility during refactoring.
     """
     global _container
     _container = container
