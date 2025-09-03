@@ -91,9 +91,11 @@ class SequenceQuestionService(SequenceQuestionServiceProtocol, Injectable):
             else:
                 # Fallback to default sending
                 if keyboard:
-                    await message.answer(question_text, reply_markup=keyboard)
+                    await message.answer(
+                        question_text, reply_markup=keyboard, parse_mode="HTML"
+                    )
                 else:
-                    await message.answer(question_text)
+                    await message.answer(question_text, parse_mode="HTML")
 
             logger.debug(f"Sent question {question.key} to user {message.from_user.id}")
             return True
@@ -153,9 +155,11 @@ class SequenceQuestionService(SequenceQuestionServiceProtocol, Injectable):
             else:
                 # Fallback to default editing
                 if keyboard:
-                    await message.edit_text(question_text, reply_markup=keyboard)
+                    await message.edit_text(
+                        question_text, reply_markup=keyboard, parse_mode="HTML"
+                    )
                 else:
-                    await message.edit_text(question_text)
+                    await message.edit_text(question_text, parse_mode="HTML")
 
             logger.debug(
                 f"Edited question {question.key} for user {message.from_user.id}"
@@ -286,7 +290,7 @@ class SequenceQuestionService(SequenceQuestionServiceProtocol, Injectable):
 
                 button = InlineKeyboardButton(
                     text=label,
-                    callback_data=f"sequence_answer:{question.key}:{option.value}",
+                    callback_data=f"seq_answer:user_info:{question.key}:{option.value}",
                 )
                 keyboard_buttons.append([button])
 

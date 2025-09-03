@@ -21,10 +21,10 @@ locale_router = Router(name="locale_router")
     examples=["/locale"],
     aliases=["language", "lang"],
 )
-async def handle_locale_command(message: Message) -> None:
-    await locale_command_handler(message)
+async def handle_locale_command(message: Message, **kwargs) -> None:
+    await locale_command_handler(message, **kwargs)
 
 
 @locale_router.callback_query(F.data.startswith("locale:"))
-async def handle_locale_callback(callback: CallbackQuery) -> None:
-    await locale_callback_handler(callback)
+async def handle_locale_callback(callback: CallbackQuery, **kwargs) -> None:
+    await locale_callback_handler(callback, **kwargs)

@@ -8,14 +8,13 @@ creation, and other common user-related operations across handlers.
 from aiogram.types import User
 
 from application.types import UserData
-from core.di.container import get_container
-from core.protocols.services import UserServiceProtocol
+from core.utils.context_utils import get_user_service
 from core.utils.logger import get_logger
 
 logger = get_logger()
 
 
-async def ensure_user_exists(user: User) -> UserData | None:
+async def ensure_user_exists(user: User, context: dict = None) -> UserData | None:
     """
     Ensure user exists in the system, creating them if necessary.
 
@@ -34,8 +33,11 @@ async def ensure_user_exists(user: User) -> UserData | None:
         Exception: Propagates any unexpected exceptions for proper error handling
     """
     try:
-        container = get_container()
-        user_service = container.resolve(UserServiceProtocol)
+        # Get user service from context (Clean Architecture)
+        if context is None:
+            logger.error("Context is required for service resolution")
+            return None
+        user_service = get_user_service(context)
     except Exception as e:
         logger.error(f"Failed to resolve user service: {e}")
         return None
@@ -63,7 +65,7 @@ async def ensure_user_exists(user: User) -> UserData | None:
         raise  # Re-raise for proper error handling in calling code
 
 
-async def create_enhanced_context(user: User) -> dict:
+async def create_enhanced_context(user: User, kwargs: dict = None) -> dict:
     """
     Create enhanced context with preferred_name from user data.
 
@@ -73,6 +75,7 @@ async def create_enhanced_context(user: User) -> dict:
 
     Args:
         user: Telegram User object
+        kwargs: Context dictionary with services
 
     Returns:
         Dictionary with user context including preferred_name
@@ -81,17 +84,22 @@ async def create_enhanced_context(user: User) -> dict:
 
     # Always get Telegram display name for presumably_user_name
     try:
-        container = get_container()
-        user_service = container.resolve(UserServiceProtocol)
-        telegram_display_name = user_service.get_user_display_name(user)
-        context["presumably_user_name"] = telegram_display_name  # Always Telegram name
+        # Get user service from context (Clean Architecture)
+        if kwargs is None:
+            context["presumably_user_name"] = "Anonymous"
+        else:
+            user_service = get_user_service(kwargs)
+            telegram_display_name = user_service.get_user_display_name(user)
+            context["presumably_user_name"] = (
+                telegram_display_name  # Always Telegram name
+            )
     except Exception as e:
         logger.error(f"Failed to resolve user service: {e}")
         context["presumably_user_name"] = "Anonymous"
 
     try:
         # Get user data to extract preferred_name
-        user_data = await ensure_user_exists(user)
+        user_data = await ensure_user_exists(user, kwargs)
 
         if user_data and user_data.preferred_name:
             # Use saved preferred_name (consistent with database field)

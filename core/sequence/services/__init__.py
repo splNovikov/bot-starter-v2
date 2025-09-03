@@ -5,13 +5,13 @@ NOTE: This package is deprecated as part of Clean Architecture refactoring.
 All concrete implementations have been moved to infrastructure.sequence.services.
 
 This module is kept only as a placeholder. All services should be resolved
-through dependency injection using the DI container.
+through dependency injection using the ApplicationFacade.
 
 Example usage:
-    from core.di.container import get_container
-    from core.sequence.protocols import SequenceServiceProtocol
+    from application import create_application_facade
 
-    container = get_container()
+    app_facade = create_application_facade()
+    container = app_facade.get_di_container()
     sequence_service = container.resolve(SequenceServiceProtocol)
 """
 

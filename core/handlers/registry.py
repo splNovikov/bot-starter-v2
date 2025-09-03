@@ -133,10 +133,13 @@ class HandlersRegistry:
             self._router.message.register(wrapped_func)
 
         elif metadata.handler_type == HandlerType.CALLBACK:
-            # For callback queries, we need to register them manually
-            # since they require specific filters that can't be determined from metadata alone
-            # The callback query handler will be registered directly with the router
-            pass
+            from aiogram import F
+
+            # Register callback query handler with filter
+            if metadata.callback_filter:
+                # Create filter based on callback_filter pattern
+                callback_filter = F.data.startswith(metadata.callback_filter)
+                self._router.callback_query.register(wrapped_func, callback_filter)
 
         # Add more handler types as needed
 

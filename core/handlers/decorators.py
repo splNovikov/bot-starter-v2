@@ -98,6 +98,7 @@ def command(
 
 def callback_query(
     name: str,
+    callback_filter: str,
     *,
     description: str,
     category: HandlerCategory = HandlerCategory.USER,
@@ -113,6 +114,7 @@ def callback_query(
 
     Args:
         name: Handler name
+        callback_filter: Filter pattern for callback queries (e.g., "start_ready")
         description: Human-readable description
         category: Handler category
         enabled: Whether the handler is enabled
@@ -126,7 +128,7 @@ def callback_query(
         Decorated handler function
 
     Example:
-        @callback_query("locale_change", description="Handle locale change")
+        @callback_query("locale_change", "locale:", description="Handle locale change")
         async def handle_locale_change(callback: CallbackQuery) -> None:
             await process_locale_change(callback)
     """
@@ -137,6 +139,7 @@ def callback_query(
             description=description,
             handler_type=HandlerType.CALLBACK,
             category=category,
+            callback_filter=callback_filter,
             enabled=enabled,
             hidden=hidden,
             admin_only=admin_only,

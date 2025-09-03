@@ -6,7 +6,7 @@ with type safety and lifetime management.
 """
 
 import inspect
-from typing import Any, Callable, Dict, Optional, Type, TypeVar, get_type_hints
+from typing import Any, Callable, Dict, Type, TypeVar, get_type_hints
 
 from core.utils.logger import get_logger
 
@@ -200,39 +200,4 @@ class DIContainer:
         logger.info("DI container disposed")
 
 
-# Global container instance (deprecated - use ApplicationFacade for proper DI management)
-_container: Optional[DIContainer] = None
-
-
-def get_container() -> DIContainer:
-    """
-    Get the global DI container instance.
-
-    Returns:
-        DIContainer instance
-
-    Note:
-        This function is deprecated and violates dependency inversion principles.
-        Use ApplicationFacade.get_di_container() for proper DI management.
-        Kept temporarily for backward compatibility during refactoring.
-    """
-    global _container
-    if _container is None:
-        _container = DIContainer()
-    return _container
-
-
-def set_container(container: DIContainer) -> None:
-    """
-    Set the global DI container instance.
-
-    Args:
-        container: DI container to set as global
-
-    Note:
-        This function is deprecated and violates dependency inversion principles.
-        Use ApplicationFacade.get_di_container() for proper DI management.
-        Kept temporarily for backward compatibility during refactoring.
-    """
-    global _container
-    _container = container
+# Global container functionality removed - use ApplicationFacade for proper DI management

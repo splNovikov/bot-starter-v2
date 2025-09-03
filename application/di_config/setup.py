@@ -6,7 +6,7 @@ service registrations for the application.
 """
 
 from application.services.user_service import UserService
-from core.di.container import DIContainer, get_container
+from core.di.container import DIContainer
 from core.protocols.services import HttpClientProtocol, UserServiceProtocol
 from core.sequence.protocols import (
     SequenceCompletionServiceProtocol,
@@ -46,7 +46,7 @@ def setup_di_container() -> DIContainer:
     Returns:
         Configured DIContainer instance
     """
-    container = get_container()
+    container = DIContainer()
 
     # Infrastructure layer services
     logger.info("Registering infrastructure services...")

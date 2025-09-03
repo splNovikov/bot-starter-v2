@@ -58,6 +58,12 @@ def create_user_info_sequence() -> SequenceDefinition:
             is_required=True,
         ),
         SequenceQuestion(
+            key="birth_date",
+            question_text_key="handlers.user_info.questions.birth_date.question",
+            question_type=QuestionType.TEXT,
+            is_required=True,
+        ),
+        SequenceQuestion(
             key="eyes_color",
             question_text_key="handlers.user_info.questions.eyes_color.question",
             question_type=QuestionType.SINGLE_CHOICE,

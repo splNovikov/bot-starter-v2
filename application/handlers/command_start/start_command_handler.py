@@ -15,10 +15,10 @@ from .start_lib import (
 logger = get_logger()
 
 
-async def start_command_handler(message: Message) -> None:
+async def start_command_handler(message: Message, **kwargs) -> None:
     try:
         # Ensure user exists in the system, creating if necessary
-        user_data = await ensure_user_exists(message.from_user)
+        user_data = await ensure_user_exists(message.from_user, kwargs)
 
         if not user_data:
             # User service unavailable or creation failed - show generic greeting

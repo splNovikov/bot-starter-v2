@@ -33,8 +33,14 @@ from aiogram.fsm.storage.memory import MemoryStorage
 from application import create_application_facade
 from config import config
 from core.facade import ApplicationFacadeProtocol
-from core.middleware import LocalizationMiddleware, LoggingMiddleware
-from core.protocols.services import HttpClientProtocol
+from core.middleware import (
+    ApplicationFacadeMiddleware,
+    CallbackMiddleware,
+    LocalizationMiddleware,
+    LoggingMiddleware,
+)
+from core.protocols.services import HttpClientProtocol, UserServiceProtocol
+from core.sequence.protocols import SequenceServiceProtocol
 from core.utils.logger import get_logger, setup_logger
 
 # Setup logging
@@ -63,13 +69,11 @@ async def lifespan_context():
         container = app_facade.get_di_container()
         logger.info("✅ DI container configured via facade")
 
-        # Resolve core services from container
+        # Verify core services can be resolved
+        container.resolve(UserServiceProtocol)
+        container.resolve(SequenceServiceProtocol)
         container.resolve(HttpClientProtocol)
         logger.info("✅ Core services resolved from DI container")
-
-        # Setup legacy global services through facade
-        app_facade.setup_legacy_services(container)
-        logger.info("✅ Legacy global services configured via facade")
 
         # Initialize infrastructure through facade
         app_facade.initialize_infrastructure()
@@ -137,7 +141,15 @@ async def create_dispatcher(app_facade: ApplicationFacadeProtocol) -> Dispatcher
     storage = MemoryStorage()
     dp = Dispatcher(storage=storage)
 
-    # Register middleware in order
+    # Register middleware in order - ApplicationFacadeMiddleware first
+    facade_middleware = ApplicationFacadeMiddleware(app_facade)
+    callback_middleware = CallbackMiddleware(app_facade)
+
+    dp.message.middleware(facade_middleware)
+    dp.callback_query.middleware(facade_middleware)
+    dp.callback_query.middleware(callback_middleware)
+
+    # Other middleware after facade
     dp.message.middleware(LoggingMiddleware())
     dp.message.middleware(LocalizationMiddleware())
     dp.callback_query.middleware(LoggingMiddleware())

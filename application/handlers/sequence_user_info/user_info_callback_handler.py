@@ -1,10 +1,9 @@
 from aiogram.types import CallbackQuery
 
 from application.services.user_utils import create_enhanced_context
-from core.di.container import get_container
 from core.sequence import create_translator
-from core.sequence.protocols import SequenceServiceProtocol
 from core.utils import get_logger
+from core.utils.context_utils import get_sequence_service
 
 from .gender_handler import handle_gender_save
 from .preferred_name_handler import handle_confirm_user_name_save
@@ -18,7 +17,7 @@ CALLBACK_PREFIX = "seq_answer"
 SEQUENCE_NAME = "user_info"
 
 
-async def user_info_callback_handler(callback: CallbackQuery) -> None:
+async def user_info_callback_handler(callback: CallbackQuery, **kwargs) -> None:
     """
     Handle callback queries for user info sequence.
 
@@ -63,9 +62,8 @@ async def user_info_callback_handler(callback: CallbackQuery) -> None:
             f"Processing callback data: {callback.data} for user {callback.from_user.id}"
         )
 
-        # Get sequence service
-        container = get_container()
-        sequence_service = container.resolve(SequenceServiceProtocol)
+        # Get sequence service from context (Clean Architecture)
+        sequence_service = get_sequence_service(kwargs)
 
         # Get current session
         session = sequence_service.get_session(callback.from_user.id)
@@ -132,7 +130,7 @@ async def user_info_callback_handler(callback: CallbackQuery) -> None:
 
             # Create translator and enhanced context with preferred_name
             translator = create_translator(callback.from_user)
-            context = await create_enhanced_context(callback.from_user)
+            context = await create_enhanced_context(callback.from_user, kwargs)
 
             # Send completion message
             try:
@@ -151,7 +149,7 @@ async def user_info_callback_handler(callback: CallbackQuery) -> None:
             try:
                 # Create translator and enhanced context with preferred_name
                 translator = create_translator(callback.from_user)
-                context = await create_enhanced_context(callback.from_user)
+                context = await create_enhanced_context(callback.from_user, kwargs)
 
                 await sequence_service.edit_question(
                     callback.message,

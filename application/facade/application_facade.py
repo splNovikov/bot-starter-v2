@@ -5,18 +5,25 @@ Concrete implementation of ApplicationFacadeProtocol that orchestrates
 all application layer components through a unified interface.
 """
 
-from typing import List
+from typing import List, TypeVar
 
 from aiogram import Router
 
 # Application layer imports
 from application.di_config import get_basic_container
 from application.handlers import initialize_registry, main_router, user_info_sequence
+
+# Service protocol imports
+from application.services.user_service import UserServiceProtocol
 from core.di.container import DIContainer
 from core.facade.application_facade import ApplicationFacadeProtocol
 from core.sequence import set_translator_factory
+from core.sequence.protocols import SequenceServiceProtocol
 from core.sequence.types import SequenceDefinition
+from core.services.localization import LocalizationService
 from core.utils.logger import get_logger
+
+T = TypeVar("T")
 
 logger = get_logger()
 
@@ -82,25 +89,6 @@ class ApplicationFacade(ApplicationFacadeProtocol):
             logger.error(f"❌ Failed to initialize handlers: {e}")
             raise
 
-    def setup_legacy_services(self, container: DIContainer) -> None:
-        """
-        Setup legacy global services for backwards compatibility.
-
-        Args:
-            container: DI container with resolved services
-
-        This method handles legacy service registration that some parts
-        of the application might still depend on.
-        """
-        try:
-            # Legacy services setup no longer needed - services resolved from DI container
-            logger.info(
-                "✅ Legacy global services no longer needed - using DI container"
-            )
-        except Exception as e:
-            logger.error(f"❌ Failed to setup legacy services: {e}")
-            raise
-
     def initialize_infrastructure(self) -> None:
         """
         Initialize infrastructure layer components.
@@ -147,6 +135,58 @@ class ApplicationFacade(ApplicationFacadeProtocol):
         except Exception as e:
             logger.error(f"❌ Failed to cleanup infrastructure: {e}")
             raise
+
+    def get_service(self, service_type: type[T]) -> T:
+        """
+        Get a service instance from the DI container.
+
+        This method provides a clean interface for service resolution,
+        replacing direct calls to get_container().resolve().
+
+        Args:
+            service_type: The service protocol/interface to resolve
+
+        Returns:
+            Service instance of the specified type
+
+        Raises:
+            ValueError: If service is not registered or resolution fails
+        """
+        try:
+            container = self.get_di_container()
+            return container.resolve(service_type)
+        except Exception as e:
+            logger.error(f"❌ Failed to resolve service {service_type.__name__}: {e}")
+            raise ValueError(
+                f"Service resolution failed for {service_type.__name__}"
+            ) from e
+
+    def get_user_service(self) -> UserServiceProtocol:
+        """
+        Get user service instance.
+
+        Returns:
+            UserServiceProtocol instance for user operations
+        """
+        return self.get_service(UserServiceProtocol)
+
+    def get_sequence_service(self) -> SequenceServiceProtocol:
+        """
+        Get sequence service instance.
+
+        Returns:
+            SequenceServiceProtocol instance for sequence operations
+        """
+        return self.get_service(SequenceServiceProtocol)
+
+    def get_localization_service(self) -> LocalizationService:
+        """
+        Get localization service instance.
+
+        Returns:
+            LocalizationService instance for i18n operations
+        """
+        return self.get_service(LocalizationService)
 
     async def dispose(self) -> None:
         """

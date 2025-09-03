@@ -1,17 +1,11 @@
 """
-Dependency Injection container and related utilities.
+Dependency injection container module.
 
-Provides a simple, type-safe DI container for managing service dependencies
-and promoting better testability and maintainability.
+Provides the DI container implementation and related utilities.
 """
 
-from .container import DIContainer, get_container, set_container
-from .protocols import Disposable, Injectable
+from .container import DIContainer
 
 __all__ = [
     "DIContainer",
-    "get_container",
-    "set_container",
-    "Injectable",
-    "Disposable",
 ]

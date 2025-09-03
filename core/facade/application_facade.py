@@ -5,12 +5,14 @@ Defines the contract for application layer initialization and configuration,
 providing a clean interface that isolates core from application implementation details.
 """
 
-from typing import List, Protocol, runtime_checkable
+from typing import List, Protocol, TypeVar, runtime_checkable
 
 from aiogram import Router
 
 from core.di.container import DIContainer
 from core.sequence.types import SequenceDefinition
+
+T = TypeVar("T")
 
 
 @runtime_checkable
@@ -56,6 +58,51 @@ class ApplicationFacadeProtocol(Protocol):
 
         This method should be called before using the main router
         to ensure all decorated handlers are properly registered.
+        """
+        ...
+
+    def get_service(self, service_type: type[T]) -> T:
+        """
+        Get a service instance from the DI container.
+
+        This method provides a clean interface for service resolution,
+        replacing direct calls to get_container().resolve().
+
+        Args:
+            service_type: The service protocol/interface to resolve
+
+        Returns:
+            Service instance of the specified type
+
+        Raises:
+            ValueError: If service is not registered or resolution fails
+        """
+        ...
+
+    def get_user_service(self):
+        """
+        Get user service instance.
+
+        Returns:
+            UserServiceProtocol instance for user operations
+        """
+        ...
+
+    def get_sequence_service(self):
+        """
+        Get sequence service instance.
+
+        Returns:
+            SequenceServiceProtocol instance for sequence operations
+        """
+        ...
+
+    def get_localization_service(self):
+        """
+        Get localization service instance.
+
+        Returns:
+            LocalizationService instance for i18n operations
         """
         ...
 

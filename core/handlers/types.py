@@ -44,6 +44,9 @@ class HandlerMetadata:
     usage: Optional[str] = None
     examples: List[str] = field(default_factory=list)
 
+    # Callback-specific information
+    callback_filter: Optional[str] = None  # Filter pattern for callback queries
+
     # Behavior configuration
     enabled: bool = True
     hidden: bool = False  # Hidden from help
@@ -58,6 +61,9 @@ class HandlerMetadata:
         """Validate metadata after initialization."""
         if self.handler_type == HandlerType.COMMAND and not self.command:
             raise ValueError("Command handlers must specify a command name")
+
+        if self.handler_type == HandlerType.CALLBACK and not self.callback_filter:
+            raise ValueError("Callback handlers must specify a callback filter")
 
         if self.command and not self.usage:
             # Auto-generate basic usage if not provided

@@ -1,11 +1,10 @@
 from aiogram.types import CallbackQuery
 
 from application.services.user_utils import create_enhanced_context
-from core.di.container import get_container
 from core.sequence import create_translator
-from core.sequence.protocols import SequenceServiceProtocol
 from core.services import t
 from core.utils import get_logger
+from core.utils.context_utils import get_sequence_service
 from infrastructure.sequence import SequenceInitiationService
 
 logger = get_logger()
@@ -16,7 +15,7 @@ SEQUENCE_SEPARATOR = ":"
 VALID_SEQUENCES = {"user_info"}  # Add more sequences as needed
 
 
-async def start_callback_handler(callback: CallbackQuery) -> None:
+async def start_callback_handler(callback: CallbackQuery, **kwargs) -> None:
     """
     Handle the start ready callback for initiating user sequences.
 
@@ -61,13 +60,13 @@ async def start_callback_handler(callback: CallbackQuery) -> None:
             # Continue execution even if keyboard removal fails
 
         # Get sequence initiation service
-        container = get_container()
-        sequence_service = container.resolve(SequenceServiceProtocol)
+        # Get sequence service from context (Clean Architecture)
+        sequence_service = get_sequence_service(kwargs)
         sequence_initiation_service = SequenceInitiationService(sequence_service)
 
         # Create translator and enhanced context with preferred_name
         translator = create_translator(callback.from_user)
-        context = await create_enhanced_context(callback.from_user)
+        context = await create_enhanced_context(callback.from_user, kwargs)
 
         if not sequence_initiation_service:
             logger.error("Sequence initiation service not available")
@@ -89,6 +88,9 @@ async def start_callback_handler(callback: CallbackQuery) -> None:
             logger.error(
                 f"Failed to start {sequence_name} sequence for user {callback.from_user.id}: {error_message}"
             )
+        else:
+            # Successfully initiated sequence
+            await callback.answer("Sequence started successfully!")
 
     except Exception as e:
         logger.error(

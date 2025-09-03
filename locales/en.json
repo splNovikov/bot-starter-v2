@@ -46,6 +46,9 @@
             "female": "Female"
           }
         },
+        "birth_date": {
+          "question": "<b>Now please provide your date of birth.\nWrite it in DD.MM.YYYY format as a reply message.</b>"
+        },
         "eyes_color": {
           "question": "What color are your eyes?",
           "options": {
@@ -82,12 +85,20 @@
       "question_not_found": "❌ Question not found. Please try again.",
       "send_question_failed": "❌ Failed to send question. Please try again.",
       "completion_failed": "❌ Failed to send completion message. Please try again.",
-      "next_question_failed": "❌ Failed to get next question. Please try again."
+      "next_question_failed": "❌ Failed to get next question. Please try again.",
+      "invalid_birth_date_format": "❌ Invalid date format. Please use DD.MM.YYYY format (e.g., 15.03.1990)",
+      "invalid_birth_date_year": "❌ Year must be between 1900 and current year",
+      "invalid_birth_date_month": "❌ Month must be between 01 and 12",
+      "invalid_birth_date_day": "❌ Day must be between 01 and 31",
+      "birth_date_in_future": "❌ Birth date cannot be in the future",
+      "birth_date_unrealistic": "❌ Birth date seems unrealistic",
+      "invalid_date_validation": "❌ Invalid date. Please check day and month values"
     }
   },
   
   "errors": {
     "generic": "Sorry, something went wrong. Please try again.",
+    "general_error": "Sorry, an error occurred. Please try again.",
     "invalid_callback": "❌ Invalid callback data. Please try again.",
     "invalid_sequence": "❌ Invalid sequence. Please try again.",
     "invalid_language": "❌ Invalid language code. Please try again.",

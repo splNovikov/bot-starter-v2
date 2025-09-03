@@ -46,6 +46,9 @@
             "female": "Femenino"
           }
         },
+        "birth_date": {
+          "question": "<b>Ahora por favor proporciona tu fecha de nacimiento.\nEscríbela en formato DD.MM.AAAA como mensaje de respuesta.</b>"
+        },
         "eyes_color": {
           "question": "¿De qué color son tus ojos?",
           "options": {
@@ -82,12 +85,20 @@
       "question_not_found": "❌ Pregunta no encontrada. Por favor, inténtalo de nuevo.",
       "send_question_failed": "❌ No se pudo enviar la pregunta. Por favor, inténtalo de nuevo.",
       "completion_failed": "❌ No se pudo enviar el mensaje de finalización. Por favor, inténtalo de nuevo.",
-      "next_question_failed": "❌ No se pudo obtener la siguiente pregunta. Por favor, inténtalo de nuevo."
+      "next_question_failed": "❌ No se pudo obtener la siguiente pregunta. Por favor, inténtalo de nuevo.",
+      "invalid_birth_date_format": "❌ Formato de fecha inválido. Por favor, usa el formato DD.MM.AAAA (ej., 15.03.1990)",
+      "invalid_birth_date_year": "❌ El año debe estar entre 1900 y el año actual",
+      "invalid_birth_date_month": "❌ El mes debe estar entre 01 y 12",
+      "invalid_birth_date_day": "❌ El día debe estar entre 01 y 31",
+      "birth_date_in_future": "❌ La fecha de nacimiento no puede estar en el futuro",
+      "birth_date_unrealistic": "❌ La fecha de nacimiento parece poco realista",
+      "invalid_date_validation": "❌ Fecha inválida. Por favor, verifica el día y mes"
     }
   },
   
   "errors": {
     "generic": "Lo siento, algo salió mal. Por favor, inténtalo de nuevo.",
+    "general_error": "Lo siento, ocurrió un error. Por favor, inténtalo de nuevo.",
     "invalid_callback": "❌ Datos de callback inválidos. Por favor, inténtalo de nuevo.",
     "invalid_sequence": "❌ Secuencia inválida. Por favor, inténtalo de nuevo.",
     "invalid_language": "❌ Código de idioma inválido. Por favor, inténtalo de nuevo.",

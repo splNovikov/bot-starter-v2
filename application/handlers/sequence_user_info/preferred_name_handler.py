@@ -7,9 +7,8 @@ during the user_info sequence.
 
 from aiogram.types import User
 
-from core.di.container import get_container
-from core.protocols.services import UserServiceProtocol
 from core.utils import get_logger
+from core.utils.context_utils import get_user_service
 
 logger = get_logger()
 
@@ -28,8 +27,8 @@ async def _save_preferred_name(user: User, preferred_name: str) -> bool:
     logger.info(f"Saving preferred_name for user {user.id}: {preferred_name}")
 
     try:
-        container = get_container()
-        user_service = container.resolve(UserServiceProtocol)
+        # Get user service from context (Clean Architecture)
+        user_service = get_user_service(kwargs)
         logger.debug(f"User service retrieved: {user_service is not None}")
     except Exception as e:
         logger.error(f"Failed to resolve user service: {e}")
@@ -87,8 +86,8 @@ async def handle_confirm_user_name_save(user: User) -> bool:
         True if save was successful, False otherwise
     """
     try:
-        container = get_container()
-        user_service = container.resolve(UserServiceProtocol)
+        # Get user service from context (Clean Architecture)
+        user_service = get_user_service(kwargs)
     except Exception as e:
         logger.error(f"Failed to resolve user service: {e}")
         return False

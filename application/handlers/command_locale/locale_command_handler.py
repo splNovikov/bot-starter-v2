@@ -1,17 +1,16 @@
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message
 
-from core.di.container import get_container
-from core.services.localization import LocalizationService, t
+from core.services.localization import t
+from core.utils.context_utils import get_localization_service
 from core.utils.logger import get_logger
 
 logger = get_logger()
 
 
-async def locale_command_handler(message: Message) -> None:
+async def locale_command_handler(message: Message, **kwargs) -> None:
     try:
-        # Get localization service
-        container = get_container()
-        localization_service = container.resolve(LocalizationService)
+        # Get localization service from context (Clean Architecture)
+        localization_service = get_localization_service(kwargs)
 
         # Get current user language
         current_language = localization_service.get_user_language(message.from_user)

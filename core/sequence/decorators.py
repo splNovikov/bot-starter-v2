@@ -1,7 +1,7 @@
 from functools import wraps
 from typing import Callable, List, Optional
 
-from core.handlers.decorators import command
+# Import removed to avoid circular dependency with core.handlers
 from core.handlers.types import HandlerCategory
 from core.utils.logger import get_logger
 
@@ -83,18 +83,22 @@ def sequence_handler(
             ]:
                 base_command_kwargs[key] = value
 
-        # Use the base command decorator with filtered metadata
-        enhanced_func = command(
-            command_name,
-            description=description,
-            category=category,
-            usage=usage or f"/{command_name}",
-            examples=examples or [f"/{command_name}"],
-            aliases=aliases or [],
-            enabled=enabled,
-            tags=["sequence", behavior_type],
+        # Note: Command decorator registration moved to application layer
+        # to avoid circular dependencies. See ApplicationFacade initialization.
+
+        # Add command metadata for ApplicationFacade to use during registration
+        enhanced_func = func
+        enhanced_func.__sequence_command__ = {
+            "name": command_name,
+            "description": description,
+            "category": category,
+            "usage": usage or f"/{command_name}",
+            "examples": examples or [f"/{command_name}"],
+            "aliases": aliases or [],
+            "enabled": enabled,
+            "tags": ["sequence", behavior_type],
             **base_command_kwargs,
-        )(func)
+        }
 
         # Add sequence-specific wrapper functionality
         @wraps(enhanced_func)
